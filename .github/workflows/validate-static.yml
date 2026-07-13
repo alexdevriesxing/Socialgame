@@ -22,21 +22,50 @@ jobs:
           fetch-depth: 1
           show-progress: false
 
-      - name: Syntax-check referenced scripts
+      - name: Diagnose referenced scripts
         shell: bash
         run: |
-          set -euo pipefail
+          set -u
+          : > syntax-diagnostic.txt
           mapfile -t scripts < <(grep -oP '<script src="\K[^"]+' index.html)
-          test "${#scripts[@]}" -ge 30
+          if [ "${#scripts[@]}" -lt 30 ]; then
+            echo "Expected at least 30 referenced scripts; found ${#scripts[@]}." > syntax-diagnostic.txt
+            exit 0
+          fi
           for script in "${scripts[@]}"; do
-            test -f "$script"
+            if [ ! -f "$script" ]; then
+              echo "MISSING_FILE=$script" > syntax-diagnostic.txt
+              break
+            fi
             if ! output=$(node --check "$script" 2>&1); then
-              echo "SYNTAX_FAILURE=$script"
-              printf '%s\n' "$output"
-              exit 1
+              {
+                echo "SYNTAX_FAILURE=$script"
+                printf '%s\n' "$output"
+              } > syntax-diagnostic.txt
+              break
             fi
           done
-          echo "Checked ${#scripts[@]} referenced scripts."
+          if [ ! -s syntax-diagnostic.txt ]; then
+            rm syntax-diagnostic.txt
+            echo "Checked ${#scripts[@]} referenced scripts."
+          fi
+
+      - name: Upload syntax diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: syntax-diagnostic
+          path: syntax-diagnostic.txt
+          if-no-files-found: ignore
+          retention-days: 1
+
+      - name: Fail on syntax diagnostics
+        shell: bash
+        run: |
+          if [ -f syntax-diagnostic.txt ]; then
+            cat syntax-diagnostic.txt
+            exit 1
+          fi
 
       - name: Runtime smoke test
         run: node tests/remote-static-smoke.mjs
