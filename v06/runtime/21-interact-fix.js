@@ -1,1 +1,1 @@
-// Reserved for future world-interaction extensions.
+// Reserved extension point for future world interactions.
