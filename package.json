@@ -1,0 +1,23 @@
+{
+  "name": "sakura-crest-social-summit",
+  "version": "0.3.0",
+  "private": true,
+  "type": "module",
+  "description": "A family-friendly 2D anime high-school social simulation with social-status difficulty and club progression.",
+  "scripts": {
+    "serve": "npm run build && python3 -m http.server 4173 --directory dist",
+    "syntax": "node scripts/check-syntax.mjs",
+    "validate:content": "node scripts/validate-content.mjs",
+    "test:unit": "node tests/save-migration.mjs",
+    "test:smoke": "node tests/smoke.mjs",
+    "build": "npm run assets:generate && node scripts/build-release.mjs",
+    "verify:release": "node scripts/verify-release.mjs",
+    "check": "npm run assets:generate && npm run syntax && npm run validate:content && npm run validate:assets && npm run test:unit && npm run build && npm run test:smoke && npm run verify:release && npm run test:http",
+    "test:http": "node tests/http-smoke.mjs",
+    "validate:assets": "node scripts/validate-assets.mjs",
+    "assets:generate": "python3 tools/generate_assets.py"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
