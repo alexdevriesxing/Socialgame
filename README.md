@@ -1,12 +1,7 @@
-# Sakura Crest: Social Summit — Living School Pass v0.5
+# Sakura Crest: Social Summit — Festival & Messages Pass v0.6
 
-Cloudflare-ready self-contained release generated from the validated modular source. It includes all 48 campaign chapters, 30 friendship-route chapters, daily school broadcasts, four playable club challenges, five-frame scalable anime sprites, seasonal ambience, save migration v3 and the route-aware prom ending.
+Deploy the repository root to Cloudflare Pages with framework preset **None**, no build command, output directory `.`, and no environment variables.
 
-## Cloudflare Pages
+This readable static release includes four school years, 48 campaign chapters, 30 friendship chapters, 20 phone conversations, 12 monthly showcases, four club challenges and the prom ending.
 
-- Framework preset: **None**
-- Build command: leave blank
-- Build output directory: **.**
-- Environment variables: none
-
-The `release-*.js` files contain the compressed self-contained browser build. Editable modular source is distributed separately.
+Controls: WASD/arrows move, E/Space interact, R rankings, Q schedule, J friendships, P phone, K memories, M sound and Escape pause.

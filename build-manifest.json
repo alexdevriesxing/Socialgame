@@ -1,16 +1,25 @@
 {
-  "version": "0.5.0",
-  "release": "Living School Pass",
-  "format": "self-contained-cloudflare-payload",
-  "chunks": 10,
-  "standaloneBytes": 165145,
-  "gzipBytes": 51845,
-  "sha256": "f879323daa9e768015734280cf6b4cc74ee2e788762ba5636dff4ca8c9388326",
+  "version": "0.6.0",
+  "release": "Festival & Messages Pass",
+  "format": "readable-cloudflare-static",
   "features": {
     "campaignChapters": 48,
     "friendshipChapters": 30,
+    "phoneConversations": 20,
+    "monthlyShowcases": 12,
     "clubChallenges": 4,
     "animationColumns": 5,
-    "saveVersion": 3
-  }
+    "eventScenes": 12,
+    "saveVersion": 4
+  },
+  "validation": [
+    "JavaScript syntax",
+    "content integrity",
+    "art atlas integrity",
+    "save migration",
+    "runtime initialization",
+    "classic-script smoke",
+    "static HTTP package",
+    "ZIP integrity"
+  ]
 }

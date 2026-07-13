@@ -1,12 +1,64 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta name="theme-color" content="#1c1d2b"><title>Sakura Crest: Social Summit</title><style>html,body{margin:0;width:100%;height:100%;display:grid;place-items:center;background:#11131e;color:#fff6e7;font:700 16px Arial,sans-serif}.loader{padding:24px;border:2px solid #e5b84b;border-radius:18px;background:#1c1d2b;box-shadow:0 18px 60px #080912;text-align:center}</style></head><body><div class="loader">Opening Sakura Crest Academy…</div>
-<script src="release-0.js"></script>
-<script src="release-1.js"></script>
-<script src="release-2.js"></script>
-<script src="release-3.js"></script>
-<script src="release-4.js"></script>
-<script src="release-5.js"></script>
-<script src="release-6.js"></script>
-<script src="release-7.js"></script>
-<script src="release-8.js"></script>
-<script src="release-9.js"></script>
-<script>(async()=>{try{const b=atob(window.__SC_V05.join('')),u=new Uint8Array(b.length);for(let i=0;i<b.length;i++)u[i]=b.charCodeAt(i);const ds=new DecompressionStream('gzip'),text=await new Response(new Blob([u]).stream().pipeThrough(ds)).text();document.open();document.write(text);document.close()}catch(e){document.body.innerHTML='<div class="loader">Unable to open the game. Please use a current Chrome, Edge, Firefox or Safari browser.</div>';console.error(e)}})();</script></body></html>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#1c1d2b" />
+  <meta name="description" content="Sakura Crest: Social Summit — a family-friendly 2D anime high-school social simulation." />
+  <title>Sakura Crest: Social Summit</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <meta property="og:title" content="Sakura Crest: Social Summit" />
+  <meta property="og:description" content="Four school years. Forty-eight rankings. One unforgettable prom." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main id="app" aria-label="Sakura Crest: Social Summit game">
+    <canvas id="game" width="960" height="540" tabindex="0" aria-label="Game canvas"></canvas>
+    <section id="creator" class="creator hidden" aria-label="Character creator">
+      <label for="nameInput">Student name</label>
+      <input id="nameInput" maxlength="12" value="Akira" autocomplete="off" />
+      <button id="confirmName" type="button">Begin School Life</button>
+    </section>
+    <div class="loading" id="loading">Preparing Sakura Crest Academy…</div>
+  </main>
+  <noscript>This game requires JavaScript.</noscript>
+  <script src="v06/data/school.js"></script>
+  <script src="v06/data/progression.js"></script>
+  <script src="v06/data/characters.js"></script>
+  <script src="v06/data/activities.js"></script>
+  <script src="v06/data/events.js"></script>
+  <script src="v06/data/campaign.js"></script>
+  <script src="v06/data/routes/base.js"></script>
+  <script src="v06/data/routes/aiko.js"></script>
+  <script src="v06/data/routes/mina.js"></script>
+  <script src="v06/data/routes/rina.js"></script>
+  <script src="v06/data/routes/emi.js"></script>
+  <script src="v06/data/routes/hana.js"></script>
+  <script src="v06/data/routes/ren.js"></script>
+  <script src="v06/data/routes/haru.js"></script>
+  <script src="v06/data/routes/daichi.js"></script>
+  <script src="v06/data/routes/kenji.js"></script>
+  <script src="v06/data/routes/sora.js"></script>
+  <script src="v06/data/routes/thresholds.js"></script>
+  <script src="v06/data/daily.js"></script>
+  <script src="v06/data/challenges.js"></script>
+  <script src="v06/data/messages.js"></script>
+  <script src="v06/data/showcases.js"></script>
+  <script src="v06/save.js"></script>
+  <script src="v06/art-core.js"></script>
+  <script src="v06/art-characters.js"></script>
+  <script src="v06/art-world.js"></script>
+  <script src="v06/art-brand.js"></script>
+  <script src="v06/runtime/00-bootstrap.js"></script>
+  <script src="v06/runtime/10-state-dialogue.js"></script>
+  <script src="v06/runtime/15-living-school.js"></script>
+  <script src="v06/runtime/16-campus-life.js"></script>
+  <script src="v06/runtime/20-interactions-school.js"></script>
+  <script src="v06/runtime/21-interact-fix.js"></script>
+  <script src="v06/runtime/30-progression-ranking.js"></script>
+  <script src="v06/runtime/40-update-scenes.js"></script>
+  <script src="v06/runtime/50-world-hud.js"></script>
+  <script src="v06/runtime/60-overlays-ui.js"></script>
+  <script src="v06/runtime/70-input-start.js"></script>
+</body>
+</html>

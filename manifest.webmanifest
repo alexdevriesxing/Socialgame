@@ -6,13 +6,6 @@
   "display": "standalone",
   "background_color": "#11131e",
   "theme_color": "#1c1d2b",
-  "description": "A family-friendly 2D anime high-school social simulation.",
-  "icons": [
-    {
-      "src": "assets/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
-  ]
+  "description": "A crisp anime school-life RPG with friendship routes, phone conversations and monthly showcases.",
+  "icons": [{"src":"assets/favicon.svg","sizes":"any","type":"image/svg+xml","purpose":"any maskable"}]
 }
