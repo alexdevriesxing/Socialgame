@@ -1,25 +1,39 @@
 # Sakura Crest: Social Summit
 
-A fully 2D, family-friendly anime high-school social simulation built as a browser-first vertical slice with original 16-bit-inspired pixel art.
+A fully 2D, family-friendly anime high-school social simulation for the browser. The player follows a real class timetable, builds friendships, joins a club, competes on a separate boys' or girls' social ladder and tries to become Prom King or Prom Queen after four school years.
 
-## Playable vertical slice
+## Current playable systems
 
-The current build includes:
+- Top-down school exploration with classrooms, hallways, library, courtyard, cafeteria and gym.
+- Bell-driven schedule, attendance, late arrival dialogue, warnings, demerits and detention.
+- Separate boys' and girls' social rankings with monthly finals.
+- Ten recurring students, four teachers, relationships, branching dialogue and NPC routines.
+- Daily missions, random school incidents, family-friendly bully situations and school hazards.
+- Four-year / 48-month progression framework ending at prom.
+- Local saving, keyboard controls, touch controls and original browser audio.
 
-- A top-down, explorable school with homeroom, mathematics and literature classrooms, hallway, library, courtyard, cafeteria and gym.
-- Original pixel-art student sprites, teacher sprites, portraits, school map, UI icons and title key art.
-- Separate boys' and girls' social rankings.
-- A real bell-driven class timetable with required rooms, grace periods, attendance checks and lateness.
-- Rich teacher discipline conversations, warnings, demerits, reliability loss, parent-note risk and after-school detention.
-- Ten recurring student NPCs, four teachers, distinct school circles and relationship progression.
-- Dialogue choices affecting charisma, intellect, fitness, talent, kindness, courage, reliability, stress and social score.
-- Class activities for homeroom, mathematics, literature, physical education, club period, social studies and closing homeroom.
-- Non-violent bully situations, rumors, fire drills, storms, leaks, blackouts and a missing mascot prop.
-- Daily missions, energy/stress management, local saving and monthly ranking finals.
-- A progression structure for 4 years × 12 months, ending at prom.
-- Desktop and touch controls plus lightweight original chiptune-style Web Audio.
+## Social status difficulty
 
-This is a **vertical slice**, not yet the complete 48-month commercial game. The four-year calendar, simulation framework and prom ending are wired; later months still require bespoke environments, story arcs, competitions, dialogue and seasonal art.
+Starting social status is the difficulty setting:
+
+| Status | Difficulty | Effect |
+|---|---|---|
+| Established | Easy | Existing contacts, easier invitations and club promotion, softer penalties and lower rival pressure. |
+| Ordinary | Normal | Neutral starting position and standard ranking pressure. |
+| Outsider | Hard | Fewer initial connections, higher rumor risk, stronger rivals, tougher club gates and larger penalties. |
+
+Status affects starting relationships, teacher trust, score gains and losses, rumor frequency, NPC ranking scores, invitation thresholds and club promotion requirements.
+
+## Clubs
+
+Choose one of four strategic long-term paths:
+
+- **Skybound Athletics** — fitness, teamwork and sports competitions.
+- **Velvet Bloom Arts** — performance, design and festival recognition.
+- **Byte Brigade** — robotics, puzzles and technology tournaments.
+- **Crest Council** — leadership, mediation and school-wide influence.
+
+Each club has four ranks, XP, prestige, attendance reviews, a rival group, seasonal competitions and a leadership endpoint. Club prestige and wins contribute directly to the monthly social ranking.
 
 ## Controls
 
@@ -42,22 +56,36 @@ python -m http.server 4173
 
 Open `http://localhost:4173`.
 
-## Repository build format
+Validation:
 
-The branch contains a static, self-contained commercial-demo build. `index.html` reconstructs the complete game at runtime from `part-0.js` through `part-9.js`; those files contain the compressed HTML, CSS, JavaScript, dialogue data and original artwork. This keeps the deployment dependency-free and compatible with static hosting.
+```bash
+npm run check
+```
 
-The editable development package is maintained separately and contains modular source, uncompressed generated assets, the reproducible pixel-art generator, tests, game design documents, art bible and content roadmap.
+## Cloudflare Pages
 
-## Deployment
+- Framework preset: **None**
+- Build command: leave empty
+- Build output directory: `/`
+- Root directory: repository root
+- Environment variables: none required
 
-Deploy the repository root directly to Cloudflare Pages, GitHub Pages, Netlify or another static host. No build command or environment variables are required.
+The project is a dependency-free static site and can also run on GitHub Pages, Netlify or another static host.
 
-## Validation
+## Project structure
 
-The development source passed JavaScript syntax checks and a custom DOM/canvas smoke test. The compressed deployment payload was also reconstructed and compared byte-for-byte with the validated standalone build.
+```text
+index.html              Static entry point
+styles.css              Responsive game shell
+src/main.js             Canvas engine, simulation, UI, rankings and saves
+src/content.js          Schedule, NPCs, clubs, difficulty, events and dialogue
+src/embedded-assets.js  Self-contained generated artwork payload
+assets/                 Editable generated images in the downloadable project
+scripts / tests         Validation and maintenance tooling
+```
 
-Automated Chromium visual verification could not run in the authoring environment because local browser navigation was blocked by an administrator policy; this limitation is documented rather than hidden.
+## Scope
 
-## Originality and safety
+The current branch contains the complete club and social-status difficulty architecture and the playable four-year progression framework. Bespoke story scenes, art and authored event chains for every individual month remain ongoing content-production work.
 
-All included art and writing were created specifically for this project. The game uses fictional students, a fictional academy and family-friendly, non-violent conflict resolution.
+All characters, schools, clubs and conflicts are fictional and family friendly.
