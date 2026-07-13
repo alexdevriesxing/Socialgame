@@ -49,7 +49,9 @@ confirmName.addEventListener('click',()=>{
   else{game.player.stats.courage++;game.player.stats.fitness++;}
   game.player.stats[CLUBS[game.player.club].stat]+=2;initializeSocialStatus();
   creator.classList.add('hidden');game.mode='play';assignMissions();relocateNPCs('arrival');audio.startMusic();
-  openDialogue({speaker:'Ms. Hayashi',portrait:12,text:`Welcome to ${SCHOOL_NAME}, ${game.player.name}.\n\nYour schedule matters. Reach each room before the grace period ends, build real friendships, contribute to ${clubConfig().name}, and remember: the monthly rankings measure conduct as well as popularity.\n\nStarting status: ${statusConfig().name} (${statusConfig().difficulty}). ${statusConfig().description}`,choices:[{text:'I am ready.',effects:{reliability:1,score:4},result:'The first bell is ten minutes away. Class 1-A is through the blue-marked door.',action:()=>setTimeout(showMonthIntro,120)}]});
+  openDialogue({speaker:'Ms. Hayashi',portrait:12,text:`Welcome to ${SCHOOL_NAME}, ${game.player.name}.\n\nYour schedule matters. Reach each room before the grace period ends, build real friendships, contribute to ${clubConfig().name}, and remember: the monthly rankings measure conduct as well as popularity.
+
+Starting status: ${statusConfig().name} (${statusConfig().difficulty}). ${statusConfig().description}`,choices:[{text:'I am ready.',effects:{reliability:1,score:4},result:'The first bell is ten minutes away. Class 1-A is through the blue-marked door.',action:()=>setTimeout(showMonthIntro,120)}]});
 });
 
 function loop(now){const dt=Math.min(.05,(now-lastTime)/1000);lastTime=now;update(dt);draw();requestAnimationFrame(loop);}
