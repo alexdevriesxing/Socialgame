@@ -1,0 +1,1 @@
+const ROUTE_THRESHOLDS = [4, 9, 15];

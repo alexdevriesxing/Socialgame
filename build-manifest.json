@@ -1,0 +1,23 @@
+{
+  "version": "0.7.0",
+  "release": "Rivalries & Campus Life Pass",
+  "format": "hybrid-readable-cloudflare-static",
+  "features": {
+    "campaignChapters": 48,
+    "friendshipChapters": 30,
+    "phoneConversations": 20,
+    "rivalryChapters": 20,
+    "monthlyShowcases": 12,
+    "campusActivities": 8,
+    "achievements": 24,
+    "clubChallenges": 4,
+    "animationColumns": 7,
+    "eventScenes": 12,
+    "rivalScenes": 10,
+    "saveVersion": 5
+  },
+  "scripts": [
+    "v06/data/school.js","v06/data/progression.js","v06/data/characters.js","v07/data/activities.js","v06/data/events.js","v06/data/campaign.js","v06/data/routes/base.js","v06/data/routes/aiko.js","v06/data/routes/mina.js","v06/data/routes/rina.js","v06/data/routes/emi.js","v06/data/routes/hana.js","v06/data/routes/ren.js","v06/data/routes/haru.js","v06/data/routes/daichi.js","v06/data/routes/kenji.js","v06/data/routes/sora.js","v06/data/routes/thresholds.js","v06/data/daily.js","v06/data/challenges.js","v06/data/messages.js","v06/data/showcases.js","v07/data/campus.js","v07/data/achievements.js","v07/data/rivalries.js","v07/save.js","v07/art-core.js","v07/art-characters.js","v07/art-world.js","v07/art-brand.js","v07/runtime/00-bootstrap.js","v07/runtime/10-state-dialogue.js","v07/runtime/15-living-school.js","v06/runtime/16-campus-life.js","v07/runtime/17-rivalry-campus.js","v07/runtime/20-interactions-school.js","v07/runtime/30-progression-ranking.js","v07/runtime/40-update-scenes.js","v07/runtime/50-world-hud.js","v07/runtime/60-overlays-ui.js","v07/runtime/70-input-start.js"
+  ],
+  "validation": ["JavaScript syntax","content integrity","art atlas integrity","save migration","runtime initialization","classic-script smoke","static HTTP package","ZIP integrity"]
+}
