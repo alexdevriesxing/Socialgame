@@ -18,11 +18,9 @@ jobs:
     steps:
       - name: Checkout release
         uses: actions/checkout@v4
-
-      - name: Use Node.js
-        uses: actions/setup-node@v4
         with:
-          node-version: '22'
+          fetch-depth: 1
+          show-progress: false
 
       - name: Syntax-check referenced scripts
         shell: bash
@@ -32,7 +30,11 @@ jobs:
           test "${#scripts[@]}" -ge 30
           for script in "${scripts[@]}"; do
             test -f "$script"
-            node --check "$script"
+            if ! output=$(node --check "$script" 2>&1); then
+              echo "SYNTAX_FAILURE=$script"
+              printf '%s\n' "$output"
+              exit 1
+            fi
           done
           echo "Checked ${#scripts[@]} referenced scripts."
 
