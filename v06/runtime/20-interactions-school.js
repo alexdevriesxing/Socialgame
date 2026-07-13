@@ -48,7 +48,7 @@ function interact(){
   for(const npc of game.npcs){const dd=Math.hypot(npc.x-game.player.x,npc.y-game.player.y);if(dd<dist){dist=dd;nearest=npc;}}
   if(nearest&&dist<72){triggerNpcTalk(nearest);return;}
   for(const t of game.teachers){const dd=Math.hypot(t.x-game.player.x,t.y-game.player.y);if(dd<64){teacherSmallTalk(t);return;}}
-  for(const h of HOTSPOTS){const dd=Math.hypot(h.x-game.player.x,npc.y-game.player.y);if(dd<h.radius){triggerHotspot(h);return;}}
+  for(const h of HOTSPOTS){const dd=Math.hypot(h.x-game.player.x,h.y-game.player.y);if(dd<h.radius){triggerHotspot(h);return;}}
   notify('Nothing nearby to interact with.',COLORS.sky);
 }
 function teacherSmallTalk(t){
