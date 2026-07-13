@@ -6,20 +6,20 @@ A fully 2D, family-friendly anime high-school social simulation built as a brows
 
 The current build includes:
 
-- A top-down, explorable school with classrooms, hallway, library, courtyard, cafeteria and gym.
+- A top-down, explorable school with homeroom, mathematics and literature classrooms, hallway, library, courtyard, cafeteria and gym.
 - Original pixel-art student sprites, teacher sprites, portraits, school map, UI icons and title key art.
 - Separate boys' and girls' social rankings.
-- A real bell-driven timetable with required rooms, grace periods, attendance and lateness.
-- Teacher discipline conversations, warnings, demerits and after-school detention.
+- A real bell-driven class timetable with required rooms, grace periods, attendance checks and lateness.
+- Rich teacher discipline conversations, warnings, demerits, reliability loss, parent-note risk and after-school detention.
 - Ten recurring student NPCs, four teachers, distinct school circles and relationship progression.
-- Dialogue choices that affect charisma, intellect, fitness, talent, kindness, courage, reliability, stress and social score.
+- Dialogue choices affecting charisma, intellect, fitness, talent, kindness, courage, reliability, stress and social score.
 - Class activities for homeroom, mathematics, literature, physical education, club period, social studies and closing homeroom.
 - Non-violent bully situations, rumors, fire drills, storms, leaks, blackouts and a missing mascot prop.
 - Daily missions, energy/stress management, local saving and monthly ranking finals.
 - A progression structure for 4 years × 12 months, ending at prom.
 - Desktop and touch controls plus lightweight original chiptune-style Web Audio.
 
-This is a **vertical slice**, not yet the complete 48-month commercial game. The long-term calendar and ending are wired, while later months still need their own environments, story arcs, competitions and bespoke dialogue.
+This is a **vertical slice**, not yet the complete 48-month commercial game. The four-year calendar, simulation framework and prom ending are wired; later months still require bespoke environments, story arcs, competitions, dialogue and seasonal art.
 
 ## Controls
 
@@ -34,7 +34,7 @@ This is a **vertical slice**, not yet the complete 48-month commercial game. The
 
 ## Run locally
 
-No build step is required.
+No build step is required:
 
 ```bash
 python -m http.server 4173
@@ -42,26 +42,22 @@ python -m http.server 4173
 
 Open `http://localhost:4173`.
 
-Validation:
+## Repository build format
 
-```bash
-npm run check
-```
+The branch contains a static, self-contained commercial-demo build. `index.html` reconstructs the complete game at runtime from `part-0.js` through `part-9.js`; those files contain the compressed HTML, CSS, JavaScript, dialogue data and original artwork. This keeps the deployment dependency-free and compatible with static hosting.
 
-## Project structure
-
-```text
-assets/              Generated game art and sprite sheets
-src/content.js       NPCs, classes, schedules, events, missions and dialogue
-src/main.js          Canvas engine, simulation, UI, ranking and save systems
-tools/generate_assets.py  Reproducible pixel-art generation pipeline
-docs/                Game design, art bible and expansion roadmap
-```
+The editable development package is maintained separately and contains modular source, uncompressed generated assets, the reproducible pixel-art generator, tests, game design documents, art bible and content roadmap.
 
 ## Deployment
 
-The project is static and can be deployed directly to Cloudflare Pages, GitHub Pages, Netlify or any static host. For Cloudflare Pages, use the repository root as the output directory and leave the build command empty.
+Deploy the repository root directly to Cloudflare Pages, GitHub Pages, Netlify or another static host. No build command or environment variables are required.
+
+## Validation
+
+The development source passed JavaScript syntax checks and a custom DOM/canvas smoke test. The compressed deployment payload was also reconstructed and compared byte-for-byte with the validated standalone build.
+
+Automated Chromium visual verification could not run in the authoring environment because local browser navigation was blocked by an administrator policy; this limitation is documented rather than hidden.
 
 ## Originality and safety
 
-All included art and writing were created specifically for this project. The game uses fictional students, fictional school circles and family-friendly, non-violent conflict resolution.
+All included art and writing were created specifically for this project. The game uses fictional students, a fictional academy and family-friendly, non-violent conflict resolution.
