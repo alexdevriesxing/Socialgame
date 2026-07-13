@@ -88,3 +88,28 @@ jobs:
           curl -fsS http://127.0.0.1:4173/styles.css >/dev/null
           curl -fsS http://127.0.0.1:4173/build-manifest.json >/dev/null
           echo "HTTP-verified index, CSS, manifest and ${#scripts[@]} scripts."
+
+      - name: Assemble Cloudflare release
+        shell: bash
+        run: |
+          set -euo pipefail
+          rm -rf cloudflare-release
+          mkdir -p cloudflare-release/assets
+          cp index.html styles.css manifest.webmanifest _headers build-manifest.json LICENSE README.md cloudflare-release/
+          cp assets/favicon.svg cloudflare-release/assets/
+          mapfile -t scripts < <(grep -oP '<script src="\K[^"]+' index.html)
+          for script in "${scripts[@]}"; do
+            mkdir -p "cloudflare-release/$(dirname "$script")"
+            cp "$script" "cloudflare-release/$script"
+          done
+          (cd cloudflare-release && zip -qr ../Sakura-Crest-Rivalries-Campus-v0.7-cloudflare.zip .)
+          sha256sum Sakura-Crest-Rivalries-Campus-v0.7-cloudflare.zip | tee cloudflare-release-sha256.txt
+
+      - name: Upload Cloudflare release
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloudflare-v07
+          path: |
+            Sakura-Crest-Rivalries-Campus-v0.7-cloudflare.zip
+            cloudflare-release-sha256.txt
+          retention-days: 7
