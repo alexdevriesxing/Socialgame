@@ -1,0 +1,22 @@
+{
+  "name": "Sakura Crest: Social Summit",
+  "version": "0.4.0",
+  "release": "Anime Campaign Pass",
+  "format": "cloudflare-static",
+  "campaignChapters": 48,
+  "schoolYears": 4,
+  "monthlyChaptersPerYear": 12,
+  "artPipeline": "runtime scalable SVG atlases",
+  "externalAssetHosts": 0,
+  "buildCommandRequired": false,
+  "environmentVariablesRequired": false,
+  "validation": [
+    "JavaScript syntax",
+    "campaign content integrity",
+    "save migration",
+    "runtime initialization smoke test",
+    "static HTTP package test",
+    "ZIP integrity"
+  ],
+  "scope": "Deployable campaign beta"
+}
