@@ -1,67 +1,20 @@
-# Sakura Crest: Social Summit
+# Sakura Crest: Social Summit — Cloudflare Release
 
-A fully 2D, family-friendly anime high-school social simulation built as a browser-first vertical slice with original 16-bit-inspired pixel art.
+This branch is a prebuilt static release of the Leadership & Legacy v1.0. It includes the complete four-year / 48-chapter campaign, thirty friendship-route chapters, twenty phone conversations, twelve monthly showcases, twenty rivalry chapters, ten illustrated friendship moments, twenty-four contextual campus incidents, eight mastery minigames, forty achievements, eight seasonal examinations, eight weekend outings, four annual elections and twelve graduation legacies. Its crisp anime sprites, portraits, seasonal maps, event art, UI and tiles are generated as scalable SVG atlases in the browser.
 
-## Playable vertical slice
+## Cloudflare Pages
 
-The current build includes:
+- Framework preset: **None**
+- Build command: leave blank
+- Build output directory: **/** or **.**
+- Environment variables: none
 
-- A top-down, explorable school with classrooms, hallway, library, courtyard, cafeteria and gym.
-- Original pixel-art student sprites, teacher sprites, portraits, school map, UI icons and title key art.
-- Separate boys' and girls' social rankings.
-- A real bell-driven timetable with required rooms, grace periods, attendance and lateness.
-- Teacher discipline conversations, warnings, demerits and after-school detention.
-- Ten recurring student NPCs, four teachers, distinct school circles and relationship progression.
-- Dialogue choices that affect charisma, intellect, fitness, talent, kindness, courage, reliability, stress and social score.
-- Class activities for homeroom, mathematics, literature, physical education, club period, social studies and closing homeroom.
-- Non-violent bully situations, rumors, fire drills, storms, leaks, blackouts and a missing mascot prop.
-- Daily missions, energy/stress management, local saving and monthly ranking finals.
-- A progression structure for 4 years × 12 months, ending at prom.
-- Desktop and touch controls plus lightweight original chiptune-style Web Audio.
-
-This is a **vertical slice**, not yet the complete 48-month commercial game. The long-term calendar and ending are wired, while later months still need their own environments, story arcs, competitions and bespoke dialogue.
+The repository root is the deployable site. No Workers, package installation, database, external image host or secrets are required.
 
 ## Controls
 
-| Action | Keyboard | Touch |
-|---|---|---|
-| Move | WASD / Arrow keys | On-screen direction pad |
-| Interact | E / Space | E button |
-| Rankings | R | Rankings button |
-| Schedule | Q | Schedule button |
-| Sound | M | Sound button |
-| Pause | Escape | — |
+WASD / arrows to move, E or Space to interact, R rankings, Q schedule, J friendships, P phone, K memories, A activities, V rivals, Y yearbook, O accessibility/options, M sound and Escape pause. Standard controllers are supported.
 
-## Run locally
+## Scope
 
-No build step is required.
-
-```bash
-python -m http.server 4173
-```
-
-Open `http://localhost:4173`.
-
-Validation:
-
-```bash
-npm run check
-```
-
-## Project structure
-
-```text
-assets/              Generated game art and sprite sheets
-src/content.js       NPCs, classes, schedules, events, missions and dialogue
-src/main.js          Canvas engine, simulation, UI, ranking and save systems
-tools/generate_assets.py  Reproducible pixel-art generation pipeline
-docs/                Game design, art bible and expansion roadmap
-```
-
-## Deployment
-
-The project is static and can be deployed directly to Cloudflare Pages, GitHub Pages, Netlify or any static host. For Cloudflare Pages, use the repository root as the output directory and leave the build command empty.
-
-## Originality and safety
-
-All included art and writing were created specifically for this project. The game uses fictional students, fictional school circles and family-friendly, non-violent conflict resolution.
+This deployable campaign beta now includes playable midterms and finals, monthly weekend friend outings, persisted accessibility options, controller input, four annual leadership campaigns and a post-prom New Game+ loop with four legacy perks.

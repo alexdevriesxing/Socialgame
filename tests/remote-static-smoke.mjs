@@ -1,0 +1,44 @@
+import { readFile } from 'node:fs/promises';
+import vm from 'node:vm';
+
+const listeners={};
+class Element{
+  constructor(id){this.id=id;this.classList={_s:new Set(),add(v){this._s.add(v)},remove(v){this._s.delete(v)},contains(v){return this._s.has(v)}};this.value='Akira';this.textContent='';}
+  addEventListener(type,fn){(listeners[`${this.id}:${type}`]??=[]).push(fn)}
+}
+const ctx=new Proxy({imageSmoothingEnabled:true,textAlign:'left',textBaseline:'alphabetic',measureText(t){return{width:String(t).length*8}},createLinearGradient(){return{addColorStop(){}}}}, {get(o,p){if(p in o)return o[p];return()=>{}},set(o,p,v){o[p]=v;return true}});
+const canvas=new Element('game');canvas.width=960;canvas.height=540;canvas.getContext=()=>ctx;canvas.getBoundingClientRect=()=>({left:0,top:0,width:960,height:540});
+const elements={game:canvas,creator:new Element('creator'),nameInput:new Element('nameInput'),confirmName:new Element('confirmName'),loading:new Element('loading')};elements.creator.classList.add('hidden');
+globalThis.document={getElementById:id=>elements[id]};globalThis.window=globalThis;window.addEventListener=(t,f)=>{(listeners[`window:${t}`]??=[]).push(f)};
+window.AudioContext=class{constructor(){this.currentTime=0;this.state='running';this.destination={}}createOscillator(){return{type:'',frequency:{value:0},connect(){},start(){},stop(){}}}createGain(){return{gain:{value:0,setValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){}}}resume(){}};
+globalThis.localStorage={_d:{},getItem(k){return this._d[k]??null},setItem(k,v){this._d[k]=v},removeItem(k){delete this._d[k]}};
+globalThis.requestAnimationFrame=()=>0;globalThis.performance={now:()=>1000};globalThis.setInterval=()=>1;globalThis.clearInterval=()=>{};
+globalThis.Image=class{set src(v){this._src=v;queueMicrotask(()=>this.onload?.())}};
+
+const index=await readFile('index.html','utf8');
+const scripts=[...index.matchAll(/<script src="([^"]+)"><\/script>/g)].map(match=>match[1]);
+if(scripts.length<13)throw new Error(`Expected split production scripts; found ${scripts.length}.`);
+for(const script of scripts)vm.runInThisContext(await readFile(script,'utf8'),{filename:script});
+await new Promise(resolve=>setTimeout(resolve,25));
+if(!elements.loading.classList.contains('hidden'))throw new Error('Static game did not complete initialization.');
+const checks=[
+  [CAMPAIGN_MONTHS.length,48,'campaign chapters'],[Object.values(RELATIONSHIP_ROUTES).flat().length,30,'friendship chapters'],
+  [PHONE_MESSAGES.length,20,'phone conversations'],[RIVALRY_SCENES.length,20,'rivalry chapters'],[MONTHLY_SHOWCASES.length,12,'showcases'],
+  [CAMPUS_ACTIVITIES.length,8,'campus activities'],[ACHIEVEMENTS.length,40,'achievements'],[FRIENDSHIP_MOMENTS.length,10,'illustrated moments'],
+  [CAMPUS_INCIDENTS.length,24,'campus incidents'],[GRADUATION_LEGACIES.length,12,'graduation legacies'],[LEADERSHIP_ELECTIONS.length,4,'elections']
+];
+for(const [actual,expected,label] of checks)if(actual!==expected)throw new Error(`Expected ${expected} ${label}; got ${actual}.`);
+ensureV10State();
+game.player.gender='boy';game.player.routeScenes=['ren-1','ren-2','ren-3'];game.player.relationships.ren=15;
+const ren=game.npcs.find(n=>n.id==='ren');if(!nextFriendshipMoment(ren))throw new Error('Illustrated friendship moment did not unlock.');
+game.time=855;game.dayFlags.activity=false;const activity=CAMPUS_ACTIVITIES.find(a=>a.mechanic==='focus');startCampusMastery(activity);
+for(let i=0;i<4;i++){game.overlay.position=game.overlay.targetCenter;campusMasteryAction();}
+if(game.overlay.phase!=='result'||game.player.campusBest[activity.id]<90)throw new Error('Campus mastery minigame did not record an S-level result.');
+const legacy=determineGraduationLegacy(false);if(!legacy?.name)throw new Error('Graduation legacy calculation failed.');
+const art=createArtSources();if(!art.memory_atlas||!art.character_atlas)throw new Error('v0.8 scalable art sources are incomplete.');
+game.overlay=null;game.year=1;game.month=9;game.day=17;game.player.electionHistory=[];game.player.leadershipWins=0;
+if(!electionDue()||!startElection()||game.overlay.type!=='election')throw new Error('Election flow did not start.');
+chooseCampaignPlatform('community');for(let i=0;i<3;i++){electionAnswer(game.overlay.cfg.questions[game.overlay.questionIndex].correct);nextElectionQuestion();}
+if(game.player.electionHistory.length!==1||game.player.campaignBest<=0)throw new Error('Election result was not recorded.');
+game.overlay=null;openLeadershipJournal();if(game.overlay?.type!=='leadership')throw new Error('Leadership journal did not open.');game.overlay=null;
+console.log(`Remote runtime smoke passed for ${scripts.length} scripts, ${checks.map(c=>c[1]).join('/')} authored systems and save version ${CURRENT_SAVE_VERSION}.`);

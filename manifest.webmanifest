@@ -1,0 +1,17 @@
+{
+  "name": "Sakura Crest: Social Summit",
+  "short_name": "Sakura Crest",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#11131e",
+  "theme_color": "#1c1d2b",
+  "description": "A crisp anime school-life RPG with annual student elections, exams, friendships, campus mastery and New Game+.",
+  "icons": [
+    {
+      "src": "assets/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+{
+  "version": "1.0.0",
+  "format": "cloudflare-static",
+  "files": {
+    "LICENSE": {
+      "bytes": 1070,
+      "sha256": "1bf7b23b149b06e84b96cf1a3fe52951fe1d3b82933b24bb8aa0c60df9c7f1b2"
+    },
+    "README.md": {
+      "bytes": 1440,
+      "sha256": "3425996c1aa83c510dc8652296d22fa20edab29753a38e7e4b2dfee32b4849d3"
+    },
+    "_headers": {
+      "bytes": 295,
+      "sha256": "feaed415dfc7c9fe44864a2569fff4d75fa071c8e2f3dc217e289d40ff577228"
+    },
+    "assets/favicon.svg": {
+      "bytes": 708,
+      "sha256": "3bc5cf577f0991d352be5a2485f8559ba99f232a14b40e8512dcfdf4ddad4e1b"
+    },
+    "index.html": {
+      "bytes": 1869,
+      "sha256": "65752bcc77b01dd90a4331c720d60ecd07c9c87b6a89b16feab1b1f4f33d19fd"
+    },
+    "manifest.webmanifest": {
+      "bytes": 466,
+      "sha256": "8539170d34e965f985e6842d631f37dc954fd443609603f2e103727e0603d44c"
+    },
+    "src/art.js": {
+      "bytes": 28362,
+      "sha256": "2eb9dc068c0dafc131db80b06071a1511b3fd53776d9f2d6f0d06d5707b7b990"
+    },
+    "src/content-1.js": {
+      "bytes": 11656,
+      "sha256": "e836e0af087e367e2daebaffedbe31f6485825ed6fe00395f7d87f56dd1c4e98"
+    },
+    "src/content-2.js": {
+      "bytes": 20257,
+      "sha256": "5919dfddcca1931dfb431b369166a14cc1524335313b5986cd6da9e45051d038"
+    },
+    "src/content-3.js": {
+      "bytes": 24849,
+      "sha256": "2d386038bae8f7c99467eb887204a49ef5bbd030f58c80fe40bb776216d017d2"
+    },
+    "src/content-4.js": {
+      "bytes": 14542,
+      "sha256": "f88c26d63f7c6dc21d7c16d7a333194ce200f869ccd9db32b672b7a29cca5810"
+    },
+    "src/content-5.js": {
+      "bytes": 20740,
+      "sha256": "ccf050858a28f3b00bb975e2a3c417341c22a9c62f4bd4dc5fcb2e9c4d46d501"
+    },
+    "src/content-6.js": {
+      "bytes": 34974,
+      "sha256": "d8a99a741c86f37e8597373a32436e407a51a6b22c62c967d77fbc4e60ddf7e7"
+    },
+    "src/game-1.js": {
+      "bytes": 21938,
+      "sha256": "daae3f1b74c8dbec601c1adb171edfb43d475d6ffe12eae3def16be7fffbaf9b"
+    },
+    "src/game-2.js": {
+      "bytes": 59736,
+      "sha256": "68445ffb015417638b4cda4f44241094fe8b2fe3d494fdc8ca002a54d4ca81a9"
+    },
+    "src/game-3.js": {
+      "bytes": 18966,
+      "sha256": "827e6dfd35c4a24f74006ca2c548c98ae4eb3ac885ed4f0dc074b86894aca9e4"
+    },
+    "src/game-4.js": {
+      "bytes": 15708,
+      "sha256": "45c6073551503f3a63a425a6f10c9cc9b08aad76944750727173d6afe1b752c2"
+    },
+    "src/game-5.js": {
+      "bytes": 19133,
+      "sha256": "0b2ae5d7bac7c55687c9622943b4936e6c9bb0260e927606ec3e85ec30dbadc7"
+    },
+    "src/save.js": {
+      "bytes": 5605,
+      "sha256": "2d5eecba4dc0f8e75819449c0b11ca766b7ff4bdcc028ea1f33f03ec7d3bf52d"
+    },
+    "styles.css": {
+      "bytes": 1755,
+      "sha256": "486bce3979da01029d895995791685a54851852329b4109aa8c2968a43bee627"
+    }
+  }
+}
