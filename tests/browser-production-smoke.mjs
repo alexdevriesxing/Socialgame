@@ -45,7 +45,7 @@ const waitForGame = async page => {
   }
 
   const release = await page.evaluate(() => window.SAKURA_RELEASE);
-  if (release?.version !== '1.2.0') throw new Error(`Unexpected release marker: ${JSON.stringify(release)}`);
+  if (release?.version !== '1.3.0') throw new Error(`Unexpected release marker: ${JSON.stringify(release)}`);
 };
 
 const clickCanvas = async (page, x, y) => {
@@ -82,9 +82,19 @@ try {
 
   await page.goto(baseURL, { waitUntil: 'networkidle' });
   await waitForGame(page);
+
+  const releaseCoverage = await page.evaluate(() => ({
+    active:validateActiveSchoolContent(),
+    visual:validateActiveVisualLayout(),
+    layout:window.SAKURA_VISUAL_LAYOUT
+  }));
+  if (!releaseCoverage.active.valid || releaseCoverage.active.subjects !== 9 || releaseCoverage.active.clubActivities !== 16 || releaseCoverage.active.seasonalEvents !== 16) {
+    throw new Error(`Active School coverage is invalid: ${JSON.stringify(releaseCoverage.active)}`);
+  }
+  if (!releaseCoverage.visual.valid) throw new Error(`Visual safe-area validation failed: ${JSON.stringify(releaseCoverage.visual)}`);
   await page.screenshot({ path: 'test-results/title-desktop.png', fullPage: true });
 
-  await clickCanvas(page, 480, 259);
+  await clickCanvas(page, 731, 249);
   await page.locator('#creator:not(.hidden)').waitFor({ timeout: 5000 });
   await page.locator('#nameInput').fill('QA Student');
   await page.locator('#confirmName').click();
@@ -96,7 +106,8 @@ try {
     year: game.year,
     month: game.month,
     mode: game.mode,
-    routineCoverage: validateCampusRoutines()
+    routineCoverage: validateCampusRoutines(),
+    activityAssist:game.player.activityAssist
   }));
   if (playerState.name !== 'QA Student' || playerState.year !== 1 || playerState.month !== 1 || playerState.mode !== 'play') {
     throw new Error(`New-game state is invalid: ${JSON.stringify(playerState)}`);
@@ -104,6 +115,9 @@ try {
   if (!playerState.routineCoverage.valid || playerState.routineCoverage.studentPeriods !== 110 || playerState.routineCoverage.teacherPeriods !== 44) {
     throw new Error(`Living Campus coverage is invalid: ${JSON.stringify(playerState.routineCoverage)}`);
   }
+  if (playerState.activityAssist !== true) throw new Error('Activity assist should default to enabled.');
+
+  await page.screenshot({ path: 'test-results/live-hud-desktop.png', fullPage: true });
 
   const beforeMovement = await page.evaluate(() => Object.fromEntries(game.npcs.map(npc => [npc.id, { x:npc.x, y:npc.y }])));
   await page.evaluate(() => {
@@ -127,6 +141,25 @@ try {
   await page.screenshot({ path: 'test-results/campus-desktop.png', fullPage: true });
   await page.keyboard.press('c');
   await page.waitForFunction(() => !game.overlay, { timeout: 3000 });
+
+  await page.keyboard.press('g');
+  await page.waitForFunction(() => game.overlay?.type === 'activityLab', { timeout: 3000 });
+  await page.screenshot({ path: 'test-results/activity-lab-desktop.png', fullPage: true });
+  await page.evaluate(() => { game.overlay=null; startActiveSchoolActivity('math',{practice:true}); activeBegin(); });
+  await page.waitForFunction(() => game.overlay?.type === 'activeGame' && game.overlay.phase === 'active', { timeout: 3000 });
+  await page.screenshot({ path: 'test-results/active-math-desktop.png', fullPage: true });
+  await page.evaluate(() => {
+    while(game.overlay?.type==='activeGame'&&game.overlay.phase!=='result'){
+      if(game.overlay.phase==='active')activeDecisionAnswer(game.overlay.questions[game.overlay.round].correct);
+      if(game.overlay.phase==='feedback')activeNextDecision();
+    }
+  });
+  const activeResult = await page.evaluate(() => ({phase:game.overlay?.phase,score:game.overlay?.score,best:game.player.activityBest.math,mastery:game.player.subjectMastery.math}));
+  if (activeResult.phase !== 'result' || activeResult.score !== 100 || activeResult.best !== 100 || activeResult.mastery < 1) {
+    throw new Error(`Active mathematics result failed: ${JSON.stringify(activeResult)}`);
+  }
+  await page.screenshot({ path: 'test-results/activity-result-desktop.png', fullPage: true });
+  await page.evaluate(() => activeExitResult());
 
   await page.keyboard.press('o');
   await page.waitForFunction(() => game.overlay?.type === 'accessibility', { timeout: 3000 });
@@ -156,23 +189,44 @@ try {
   await desktop.setOffline(false);
   await desktop.close();
 
-  const mobile = await browser.newContext({
+  const portrait = await browser.newContext({
     viewport: { width: 390, height: 844 },
     isMobile: true,
     hasTouch: true,
     deviceScaleFactor: 2
   });
-  const mobilePage = await mobile.newPage();
-  recordPageFailures(mobilePage);
-  await mobilePage.goto(baseURL, { waitUntil: 'networkidle' });
-  await waitForGame(mobilePage);
-
-  const appBox = await mobilePage.locator('#app').boundingBox();
-  if (!appBox || appBox.width > 391 || appBox.height > 845) {
-    throw new Error(`Mobile layout escaped the viewport: ${JSON.stringify(appBox)}`);
+  const portraitPage = await portrait.newPage();
+  recordPageFailures(portraitPage);
+  await portraitPage.goto(baseURL, { waitUntil: 'networkidle' });
+  await waitForGame(portraitPage);
+  const orientation = await portraitPage.locator('#orientation-hint').evaluate(element => ({
+    display:getComputedStyle(element).display,
+    text:element.textContent,
+    box:element.getBoundingClientRect().toJSON()
+  }));
+  if (orientation.display === 'none' || !orientation.text.includes('Rotate your device') || orientation.box.width < 380 || orientation.box.height < 830) {
+    throw new Error(`Portrait orientation guidance failed: ${JSON.stringify(orientation)}`);
   }
-  await mobilePage.screenshot({ path: 'test-results/title-mobile.png', fullPage: true });
-  await mobile.close();
+  await portraitPage.screenshot({ path: 'test-results/title-mobile-portrait.png', fullPage: true });
+  await portrait.close();
+
+  const landscape = await browser.newContext({
+    viewport: { width: 844, height: 390 },
+    isMobile: true,
+    hasTouch: true,
+    deviceScaleFactor: 2
+  });
+  const landscapePage = await landscape.newPage();
+  recordPageFailures(landscapePage);
+  await landscapePage.goto(baseURL, { waitUntil: 'networkidle' });
+  await waitForGame(landscapePage);
+  const appBox = await landscapePage.locator('#app').boundingBox();
+  const hintDisplay = await landscapePage.locator('#orientation-hint').evaluate(element => getComputedStyle(element).display);
+  if (!appBox || appBox.width > 845 || appBox.height > 391 || hintDisplay !== 'none') {
+    throw new Error(`Landscape mobile layout failed: ${JSON.stringify({appBox,hintDisplay})}`);
+  }
+  await landscapePage.screenshot({ path: 'test-results/title-mobile-landscape.png', fullPage: true });
+  await landscape.close();
 } finally {
   await browser.close();
 }
@@ -181,4 +235,4 @@ if (failures.length) {
   throw new Error(`Browser smoke captured ${failures.length} failure(s):\n${failures.join('\n')}`);
 }
 
-console.log('Production browser smoke passed: living-campus movement, Campus Pulse, accessibility, rankings, service worker offline reload and mobile layout.');
+console.log('Production browser smoke passed: Active School gameplay, visual safe areas, living-campus movement, offline reload and portrait/landscape mobile presentation.');
