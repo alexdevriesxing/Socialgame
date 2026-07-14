@@ -13,7 +13,7 @@ permissions:
 jobs:
   browser-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 18
     steps:
       - name: Checkout release
         uses: actions/checkout@v4
@@ -43,7 +43,7 @@ jobs:
           set -o pipefail
           node tests/verify-release.mjs 2>&1 | tee test-results/release-inventory.log
 
-      - name: Validate authored systems and campus routines
+      - name: Validate campaign, campus and active-school systems
         run: |
           set -o pipefail
           node tests/remote-static-smoke.mjs 2>&1 | tee test-results/runtime-smoke.log
@@ -64,18 +64,18 @@ jobs:
           cat /tmp/sakura-http.log
           exit 1
 
-      - name: Run production browser smoke
+      - name: Run gameplay and visual QA in Chromium
         env:
           BASE_URL: http://127.0.0.1:4173
         run: |
           set -o pipefail
           node tests/browser-production-smoke.mjs 2>&1 | tee test-results/browser-smoke.log
 
-      - name: Upload QA evidence
+      - name: Upload gameplay and visual evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: sakura-crest-browser-qa
+          name: sakura-crest-v13-visual-qa
           path: test-results
           if-no-files-found: warn
           retention-days: 14
