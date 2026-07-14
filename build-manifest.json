@@ -1,5 +1,5 @@
 {
-  "version": "1.1.0",
+  "version": "1.2.0",
   "format": "cloudflare-static",
   "files": {
     "LICENSE": {
@@ -7,8 +7,8 @@
       "sha256": "1bf7b23b149b06e84b96cf1a3fe52951fe1d3b82933b24bb8aa0c60df9c7f1b2"
     },
     "README.md": {
-      "bytes": 2397,
-      "sha256": "21cf9b975c8fda9f1ab7e2ab5c017aae6e2c8dd7ea38a8075ef97b53d71a6750"
+      "bytes": 3525,
+      "sha256": "f7b923b26f8b938278616a2110e3771e71be13b8853a642d0723eefb7fec2a9f"
     },
     "_headers": {
       "bytes": 533,
@@ -19,16 +19,20 @@
       "sha256": "3bc5cf577f0991d352be5a2485f8559ba99f232a14b40e8512dcfdf4ddad4e1b"
     },
     "index.html": {
-      "bytes": 2201,
-      "sha256": "b4602cc4ffe55bbef8cd6f52cbb43d9e51a39992c7431e53b3cca87f13885e00"
+      "bytes": 2241,
+      "sha256": "3a18c8f6bee016becd9a79b8d7372a5306e22d96b041d31cd48c7c0b389cc7ce"
     },
     "manifest.webmanifest": {
-      "bytes": 738,
-      "sha256": "75a1cafc58ecceb8c0aabbfeb9552436018aa4e105f605142cf2af1d8a5d6418"
+      "bytes": 774,
+      "sha256": "bc65d8680724909f77d84feafe732bc8058c1d86418e5c3af0e673d6efce2cae"
     },
     "src/art.js": {
       "bytes": 28362,
       "sha256": "2eb9dc068c0dafc131db80b06071a1511b3fd53776d9f2d6f0d06d5707b7b990"
+    },
+    "src/campus.js": {
+      "bytes": 27189,
+      "sha256": "b97620a0d1f531e0ab882cb3f8a6df59e0bc2b0ec8eb87e3d919ca3ce189773d"
     },
     "src/content-1.js": {
       "bytes": 11656,
@@ -76,7 +80,7 @@
     },
     "src/platform.js": {
       "bytes": 3526,
-      "sha256": "e1b6aa0baaf06900168d5055efde391f86ee3ac30ce5fd9ab271e9b2836f8459"
+      "sha256": "a2be99c045a5bbd00d6aa9c01916a978a9d964ff13fa3822d8da1dddab84fbc1"
     },
     "src/save.js": {
       "bytes": 5605,
@@ -87,8 +91,8 @@
       "sha256": "73cec4e19274b3a0a587793ec9b2a144a433c8321612a6e211acdd797251bdae"
     },
     "sw.js": {
-      "bytes": 1963,
-      "sha256": "4d5433ae0549498a3ba6f85f752675884f25ed99124e4b95b5a3bfda9e9f2b61"
+      "bytes": 1984,
+      "sha256": "6b1d51886cc39d1e1433890ca0cc74aa0272bec70266af754b4b110639d6a0ca"
     }
   }
 }
