@@ -54,6 +54,22 @@ const clickCanvas = async (page, x, y) => {
   await page.mouse.click(box.x + (x / 960) * box.width, box.y + (y / 540) * box.height);
 };
 
+const clearOpeningDialogues = async page => {
+  for (let cycle = 0; cycle < 8; cycle++) {
+    await page.waitForTimeout(180);
+    for (let press = 0; press < 6; press++) {
+      const open = await page.evaluate(() => Boolean(game.dialogue));
+      if (!open) break;
+      await page.keyboard.press('Space');
+      await page.waitForTimeout(90);
+    }
+    await page.waitForTimeout(180);
+    const settled = await page.evaluate(() => !game.dialogue);
+    if (settled) return;
+  }
+  throw new Error('Opening dialogue sequence did not settle.');
+};
+
 const browser = await chromium.launch({ headless: true });
 
 try {
@@ -73,21 +89,28 @@ try {
   await page.locator('#nameInput').fill('QA Student');
   await page.locator('#confirmName').click();
   await page.waitForFunction(() => typeof game !== 'undefined' && game.mode === 'play', { timeout: 5000 });
+  await clearOpeningDialogues(page);
 
-  for (let attempt = 0; attempt < 10; attempt++) {
-    const dialogueOpen = await page.evaluate(() => Boolean(game.dialogue));
-    if (!dialogueOpen) break;
-    await page.keyboard.press('Space');
-    await page.waitForTimeout(80);
+  const playerState = await page.evaluate(() => ({
+    name: game.player.name,
+    year: game.year,
+    month: game.month,
+    mode: game.mode
+  }));
+  if (playerState.name !== 'QA Student' || playerState.year !== 1 || playerState.month !== 1 || playerState.mode !== 'play') {
+    throw new Error(`New-game state is invalid: ${JSON.stringify(playerState)}`);
   }
 
   await page.keyboard.press('o');
   await page.waitForFunction(() => game.overlay?.type === 'accessibility', { timeout: 3000 });
   await page.keyboard.press('Escape');
+  await page.waitForFunction(() => !game.overlay, { timeout: 3000 });
+
   await page.keyboard.press('r');
   await page.waitForFunction(() => game.overlay?.type === 'rankings', { timeout: 3000 });
   await page.screenshot({ path: 'test-results/rankings-desktop.png', fullPage: true });
   await page.keyboard.press('Escape');
+  await page.waitForFunction(() => !game.overlay, { timeout: 3000 });
 
   await page.waitForFunction(async () => {
     if (!('serviceWorker' in navigator)) return false;
