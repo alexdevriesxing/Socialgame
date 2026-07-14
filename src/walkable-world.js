@@ -288,6 +288,16 @@ function wwDraw(){
 const wwBaseDrawPlay=drawPlay;
 drawPlay=function(){if(wwEnsureState().active){wwDraw();return;}wwBaseDrawPlay();};
 
+validateWorldNavigation=function(){
+  const beforeVisits={...game.player.worldVisits},beforeTime=game.time,beforeOverlay=game.overlay;
+  const state=wwEnsureState(),snapshot={active:state.active,locationId:state.locationId,weekend:state.weekend,x:state.x,y:state.y,camera:{...state.camera},npcs:[...state.npcs],explored:state.explored};
+  state.active=false;state.locationId=null;state.npcs=[];game.overlay={type:'giftShop',returnLocation:'cafe',returnWeekend:true};
+  worldBackToLocation('cafe',true);
+  const valid=state.active&&state.locationId==='cafe'&&state.weekend===true&&game.overlay===null&&game.time===beforeTime&&JSON.stringify(game.player.worldVisits)===JSON.stringify(beforeVisits);
+  Object.assign(state,snapshot);state.camera=snapshot.camera;state.npcs=snapshot.npcs;game.overlay=beforeOverlay;
+  return {valid,issues:valid?[]:['Nested world navigation changed time, visits or failed to restore the walkable location.']};
+};
+
 function validateWalkableWorld(){
   const issues=[],ids=Object.keys(WW_SCENES);if(ids.length!==14)issues.push(`Expected 14 walkable maps, found ${ids.length}.`);
   for(const [id,scene] of Object.entries(WW_SCENES)){
