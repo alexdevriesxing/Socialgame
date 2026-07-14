@@ -45,7 +45,7 @@ game.overlay=null;openLeadershipJournal();if(game.overlay?.type!=='leadership')t
 const routineValidation=validateCampusRoutines();
 if(!routineValidation.valid)throw new Error(`Living Campus routines invalid: ${routineValidation.errors.join(', ')}`);
 if(routineValidation.studentPeriods!==110||routineValidation.teacherPeriods!==44)throw new Error(`Unexpected routine coverage: ${JSON.stringify(routineValidation)}`);
-game.mode='play';game.dialogue=null;game.overlay=null;game.paused=false;game.time=510;game.dailyBrief={id:'qa',weather:'Clear',notice:'QA notice'};
+game.mode='play';game.dialogue=null;game.overlay=null;game.paused=false;game.time=510;game.dailyBrief={id:`${game.year}-${game.month}-${game.day}`,weather:'Clear',notice:'QA notice'};
 relocateNPCs('math');
 for(const actor of [...game.npcs,...game.teachers]){
   if(!actor.campus?.room||!ROOMS[actor.campus.room])throw new Error(`${actor.id} has no valid living-campus destination.`);
@@ -55,7 +55,7 @@ for(let step=0;step<180;step++)updateCampusSimulation(.25);
 for(const actor of [...game.npcs,...game.teachers]){
   if(!Number.isFinite(actor.x)||!Number.isFinite(actor.y))throw new Error(`${actor.id} movement became non-finite.`);
 }
-game.dailyBrief={id:'qa-rain',weather:'Heavy Rain',notice:'Courtyard closed'};
+game.dailyBrief={id:`${game.year}-${game.month}-${game.day}`,weather:'Heavy Rain',notice:'Courtyard closed'};
 game.time=620;game.dayFlags.incident=false;campusApplyRoutines({key:'break',slotId:'break',transition:false,slot:SCHEDULE.find(slot=>slot.id==='break')},{instant:true});
 if(campusRoomOpen('courtyard'))throw new Error('Rain closure did not close the courtyard.');
 if(game.npcs.some(npc=>npc.campus?.room==='courtyard'))throw new Error('A student remained routed to the closed courtyard.');
