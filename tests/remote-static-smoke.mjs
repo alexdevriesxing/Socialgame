@@ -17,7 +17,7 @@ globalThis.Image=class{set src(v){this._src=v;queueMicrotask(()=>this.onload?.()
 
 const index=await readFile('index.html','utf8');
 const scripts=[...index.matchAll(/<script src="([^"]+)"><\/script>/g)].map(match=>match[1]);
-if(scripts.length<13)throw new Error(`Expected split production scripts; found ${scripts.length}.`);
+if(scripts.length<15)throw new Error(`Expected 15 production scripts; found ${scripts.length}.`);
 for(const script of scripts)vm.runInThisContext(await readFile(script,'utf8'),{filename:script});
 await new Promise(resolve=>setTimeout(resolve,25));
 if(!elements.loading.classList.contains('hidden'))throw new Error('Static game did not complete initialization.');
@@ -41,4 +41,25 @@ if(!electionDue()||!startElection()||game.overlay.type!=='election')throw new Er
 chooseCampaignPlatform('community');for(let i=0;i<3;i++){electionAnswer(game.overlay.cfg.questions[game.overlay.questionIndex].correct);nextElectionQuestion();}
 if(game.player.electionHistory.length!==1||game.player.campaignBest<=0)throw new Error('Election result was not recorded.');
 game.overlay=null;openLeadershipJournal();if(game.overlay?.type!=='leadership')throw new Error('Leadership journal did not open.');game.overlay=null;
-console.log(`Remote runtime smoke passed for ${scripts.length} scripts, ${checks.map(c=>c[1]).join('/')} authored systems and save version ${CURRENT_SAVE_VERSION}.`);
+
+const routineValidation=validateCampusRoutines();
+if(!routineValidation.valid)throw new Error(`Living Campus routines invalid: ${routineValidation.errors.join(', ')}`);
+if(routineValidation.studentPeriods!==110||routineValidation.teacherPeriods!==44)throw new Error(`Unexpected routine coverage: ${JSON.stringify(routineValidation)}`);
+game.mode='play';game.dialogue=null;game.overlay=null;game.paused=false;game.time=510;game.dailyBrief={id:'qa',weather:'Clear',notice:'QA notice'};
+relocateNPCs('math');
+for(const actor of [...game.npcs,...game.teachers]){
+  if(!actor.campus?.room||!ROOMS[actor.campus.room])throw new Error(`${actor.id} has no valid living-campus destination.`);
+  if(!Number.isFinite(actor.x)||!Number.isFinite(actor.y))throw new Error(`${actor.id} has invalid coordinates.`);
+}
+for(let step=0;step<180;step++)updateCampusSimulation(.25);
+for(const actor of [...game.npcs,...game.teachers]){
+  if(!Number.isFinite(actor.x)||!Number.isFinite(actor.y))throw new Error(`${actor.id} movement became non-finite.`);
+}
+game.dailyBrief={id:'qa-rain',weather:'Heavy Rain',notice:'Courtyard closed'};
+game.time=620;game.dayFlags.incident=false;campusApplyRoutines({key:'break',slotId:'break',transition:false,slot:SCHEDULE.find(slot=>slot.id==='break')},{instant:true});
+if(campusRoomOpen('courtyard'))throw new Error('Rain closure did not close the courtyard.');
+if(game.npcs.some(npc=>npc.campus?.room==='courtyard'))throw new Error('A student remained routed to the closed courtyard.');
+openLivingCampusOverlay();if(game.overlay?.type!=='livingCampus')throw new Error('Campus Pulse overlay did not open.');game.overlay=null;
+if(window.SAKURA_RELEASE?.version!=='1.2.0')throw new Error(`Unexpected release marker ${window.SAKURA_RELEASE?.version}.`);
+
+console.log(`Remote runtime smoke passed for ${scripts.length} scripts, ${checks.map(c=>c[1]).join('/')} authored systems, ${routineValidation.studentPeriods+routineValidation.teacherPeriods} living-campus routines and save version ${CURRENT_SAVE_VERSION}.`);
