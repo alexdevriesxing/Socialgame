@@ -18,7 +18,7 @@ globalThis.Image=class{set src(v){this._src=v;queueMicrotask(()=>this.onload?.()
 
 const index=await readFile('index.html','utf8');
 const scripts=[...index.matchAll(/<script src="([^"]+)"><\/script>/g)].map(match=>match[1]);
-if(scripts.length<17)throw new Error(`Expected 17 production scripts; found ${scripts.length}.`);
+if(scripts.length<20)throw new Error(`Expected 20 production scripts; found ${scripts.length}.`);
 for(const script of scripts)vm.runInThisContext(await readFile(script,'utf8'),{filename:script});
 await new Promise(resolve=>setTimeout(resolve,25));
 if(!elements.loading.classList.contains('hidden'))throw new Error('Static game did not complete initialization.');
@@ -29,14 +29,14 @@ const checks=[
   [CAMPUS_INCIDENTS.length,24,'campus incidents'],[GRADUATION_LEGACIES.length,12,'graduation legacies'],[LEADERSHIP_ELECTIONS.length,4,'elections']
 ];
 for(const [actual,expected,label] of checks)if(actual!==expected)throw new Error(`Expected ${expected} ${label}; got ${actual}.`);
-ensureV10State();ensureActiveSchoolState();
+ensureV10State();ensureActiveSchoolState();ensureWorldState();
 game.player.gender='boy';game.player.routeScenes=['ren-1','ren-2','ren-3'];game.player.relationships.ren=15;
 const ren=game.npcs.find(n=>n.id==='ren');if(!nextFriendshipMoment(ren))throw new Error('Illustrated friendship moment did not unlock.');
 game.time=855;game.dayFlags.activity=false;const activity=CAMPUS_ACTIVITIES.find(a=>a.mechanic==='focus');startCampusMastery(activity);
 for(let i=0;i<4;i++){game.overlay.position=game.overlay.targetCenter;campusMasteryAction();}
 if(game.overlay.phase!=='result'||game.player.campusBest[activity.id]<90)throw new Error('Campus mastery minigame did not record an S-level result.');
 const legacy=determineGraduationLegacy(false);if(!legacy?.name)throw new Error('Graduation legacy calculation failed.');
-const art=createArtSources();if(!art.memory_atlas||!art.character_atlas)throw new Error('v0.8 scalable art sources are incomplete.');
+const art=createArtSources();if(!art.memory_atlas||!art.character_atlas)throw new Error('Scalable art sources are incomplete.');
 game.overlay=null;game.year=1;game.month=9;game.day=17;game.player.electionHistory=[];game.player.leadershipWins=0;
 if(!electionDue()||!startElection()||game.overlay.type!=='election')throw new Error('Election flow did not start.');
 chooseCampaignPlatform('community');for(let i=0;i<3;i++){electionAnswer(game.overlay.cfg.questions[game.overlay.questionIndex].correct);nextElectionQuestion();}
@@ -66,30 +66,60 @@ if(activeValidation.subjects!==9||activeValidation.clubActivities!==16||activeVa
 const visualValidation=validateActiveVisualLayout();if(!visualValidation.valid)throw new Error(`Visual layout invalid: ${visualValidation.issues.join(', ')}`);
 const polishValidation=validateVisualPolish();if(!polishValidation.valid)throw new Error(`Visual polish invalid: ${polishValidation.issues.join(', ')}`);
 
-// Decision activity: complete a perfect mathematics practice session.
 game.overlay=null;game.time=620;startActiveSchoolActivity('math',{practice:true});activeBegin();
 for(let round=0;round<4;round++){const question=game.overlay.questions[game.overlay.round];activeDecisionAnswer(question.correct);activeNextDecision();}
 if(game.overlay.phase!=='result'||game.player.activityBest.math!==100||game.player.subjectMastery.math<1)throw new Error('Mathematics decision activity did not persist a perfect result.');
-
-// Sequence activity: replay the authored order exactly.
 game.overlay=null;startActiveSchoolActivity('literature',{practice:true});activeBegin();game.overlay.preview=0;
 for(const symbol of [...game.overlay.sequence])activeSequenceInput(ACTIVE_SYMBOLS.indexOf(symbol));
 if(game.overlay.phase!=='result'||game.player.activityBest.literature!==100)throw new Error('Literature sequence activity failed.');
-
-// Timing activity: place every hit at the target center.
 game.overlay=null;startActiveSchoolActivity('science',{practice:true});activeBegin();
 for(let round=0;round<4;round++){game.overlay.position=game.overlay.targetCenter;activeTimingHit();}
 if(game.overlay.phase!=='result'||game.player.activityBest.science!==100)throw new Error('Science timing activity failed.');
-
-// Balance activity and assist persistence.
 game.overlay=null;startActiveSchoolActivity('art',{practice:true});const widthBefore=game.overlay.targetWidth;activeToggleAssist();
 if(game.overlay.targetWidth===widthBefore||game.overlay.assist!==game.player.activityAssist)throw new Error('Activity assist did not update the active challenge.');
 activeBegin();finishActiveSchool(100);if(game.overlay.phase!=='result'||game.player.activityBest.art!==100)throw new Error('Art balance activity failed.');
-
-// Seasonal club competition updates club progress and seasonal history.
 game.overlay=null;game.player.club='council';game.time=745;const seasonalKey=activeSeasonalKey();startActiveSchoolActivity('council-debate',{competition:true});activeBegin();
 for(let round=0;round<4;round++){game.overlay.position=game.overlay.targetCenter;activeTimingHit();}
 if(game.overlay.phase!=='result'||!game.player.seasonalCompetitionWins.includes(seasonalKey)||game.player.clubWins<1)throw new Error('Seasonal club competition result was not recorded.');
 
-if(window.SAKURA_RELEASE?.version!=='1.3.0')throw new Error(`Unexpected release marker ${window.SAKURA_RELEASE?.version}.`);
-console.log(`Remote runtime smoke passed for ${scripts.length} scripts, ${checks.map(c=>c[1]).join('/')} authored systems, ${routineValidation.studentPeriods+routineValidation.teacherPeriods} living-campus routines, ${activeValidation.subjects} subjects, ${activeValidation.clubActivities} club activities and nearest-only visual labels.`);
+const worldValidation=validateExpandedWorld();
+if(!worldValidation.valid)throw new Error(`Expanded World content invalid: ${worldValidation.issues.join(', ')}`);
+if(worldValidation.locations!==13||worldValidation.profiles!==10||worldValidation.scenes!==30||worldValidation.customizationCategories!==8)throw new Error(`Unexpected Expanded World coverage: ${JSON.stringify(worldValidation)}`);
+for(const npc of NPCS){
+  const profile=profileForNpc(npc.id);
+  if(!profile?.birthday||profile.interests.length<3||profile.likes.length<3||profile.dislikes.length<2||profile.topics.length<3||profile.scenes.length!==3)throw new Error(`${npc.id} preference profile is incomplete.`);
+}
+const migrated=migrateSave({version:8,data:{player:{},dayFlags:{}}});
+if(migrated.version!==9||migrated.data.player.wallet!==1200||Object.keys(migrated.data.player.customization).length!==8)throw new Error('v8 to v9 save migration failed.');
+
+game.overlay=null;game.dialogue=null;game.mode='play';game.time=850;game.player.collectibles=[];game.player.collectionDates={};
+const firstCollectible=grantCollectible('badge-explorer','QA unlock');
+const duplicateCollectible=grantCollectible('badge-explorer','QA duplicate');
+if(!firstCollectible||duplicateCollectible||game.player.collectibles.filter(id=>id==='badge-explorer').length!==1)throw new Error('Duplicate-safe collection gate failed.');
+
+game.player.wallet=5000;
+if(!buyOrEquipCustomization('hair','sakura')||game.player.customization.hair!=='sakura'||!game.player.ownedCustomization.hair.includes('sakura'))throw new Error('Customization purchase/equip failed.');
+writeSave(localStorage,gameSnapshot());
+const persisted=readSave(localStorage);
+if(persisted.player.customization.hair!=='sakura'||persisted.player.wallet!==game.player.wallet)throw new Error('Customization did not persist across save/load.');
+
+game.player.giftInventory['sports-towel']=1;game.month=2;game.day=14;game.player.relationships.mina=0;
+if(giftReaction(profileForNpc('mina'),giftById('sports-towel'))!=='loved')throw new Error('Liked gift matching failed.');
+if(giftReaction(profileForNpc('rina'),giftById('sports-towel'))!=='disliked')throw new Error('Disliked gift matching failed.');
+giveGift('mina','sports-towel');
+if(game.player.relationships.mina!==5||!game.player.giftHistory.at(-1)?.birthday)throw new Error('Birthday gift bonus was not applied.');
+game.dialogue=null;
+
+const visitsBefore={...game.player.worldVisits},timeBefore=game.time;
+game.overlay={type:'giftShop',returnLocation:'cafe',returnWeekend:true};
+const navigationValidation=validateWorldNavigation();
+if(!navigationValidation.valid||game.time!==timeBefore||JSON.stringify(game.player.worldVisits)!==JSON.stringify(visitsBefore))throw new Error(`World nested navigation failed: ${navigationValidation.issues.join(', ')}`);
+
+game.overlay=null;openWorldMap({weekend:true});if(game.overlay?.type!=='worldMap')throw new Error('District map did not open.');
+visitWorldLocation('cafe',{weekend:true});if(game.overlay?.type!=='worldLocation'||game.overlay.locationId!=='cafe')throw new Error('World location did not open.');
+openHomeHub();if(game.overlay?.type!=='homeHub')throw new Error('Bedroom hub did not open.');
+openCollectionBook();if(game.overlay?.type!=='collectionBook')throw new Error('Collection book did not open.');
+
+if(window.SAKURA_RELEASE?.version!=='1.4.0')throw new Error(`Unexpected release marker ${window.SAKURA_RELEASE?.version}.`);
+if(CURRENT_SAVE_VERSION!==9)throw new Error(`Unexpected save version ${CURRENT_SAVE_VERSION}.`);
+console.log(`Remote runtime smoke passed for ${scripts.length} scripts, ${routineValidation.studentPeriods+routineValidation.teacherPeriods} campus routines, ${activeValidation.subjects} subjects, ${worldValidation.locations} off-campus locations, ${worldValidation.scenes} off-campus scenes, ${worldValidation.collectibles} collectibles and save version ${CURRENT_SAVE_VERSION}.`);
