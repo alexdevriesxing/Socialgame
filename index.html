@@ -4,9 +4,13 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
   <meta name="theme-color" content="#1c1d2b" />
+  <meta name="application-name" content="Sakura Crest" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="description" content="Sakura Crest: Social Summit — a family-friendly 2D anime high-school social simulation." />
   <title>Sakura Crest: Social Summit</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="manifest.webmanifest" />
   <meta property="og:title" content="Sakura Crest: Social Summit" />
   <meta property="og:description" content="Four school years. Forty-eight rankings. Four elections. One unforgettable prom." />
   <link rel="stylesheet" href="styles.css" />
@@ -19,7 +23,7 @@
       <input id="nameInput" maxlength="12" value="Akira" autocomplete="off" />
       <button id="confirmName" type="button">Begin School Life</button>
     </section>
-    <div class="loading" id="loading">Preparing Sakura Crest Academy…</div>
+    <div class="loading" id="loading" role="status" aria-live="polite">Preparing Sakura Crest Academy…</div>
   </main>
   <noscript>This game requires JavaScript.</noscript>
   <script src="src/content-1.js"></script>
@@ -35,5 +39,6 @@
   <script src="src/game-3.js"></script>
   <script src="src/game-4.js"></script>
   <script src="src/game-5.js"></script>
+  <script src="src/platform.js"></script>
 </body>
 </html>
