@@ -1,14 +1,21 @@
 function triggerNpcTalk(npc){
+  ensureSocialMemoryState();
   const already=game.dayFlags.talked.includes(npc.id);
   const rel=game.player.relationships[npc.id]||0;
+  const profile=socialProfile(npc.id);
+  const memory=recentMemory(npc.id);
   let greeting=npc.greetings[(game.day+Math.floor(rel/2))%npc.greetings.length];
   if(rel>=6) greeting += `\n\n${rel>=10?'They clearly trust you now.':'Your conversations have become comfortable and honest.'}`;
+  if(profile.strain>=3)greeting+='\n\nThere is still some tension between you.';
+  else if(profile.trust>=4)greeting+='\n\nThey remember that you followed through when it mattered.';
+  if(memory)greeting+=`\n\nRecent memory: ${memory.summary}`;
   const choices=[
-    {text:`Ask about ${npc.clique}.`,relationship:[npc.id,1],effects:{intellect:1,score:already?1:4},result:`${npc.name}: “${cliqueAdvice(npc.clique)}”`},
-    {text:'Offer help with today’s challenge.',relationship:[npc.id,2],effects:{kindness:1,score:already?2:6,help:already?0:1},result:`${npc.name} accepts. It is a small task, but it turns into an easy conversation.`},
-    {text:'Share a light joke.',relationship:[npc.id,1],effects:{charisma:1,score:already?1:5},result:`The joke lands. ${npc.name} laughs more openly than expected.`},
+    {text:`Ask about ${npc.clique}.`,relationship:[npc.id,1],memoryNpc:npc.id,memoryType:'respect',memory:`Listened seriously to ${npc.name}'s perspective on ${npc.clique}.`,effects:{intellect:1,score:already?1:4},result:`${npc.name}: “${cliqueAdvice(npc.clique)}”`},
+    {text:'Offer help with today’s challenge.',relationship:[npc.id,2],memoryNpc:npc.id,memoryType:'support',memory:`Offered practical help when ${npc.name} needed it.`,effects:{kindness:1,score:already?2:6,help:already?0:1},result:`${npc.name} accepts. It is a small task, but it turns into an easy conversation.`},
+    {text:'Share a light joke.',relationship:[npc.id,1],memoryNpc:npc.id,memoryType:'respect',memory:`Shared a joke without making anyone else the target.`,effects:{charisma:1,score:already?1:5},result:`The joke lands. ${npc.name} laughs more openly than expected.`},
     {text:'Say goodbye.',effects:{score:0},result:'You part on good terms before the next bell.'}
   ];
+  const recovery=recoveryChoiceFor(npc.id);if(recovery)choices.splice(choices.length-1,0,recovery);
   if(!already){game.dayFlags.talked.push(npc.id);progressMission('talk',1);}
   openDialogue({speaker:npc.name,portrait:npc.portrait,text:`${greeting}\n\n${npc.bio}`,choices});
 }
@@ -134,4 +141,3 @@ function checkSchedule(){
     notify(`Missed ${slot.title}: absence recorded`,COLORS.red);audio.bad();
   }else if(game.time===slot.start+(slot.grace||5)) notify(`Late for ${slot.title}! Go to ${ROOMS[target]?.name}.`,COLORS.red);
 }
-
