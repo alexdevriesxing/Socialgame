@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: 22
 
-      - name: Validate release integrity and runtime
+      - name: Syntax-check production scripts
         run: |
           set -euo pipefail
           mapfile -t scripts < <(grep -oP '<script src="\K[^"]+' index.html)
@@ -32,8 +32,14 @@ jobs:
           done
           node --check sw.js
           node --check tests/browser-production-smoke.mjs
-          node tests/verify-release.mjs
-          node tests/remote-static-smoke.mjs
+          node --check tests/remote-static-smoke.mjs
+          node --check tests/verify-release.mjs
+
+      - name: Validate release inventory
+        run: node tests/verify-release.mjs
+
+      - name: Validate authored systems and campus routines
+        run: node tests/remote-static-smoke.mjs
 
       - name: Install pinned Playwright runtime
         run: |
