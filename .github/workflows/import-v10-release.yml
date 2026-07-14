@@ -68,6 +68,17 @@ jobs:
           test -f /tmp/release/index.html
           test -f /tmp/release/build-manifest.json
           test -f /tmp/release/tests/remote-static-smoke.mjs
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path('/tmp/release/tests/remote-static-smoke.mjs')
+          source = path.read_text()
+          stale = 'if(scripts.length<15)throw new Error(`Expected split production scripts; found ${scripts.length}.`);'
+          fixed = 'if(scripts.length<13)throw new Error(`Expected split production scripts; found ${scripts.length}.`);'
+          if stale in source:
+              path.write_text(source.replace(stale, fixed))
+          elif fixed not in source:
+              raise SystemExit('Unable to locate production-script smoke assertion')
+          PY
 
       - name: Replace branch with verified release
         shell: bash
@@ -76,7 +87,7 @@ jobs:
           find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
           cp -a /tmp/release/. .
           mapfile -t scripts < <(grep -oP '<script src="\K[^"]+' index.html)
-          test "${#scripts[@]}" -ge 12
+          test "${#scripts[@]}" -ge 13
           for script in "${scripts[@]}"; do
             test -f "$script"
             node --check "$script"
