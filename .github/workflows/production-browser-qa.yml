@@ -23,6 +23,9 @@ jobs:
         with:
           node-version: 22
 
+      - name: Prepare QA output
+        run: mkdir -p test-results
+
       - name: Syntax-check production scripts
         run: |
           set -euo pipefail
@@ -36,10 +39,14 @@ jobs:
           node --check tests/verify-release.mjs
 
       - name: Validate release inventory
-        run: node tests/verify-release.mjs
+        run: |
+          set -o pipefail
+          node tests/verify-release.mjs 2>&1 | tee test-results/release-inventory.log
 
       - name: Validate authored systems and campus routines
-        run: node tests/remote-static-smoke.mjs
+        run: |
+          set -o pipefail
+          node tests/remote-static-smoke.mjs 2>&1 | tee test-results/runtime-smoke.log
 
       - name: Install pinned Playwright runtime
         run: |
@@ -60,9 +67,11 @@ jobs:
       - name: Run production browser smoke
         env:
           BASE_URL: http://127.0.0.1:4173
-        run: node tests/browser-production-smoke.mjs
+        run: |
+          set -o pipefail
+          node tests/browser-production-smoke.mjs 2>&1 | tee test-results/browser-smoke.log
 
-      - name: Upload QA screenshots
+      - name: Upload QA evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
