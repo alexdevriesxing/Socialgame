@@ -12,10 +12,11 @@
   "orientation": "landscape",
   "background_color": "#11131e",
   "theme_color": "#1c1d2b",
-  "description": "A living anime school-life RPG with believable NPC schedules, friendships, elections, exams, campus mastery and New Game+.",
+  "description": "An active anime school-life RPG with nine subjects, sixteen club activities, seasonal competitions, a living campus, friendships and four complete school years.",
   "categories": [
     "games",
-    "entertainment"
+    "entertainment",
+    "education"
   ],
   "icons": [
     {

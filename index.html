@@ -7,12 +7,12 @@
   <meta name="application-name" content="Sakura Crest" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="description" content="Sakura Crest: Social Summit — a family-friendly 2D anime high-school social simulation." />
+  <meta name="description" content="Sakura Crest: Social Summit — a family-friendly anime school-life RPG with active classes, club competitions and a living campus." />
   <title>Sakura Crest: Social Summit</title>
   <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
   <link rel="manifest" href="manifest.webmanifest" />
   <meta property="og:title" content="Sakura Crest: Social Summit" />
-  <meta property="og:description" content="Four school years. Forty-eight rankings. Four elections. One unforgettable prom." />
+  <meta property="og:description" content="Four school years, active lessons, sixteen club activities, forty-eight rankings and one unforgettable prom." />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
@@ -25,6 +25,13 @@
     </section>
     <div class="loading" id="loading" role="status" aria-live="polite">Preparing Sakura Crest Academy…</div>
   </main>
+  <section id="orientation-hint" class="orientation-hint" aria-label="Landscape orientation recommended">
+    <div class="orientation-crest" aria-hidden="true"><span>SC</span></div>
+    <p class="orientation-kicker">Sakura Crest Academy</p>
+    <h1>Rotate your device</h1>
+    <p>Sakura Crest is designed as a widescreen school world. Turn your phone sideways for readable dialogue, touch controls and full campus play.</p>
+    <div class="orientation-phone" aria-hidden="true"><span></span></div>
+  </section>
   <noscript>This game requires JavaScript.</noscript>
   <script src="src/content-1.js"></script>
   <script src="src/content-2.js"></script>
@@ -40,6 +47,8 @@
   <script src="src/game-4.js"></script>
   <script src="src/game-5.js"></script>
   <script src="src/campus.js"></script>
+  <script src="src/activity.js"></script>
+  <script src="src/visual.js"></script>
   <script src="src/platform.js"></script>
 </body>
 </html>
