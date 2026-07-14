@@ -3,7 +3,7 @@
 
   const release = Object.freeze({
     name: 'Sakura Crest: Social Summit',
-    version: '1.3.0',
+    version: '1.4.0',
     channel: 'production',
     releasedAt: '2026-07-14'
   });

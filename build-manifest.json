@@ -1,5 +1,5 @@
 {
-  "version": "1.3.0",
+  "version": "1.4.0",
   "format": "cloudflare-static",
   "entrypoint": "index.html",
   "offline": "sw.js",
@@ -28,6 +28,9 @@
     "src/campus.js",
     "src/activity.js",
     "src/visual.js",
+    "src/world.js",
+    "src/world-polish.js",
+    "src/world-title.js",
     "src/platform.js"
   ]
 }

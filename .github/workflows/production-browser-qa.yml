@@ -13,7 +13,7 @@ permissions:
 jobs:
   browser-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 18
+    timeout-minutes: 20
     steps:
       - name: Checkout release
         uses: actions/checkout@v4
@@ -43,7 +43,7 @@ jobs:
           set -o pipefail
           node tests/verify-release.mjs 2>&1 | tee test-results/release-inventory.log
 
-      - name: Validate campaign, campus and active-school systems
+      - name: Validate campaign, campus, active school and expanded world
         run: |
           set -o pipefail
           node tests/remote-static-smoke.mjs 2>&1 | tee test-results/runtime-smoke.log
@@ -75,7 +75,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: sakura-crest-v13-visual-qa
+          name: sakura-crest-v14-world-visual-qa
           path: test-results
           if-no-files-found: warn
           retention-days: 14

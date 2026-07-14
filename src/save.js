@@ -1,4 +1,4 @@
-const CURRENT_SAVE_VERSION = 8;
+const CURRENT_SAVE_VERSION = 9;
 const SAVE_KEY = 'sakura-crest-social-summit';
 const LEGACY_SAVE_KEYS = ['sakura-crest-social-summit-v1'];
 
@@ -37,7 +37,6 @@ function migrateV2(data) {
   migrated.promResult ??= null;
   return migrated;
 }
-
 
 function migrateV3(data) {
   const migrated = structuredClone(data);
@@ -101,7 +100,6 @@ function migrateV6(data) {
   return migrated;
 }
 
-
 function migrateV7(data) {
   const migrated = structuredClone(data);
   migrated.player ||= {};
@@ -109,6 +107,28 @@ function migrateV7(data) {
   migrated.player.leadershipWins ??= 0;
   migrated.player.campaignBest ??= 0;
   migrated.player.campaignPlatform ??= null;
+  return migrated;
+}
+
+function migrateV8(data) {
+  const migrated = structuredClone(data);
+  migrated.player ||= {};
+  migrated.player.wallet ??= 1200;
+  migrated.player.customization ||= {hair:'natural',skin:'warm',face:'classic',outfit:'uniform',accessory:'none',bag:'school',phoneTheme:'crest',roomTheme:'academy'};
+  migrated.player.ownedCustomization ||= {
+    hair:['natural'],skin:['warm'],face:['classic'],outfit:['uniform'],accessory:['none'],bag:['school'],phoneTheme:['crest'],roomTheme:['academy']
+  };
+  migrated.player.giftInventory ||= {};
+  migrated.player.giftHistory ||= [];
+  migrated.player.worldVisits ||= {};
+  migrated.player.worldScenes ||= [];
+  migrated.player.worldTopics ||= [];
+  migrated.player.collectibles ||= [];
+  migrated.player.collectionDates ||= {};
+  migrated.player.likedGifts ??= 0;
+  migrated.player.roomDecor ||= {poster:null,trophy:null,memory:null,music:null};
+  migrated.dayFlags ||= {};
+  migrated.dayFlags.worldTrips ??= 0;
   return migrated;
 }
 
@@ -124,6 +144,7 @@ function migrateSave(raw) {
   if (version === 5) { data = migrateV5(data); version = 6; }
   if (version === 6) { data = migrateV6(data); version = 7; }
   if (version === 7) { data = migrateV7(data); version = 8; }
+  if (version === 8) { data = migrateV8(data); version = 9; }
   return { version, data };
 }
 
