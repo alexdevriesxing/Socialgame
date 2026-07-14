@@ -1,0 +1,29 @@
+name: Export v1.0 release fragments
+
+on:
+  push:
+    branches:
+      - agent/leadership-legacy-v10
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+      - name: Package transfer fragments
+        run: |
+          set -euo pipefail
+          tar -czf release-fragments.tar.gz .release-import .release-repair
+      - name: Upload transfer fragments
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-fragments
+          path: release-fragments.tar.gz
+          if-no-files-found: error
+          retention-days: 1
