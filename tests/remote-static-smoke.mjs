@@ -18,7 +18,7 @@ globalThis.Image=class{set src(v){this._src=v;queueMicrotask(()=>this.onload?.()
 
 const index=await readFile('index.html','utf8');
 const scripts=[...index.matchAll(/<script src="([^"]+)"><\/script>/g)].map(match=>match[1]);
-if(scripts.length<16)throw new Error(`Expected 16 production scripts; found ${scripts.length}.`);
+if(scripts.length<17)throw new Error(`Expected 17 production scripts; found ${scripts.length}.`);
 for(const script of scripts)vm.runInThisContext(await readFile(script,'utf8'),{filename:script});
 await new Promise(resolve=>setTimeout(resolve,25));
 if(!elements.loading.classList.contains('hidden'))throw new Error('Static game did not complete initialization.');
@@ -64,6 +64,7 @@ const activeValidation=validateActiveSchoolContent();
 if(!activeValidation.valid)throw new Error(`Active School content invalid: ${activeValidation.issues.join(', ')}`);
 if(activeValidation.subjects!==9||activeValidation.clubActivities!==16||activeValidation.seasonalEvents!==16)throw new Error(`Unexpected Active School coverage: ${JSON.stringify(activeValidation)}`);
 const visualValidation=validateActiveVisualLayout();if(!visualValidation.valid)throw new Error(`Visual layout invalid: ${visualValidation.issues.join(', ')}`);
+const polishValidation=validateVisualPolish();if(!polishValidation.valid)throw new Error(`Visual polish invalid: ${polishValidation.issues.join(', ')}`);
 
 // Decision activity: complete a perfect mathematics practice session.
 game.overlay=null;game.time=620;startActiveSchoolActivity('math',{practice:true});activeBegin();
@@ -91,4 +92,4 @@ for(let round=0;round<4;round++){game.overlay.position=game.overlay.targetCenter
 if(game.overlay.phase!=='result'||!game.player.seasonalCompetitionWins.includes(seasonalKey)||game.player.clubWins<1)throw new Error('Seasonal club competition result was not recorded.');
 
 if(window.SAKURA_RELEASE?.version!=='1.3.0')throw new Error(`Unexpected release marker ${window.SAKURA_RELEASE?.version}.`);
-console.log(`Remote runtime smoke passed for ${scripts.length} scripts, ${checks.map(c=>c[1]).join('/')} authored systems, ${routineValidation.studentPeriods+routineValidation.teacherPeriods} living-campus routines, ${activeValidation.subjects} subjects, ${activeValidation.clubActivities} club activities and save version ${CURRENT_SAVE_VERSION}.`);
+console.log(`Remote runtime smoke passed for ${scripts.length} scripts, ${checks.map(c=>c[1]).join('/')} authored systems, ${routineValidation.studentPeriods+routineValidation.teacherPeriods} living-campus routines, ${activeValidation.subjects} subjects, ${activeValidation.clubActivities} club activities and nearest-only visual labels.`);
