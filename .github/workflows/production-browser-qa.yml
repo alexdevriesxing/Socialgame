@@ -3,7 +3,7 @@ name: Production browser QA
 on:
   push:
     branches:
-      - agent/production-qa-pwa-v11
+      - 'agent/**'
   pull_request:
   workflow_dispatch:
 
