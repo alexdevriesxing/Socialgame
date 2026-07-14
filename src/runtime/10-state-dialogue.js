@@ -3,6 +3,7 @@ function resetGame(){
   game.scheduleStatus={};game.dayFlags={talked:[],hotspots:[],help:0,club:0,ontime:0,event:false};
   game.npcs=JSON.parse(JSON.stringify(NPCS));game.teachers=JSON.parse(JSON.stringify(TEACHERS));
   game.finished=false;assignMissions();relocateNPCs('arrival');
+  ensureSocialMemoryState();
 }
 
 function saveGame(){
@@ -18,6 +19,7 @@ function loadGame(){
     game.player.socialStatus ||= 'ordinary'; game.player.teacherTrust ??= 0; game.player.invitations ||= [];
     game.player.clubXP ??= 0; game.player.clubRankIndex ??= 0; game.player.clubPrestige ??= 0;
     game.player.clubWins ??= 0; game.player.clubAttendance ??= 0;
+    ensureSocialMemoryState();expirePromises();
     relocateNPCs(currentSlot()?.id||'arrival');return true;
   }catch(e){console.warn(e);return false;}
 }
@@ -82,7 +84,7 @@ function statusScore(value){
   return Math.round(value*(value>=0?cfg.positiveScoreMultiplier:cfg.negativeScoreMultiplier));
 }
 
-function applyEffects(effects={}, source=''){ 
+function applyEffects(effects={}, source=''){
   for(const [k,v] of Object.entries(effects)){
     if(k==='score') game.player.score+=statusScore(v);
     else if(k==='stress') game.player.stress=clamp(game.player.stress+v,0,100);
@@ -108,6 +110,8 @@ function closeDialogue(choiceIndex=0){
     if(choice.relationship){
       const [id,delta]=choice.relationship;game.player.relationships[id]=clamp((game.player.relationships[id]||0)+delta,-10,20);
     }
+    applyChoiceMemory(d,choice);
+    expirePromises();
     const action=choice.action;
     const result=choice.result;
     const after=d.onClose; game.dialogue=null;
@@ -115,4 +119,3 @@ function closeDialogue(choiceIndex=0){
     else {if(action)action();if(after)after();}
   }else{const after=d.onClose;game.dialogue=null;if(after)after();}
 }
-
