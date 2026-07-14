@@ -45,7 +45,7 @@ const waitForGame = async page => {
   }
 
   const release = await page.evaluate(() => window.SAKURA_RELEASE);
-  if (release?.version !== '1.3.0') throw new Error(`Unexpected release marker: ${JSON.stringify(release)}`);
+  if (release?.version !== '1.4.0') throw new Error(`Unexpected release marker: ${JSON.stringify(release)}`);
 };
 
 const clickCanvas = async (page, x, y) => {
@@ -86,12 +86,18 @@ try {
   const releaseCoverage = await page.evaluate(() => ({
     active:validateActiveSchoolContent(),
     visual:validateActiveVisualLayout(),
+    world:validateExpandedWorld(),
+    navigation:validateWorldNavigation(),
     layout:window.SAKURA_VISUAL_LAYOUT
   }));
   if (!releaseCoverage.active.valid || releaseCoverage.active.subjects !== 9 || releaseCoverage.active.clubActivities !== 16 || releaseCoverage.active.seasonalEvents !== 16) {
     throw new Error(`Active School coverage is invalid: ${JSON.stringify(releaseCoverage.active)}`);
   }
   if (!releaseCoverage.visual.valid) throw new Error(`Visual safe-area validation failed: ${JSON.stringify(releaseCoverage.visual)}`);
+  if (!releaseCoverage.world.valid || releaseCoverage.world.locations !== 13 || releaseCoverage.world.profiles !== 10 || releaseCoverage.world.scenes !== 30 || releaseCoverage.world.customizationCategories !== 8) {
+    throw new Error(`Expanded World coverage is invalid: ${JSON.stringify(releaseCoverage.world)}`);
+  }
+  if (!releaseCoverage.navigation.valid) throw new Error(`World navigation validation failed: ${JSON.stringify(releaseCoverage.navigation)}`);
   await page.screenshot({ path: 'test-results/title-desktop.png', fullPage: true });
 
   await clickCanvas(page, 731, 249);
@@ -107,7 +113,10 @@ try {
     month: game.month,
     mode: game.mode,
     routineCoverage: validateCampusRoutines(),
-    activityAssist:game.player.activityAssist
+    activityAssist:game.player.activityAssist,
+    wallet:game.player.wallet,
+    customization:Object.keys(game.player.customization||{}).length,
+    saveVersion:CURRENT_SAVE_VERSION
   }));
   if (playerState.name !== 'QA Student' || playerState.year !== 1 || playerState.month !== 1 || playerState.mode !== 'play') {
     throw new Error(`New-game state is invalid: ${JSON.stringify(playerState)}`);
@@ -115,7 +124,9 @@ try {
   if (!playerState.routineCoverage.valid || playerState.routineCoverage.studentPeriods !== 110 || playerState.routineCoverage.teacherPeriods !== 44) {
     throw new Error(`Living Campus coverage is invalid: ${JSON.stringify(playerState.routineCoverage)}`);
   }
-  if (playerState.activityAssist !== true) throw new Error('Activity assist should default to enabled.');
+  if (playerState.activityAssist !== true || playerState.wallet !== 1200 || playerState.customization !== 8 || playerState.saveVersion !== 9) {
+    throw new Error(`v1.4 player state is invalid: ${JSON.stringify(playerState)}`);
+  }
 
   await page.screenshot({ path: 'test-results/live-hud-desktop.png', fullPage: true });
 
@@ -160,6 +171,56 @@ try {
   }
   await page.screenshot({ path: 'test-results/activity-result-desktop.png', fullPage: true });
   await page.evaluate(() => activeExitResult());
+
+  await page.evaluate(() => { game.time=850;game.overlay=null;game.dialogue=null;openWorldMap({weekend:true}); });
+  await page.waitForFunction(() => game.overlay?.type === 'worldMap', { timeout: 3000 });
+  await page.screenshot({ path: 'test-results/world-map-desktop.png', fullPage: true });
+
+  await page.evaluate(() => visitWorldLocation('cafe',{weekend:true}));
+  await page.waitForFunction(() => game.overlay?.type === 'worldLocation' && game.overlay.locationId === 'cafe', { timeout: 3000 });
+  const locationState = await page.evaluate(() => ({visits:game.player.worldVisits.cafe,npcs:game.overlay.npcs.length,time:game.time}));
+  if (locationState.visits !== 1 || locationState.npcs < 1 || locationState.time !== 850) throw new Error(`Weekend world visit failed: ${JSON.stringify(locationState)}`);
+  await page.screenshot({ path: 'test-results/world-cafe-desktop.png', fullPage: true });
+
+  await page.evaluate(() => openGiftShop('cafe'));
+  await page.waitForFunction(() => game.overlay?.type === 'giftShop', { timeout: 3000 });
+  await page.screenshot({ path: 'test-results/gift-shop-desktop.png', fullPage: true });
+  const nestedNavigation = await page.evaluate(() => {
+    const before={time:game.time,visits:game.player.worldVisits.cafe};
+    worldBackToLocation('cafe');
+    return {type:game.overlay?.type,location:game.overlay?.locationId,weekend:game.overlay?.weekend,time:game.time,visits:game.player.worldVisits.cafe,before};
+  });
+  if (nestedNavigation.type !== 'worldLocation' || nestedNavigation.location !== 'cafe' || !nestedNavigation.weekend || nestedNavigation.time !== nestedNavigation.before.time || nestedNavigation.visits !== nestedNavigation.before.visits) {
+    throw new Error(`Nested world navigation failed: ${JSON.stringify(nestedNavigation)}`);
+  }
+
+  await page.evaluate(() => openHomeHub());
+  await page.waitForFunction(() => game.overlay?.type === 'homeHub', { timeout: 3000 });
+  await page.screenshot({ path: 'test-results/bedroom-desktop.png', fullPage: true });
+
+  await page.evaluate(() => openCustomization('hair'));
+  await page.waitForFunction(() => game.overlay?.type === 'customization', { timeout: 3000 });
+  await page.screenshot({ path: 'test-results/customization-desktop.png', fullPage: true });
+  const customState = await page.evaluate(() => {
+    game.player.wallet=5000;
+    buyOrEquipCustomization('hair','sakura');
+    writeSave(localStorage,gameSnapshot());
+    const saved=readSave(localStorage);
+    return {equipped:game.player.customization.hair,owned:game.player.ownedCustomization.hair.includes('sakura'),saved:saved.player.customization.hair};
+  });
+  if (customState.equipped !== 'sakura' || !customState.owned || customState.saved !== 'sakura') throw new Error(`Customization persistence failed: ${JSON.stringify(customState)}`);
+
+  await page.evaluate(() => openCollectionBook());
+  await page.waitForFunction(() => game.overlay?.type === 'collectionBook', { timeout: 3000 });
+  const collectionState = await page.evaluate(() => {
+    game.player.collectibles=[];game.player.collectionDates={};
+    const first=grantCollectible('badge-explorer','Browser QA');
+    const second=grantCollectible('badge-explorer','Duplicate QA');
+    return {first,second,count:game.player.collectibles.filter(id=>id==='badge-explorer').length,total:game.player.collectibles.length};
+  });
+  if (!collectionState.first || collectionState.second || collectionState.count !== 1 || collectionState.total !== 1) throw new Error(`Duplicate collection guard failed: ${JSON.stringify(collectionState)}`);
+  await page.screenshot({ path: 'test-results/collection-book-desktop.png', fullPage: true });
+  await page.evaluate(() => {game.overlay=null;game.notifications=[];});
 
   await page.keyboard.press('o');
   await page.waitForFunction(() => game.overlay?.type === 'accessibility', { timeout: 3000 });
@@ -235,4 +296,4 @@ if (failures.length) {
   throw new Error(`Browser smoke captured ${failures.length} failure(s):\n${failures.join('\n')}`);
 }
 
-console.log('Production browser smoke passed: Active School gameplay, visual safe areas, living-campus movement, offline reload and portrait/landscape mobile presentation.');
+console.log('Production browser smoke passed: Expanded World, persistent customization, gifts, duplicate-safe collections, Active School, Living Campus, offline reload and portrait/landscape mobile presentation.');
