@@ -22,6 +22,7 @@ const CORE_FILES = [
   './src/game-5.js',
   './src/campus.js',
   './src/activity.js',
+  './src/visual.js',
   './src/platform.js'
 ];
 
