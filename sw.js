@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE_VERSION = 'sakura-crest-v1.1.0';
+const CACHE_VERSION = 'sakura-crest-v1.2.0';
 const CORE_FILES = [
   './',
   './index.html',
@@ -20,6 +20,7 @@ const CORE_FILES = [
   './src/game-3.js',
   './src/game-4.js',
   './src/game-5.js',
+  './src/campus.js',
   './src/platform.js'
 ];
 
