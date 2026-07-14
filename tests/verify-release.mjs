@@ -2,7 +2,7 @@ import { readFile, stat } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 
 const manifest = JSON.parse(await readFile('build-manifest.json', 'utf8'));
-if (manifest.version !== '1.1.0') throw new Error(`Expected release 1.1.0, received ${manifest.version}.`);
+if (manifest.version !== '1.2.0') throw new Error(`Expected release 1.2.0, received ${manifest.version}.`);
 
 for (const [path, expected] of Object.entries(manifest.files)) {
   const bytes = await readFile(path);
