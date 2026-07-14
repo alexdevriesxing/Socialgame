@@ -1,4 +1,4 @@
-// Expanded World v1.4 polish — preserve trip context when entering nested world screens.
+// Expanded World v1.4 polish — preserve trip context and clean new-game initialization.
 function worldReturnContext(){
   const overlay=game.overlay||{};
   return {locationId:overlay.returnLocation||overlay.locationId||null,weekend:Boolean(overlay.returnWeekend??overlay.weekend)};
@@ -32,6 +32,17 @@ worldBackToLocation=function(locationId,weekend=false){
   if(!location){openWorldMap({weekend:isWeekend});return;}
   game.overlay={type:'worldLocation',title:location.name,locationId:target,weekend:isWeekend,npcs:worldAvailableNpcs(target),explored:false};
 };
+
+const worldPolishReset=resetGame;
+resetGame=function(){
+  worldPolishReset();
+  game.player.collectibles=game.player.collectibles.filter(id=>id!=='photo-first-day');
+  delete game.player.collectionDates['photo-first-day'];
+  deleteSave(localStorage);
+};
+confirmName.addEventListener('click',()=>{
+  if(game.mode==='play')grantCollectible('photo-first-day','Confirmed the first day at Sakura Crest');
+});
 
 const worldPolishPhone=drawPhoneOverlay;
 drawPhoneOverlay=function(o){
