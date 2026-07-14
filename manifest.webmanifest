@@ -5,12 +5,18 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "display_override": ["fullscreen", "standalone"],
+  "display_override": [
+    "fullscreen",
+    "standalone"
+  ],
   "orientation": "landscape",
   "background_color": "#11131e",
   "theme_color": "#1c1d2b",
-  "description": "A crisp anime school-life RPG with annual student elections, exams, friendships, campus mastery and New Game+.",
-  "categories": ["games", "entertainment"],
+  "description": "A living anime school-life RPG with believable NPC schedules, friendships, elections, exams, campus mastery and New Game+.",
+  "categories": [
+    "games",
+    "entertainment"
+  ],
   "icons": [
     {
       "src": "assets/favicon.svg",

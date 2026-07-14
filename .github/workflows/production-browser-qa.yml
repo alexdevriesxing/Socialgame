@@ -3,7 +3,7 @@ name: Production browser QA
 on:
   push:
     branches:
-      - agent/production-qa-pwa-v11
+      - 'agent/**'
   pull_request:
   workflow_dispatch:
 
@@ -23,7 +23,10 @@ jobs:
         with:
           node-version: 22
 
-      - name: Validate release integrity and runtime
+      - name: Prepare QA output
+        run: mkdir -p test-results
+
+      - name: Syntax-check production scripts
         run: |
           set -euo pipefail
           mapfile -t scripts < <(grep -oP '<script src="\K[^"]+' index.html)
@@ -32,8 +35,18 @@ jobs:
           done
           node --check sw.js
           node --check tests/browser-production-smoke.mjs
-          node tests/verify-release.mjs
-          node tests/remote-static-smoke.mjs
+          node --check tests/remote-static-smoke.mjs
+          node --check tests/verify-release.mjs
+
+      - name: Validate release inventory
+        run: |
+          set -o pipefail
+          node tests/verify-release.mjs 2>&1 | tee test-results/release-inventory.log
+
+      - name: Validate authored systems and campus routines
+        run: |
+          set -o pipefail
+          node tests/remote-static-smoke.mjs 2>&1 | tee test-results/runtime-smoke.log
 
       - name: Install pinned Playwright runtime
         run: |
@@ -54,9 +67,11 @@ jobs:
       - name: Run production browser smoke
         env:
           BASE_URL: http://127.0.0.1:4173
-        run: node tests/browser-production-smoke.mjs
+        run: |
+          set -o pipefail
+          node tests/browser-production-smoke.mjs 2>&1 | tee test-results/browser-smoke.log
 
-      - name: Upload QA screenshots
+      - name: Upload QA evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
