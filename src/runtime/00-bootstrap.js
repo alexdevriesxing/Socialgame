@@ -89,7 +89,10 @@ const defaultPlayer = () => ({
   name:'Akira', gender:'boy', club:'council', socialStatus:'ordinary', x:220, y:350, direction:0, anim:1,
   stats:{charisma:3,intellect:3,fitness:3,talent:3,kindness:3,courage:3,reliability:3},
   energy:100, stress:0, score:0, demerits:0, tardies:0, absences:0, detention:0, teacherTrust:0,
-  relationships:Object.fromEntries(NPCS.map(n=>[n.id,0])), accomplishments:[], invitations:[],
+  relationships:Object.fromEntries(NPCS.map(n=>[n.id,0])),
+  relationshipMemories:Object.fromEntries(NPCS.map(n=>[n.id,[]])),
+  socialProfiles:Object.fromEntries(NPCS.map(n=>[n.id,{trust:0,respect:0,strain:0}])),
+  promises:[], accomplishments:[], invitations:[],
   clubXP:0, clubRankIndex:0, clubPrestige:0, clubWins:0, clubAttendance:0,
   inventory:['Student Handbook','Lunch Card'], monthlyScores:[]
 });
@@ -102,4 +105,3 @@ const game = {
   npcs:JSON.parse(JSON.stringify(NPCS)), teachers:JSON.parse(JSON.stringify(TEACHERS)),
   paused:false, showControls:true, finished:false
 };
-
