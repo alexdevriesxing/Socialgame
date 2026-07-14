@@ -61,6 +61,8 @@
     typeof location !== 'undefined' &&
     location.protocol !== 'file:'
   ) {
+    const controlledAtBoot = Boolean(navigator.serviceWorker.controller);
+
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js', { scope: './' }).then(registration => {
         const activateWaitingWorker = () => {
@@ -80,7 +82,7 @@
 
     let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (refreshing) return;
+      if (!controlledAtBoot || refreshing) return;
       refreshing = true;
       location.reload();
     });
