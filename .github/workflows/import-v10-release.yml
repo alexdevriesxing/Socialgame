@@ -106,12 +106,19 @@ jobs:
           curl -fsS http://127.0.0.1:4173/styles.css >/dev/null
           curl -fsS http://127.0.0.1:4173/build-manifest.json >/dev/null
 
-      - name: Commit production release
+      - name: Stage production release
         shell: bash
         run: |
           set -euo pipefail
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Ship Leadership & Legacy v1.0"
-          git push origin HEAD:agent/leadership-legacy-v10
+          test -n "$(git status --porcelain)"
+
+      - name: Commit production release
+        shell: bash
+        run: git commit -m "Ship Leadership & Legacy v1.0"
+
+      - name: Push production release
+        shell: bash
+        run: git push origin HEAD:agent/leadership-legacy-v10
