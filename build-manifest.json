@@ -1,5 +1,5 @@
 {
-  "version": "1.0.0",
+  "version": "1.1.0",
   "format": "cloudflare-static",
   "files": {
     "LICENSE": {
@@ -7,24 +7,24 @@
       "sha256": "1bf7b23b149b06e84b96cf1a3fe52951fe1d3b82933b24bb8aa0c60df9c7f1b2"
     },
     "README.md": {
-      "bytes": 1440,
-      "sha256": "3425996c1aa83c510dc8652296d22fa20edab29753a38e7e4b2dfee32b4849d3"
+      "bytes": 2397,
+      "sha256": "21cf9b975c8fda9f1ab7e2ab5c017aae6e2c8dd7ea38a8075ef97b53d71a6750"
     },
     "_headers": {
-      "bytes": 295,
-      "sha256": "feaed415dfc7c9fe44864a2569fff4d75fa071c8e2f3dc217e289d40ff577228"
+      "bytes": 533,
+      "sha256": "40cb8a6482fd8b7a3a042cc43a08fae60bd75d81437cd967e8ca1d5e46541b16"
     },
     "assets/favicon.svg": {
       "bytes": 708,
       "sha256": "3bc5cf577f0991d352be5a2485f8559ba99f232a14b40e8512dcfdf4ddad4e1b"
     },
     "index.html": {
-      "bytes": 1869,
-      "sha256": "65752bcc77b01dd90a4331c720d60ecd07c9c87b6a89b16feab1b1f4f33d19fd"
+      "bytes": 2201,
+      "sha256": "b4602cc4ffe55bbef8cd6f52cbb43d9e51a39992c7431e53b3cca87f13885e00"
     },
     "manifest.webmanifest": {
-      "bytes": 466,
-      "sha256": "8539170d34e965f985e6842d631f37dc954fd443609603f2e103727e0603d44c"
+      "bytes": 738,
+      "sha256": "75a1cafc58ecceb8c0aabbfeb9552436018aa4e105f605142cf2af1d8a5d6418"
     },
     "src/art.js": {
       "bytes": 28362,
@@ -74,13 +74,21 @@
       "bytes": 19133,
       "sha256": "0b2ae5d7bac7c55687c9622943b4936e6c9bb0260e927606ec3e85ec30dbadc7"
     },
+    "src/platform.js": {
+      "bytes": 3526,
+      "sha256": "e1b6aa0baaf06900168d5055efde391f86ee3ac30ce5fd9ab271e9b2836f8459"
+    },
     "src/save.js": {
       "bytes": 5605,
       "sha256": "2d5eecba4dc0f8e75819449c0b11ca766b7ff4bdcc028ea1f33f03ec7d3bf52d"
     },
     "styles.css": {
-      "bytes": 1755,
-      "sha256": "486bce3979da01029d895995791685a54851852329b4109aa8c2968a43bee627"
+      "bytes": 3117,
+      "sha256": "73cec4e19274b3a0a587793ec9b2a144a433c8321612a6e211acdd797251bdae"
+    },
+    "sw.js": {
+      "bytes": 1963,
+      "sha256": "4d5433ae0549498a3ba6f85f752675884f25ed99124e4b95b5a3bfda9e9f2b61"
     }
   }
 }

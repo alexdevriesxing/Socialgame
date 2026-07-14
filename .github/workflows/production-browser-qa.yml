@@ -1,0 +1,66 @@
+name: Production browser QA
+
+on:
+  push:
+    branches:
+      - agent/production-qa-pwa-v11
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout release
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Validate release integrity and runtime
+        run: |
+          set -euo pipefail
+          mapfile -t scripts < <(grep -oP '<script src="\K[^"]+' index.html)
+          for script in "${scripts[@]}"; do
+            node --check "$script"
+          done
+          node --check sw.js
+          node --check tests/browser-production-smoke.mjs
+          node tests/verify-release.mjs
+          node tests/remote-static-smoke.mjs
+
+      - name: Install pinned Playwright runtime
+        run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+
+      - name: Start static server
+        run: |
+          python3 -m http.server 4173 > /tmp/sakura-http.log 2>&1 &
+          echo $! > /tmp/sakura-http.pid
+          for attempt in {1..30}; do
+            curl -fsS http://127.0.0.1:4173/index.html > /dev/null && exit 0
+            sleep 1
+          done
+          cat /tmp/sakura-http.log
+          exit 1
+
+      - name: Run production browser smoke
+        env:
+          BASE_URL: http://127.0.0.1:4173
+        run: node tests/browser-production-smoke.mjs
+
+      - name: Upload QA screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: sakura-crest-browser-qa
+          path: test-results
+          if-no-files-found: warn
+          retention-days: 14
