@@ -11,7 +11,7 @@ const canvas=new Element('game');canvas.width=960;canvas.height=540;canvas.getCo
 const elements={game:canvas,creator:new Element('creator'),nameInput:new Element('nameInput'),confirmName:new Element('confirmName'),loading:new Element('loading'),orientationHint:new Element('orientation-hint')};elements.creator.classList.add('hidden');
 globalThis.document={getElementById:id=>elements[id]};globalThis.window=globalThis;window.addEventListener=(t,f)=>{(listeners[`window:${t}`]??=[]).push(f)};window.matchMedia=()=>({matches:false});
 window.AudioContext=class{constructor(){this.currentTime=0;this.state='running';this.destination={}}createOscillator(){return{type:'',frequency:{value:0},connect(){},start(){},stop(){}}}createGain(){return{gain:{value:0,setValueAtTime(){},exponentialRampToValueAtTime(){}},connect(){}}}resume(){}};
-globalThis.navigator={maxTouchPoints:0};
+Object.defineProperty(globalThis,'navigator',{value:{maxTouchPoints:0},configurable:true});
 globalThis.localStorage={_d:{},getItem(k){return this._d[k]??null},setItem(k,v){this._d[k]=v},removeItem(k){delete this._d[k]}};
 globalThis.requestAnimationFrame=()=>0;globalThis.performance={now:()=>1000};globalThis.setInterval=()=>1;globalThis.clearInterval=()=>{};
 globalThis.Image=class{set src(v){this._src=v;queueMicrotask(()=>this.onload?.())}};
