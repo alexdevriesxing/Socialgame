@@ -23,6 +23,18 @@ jobs:
         with:
           node-version: 22
 
+      - name: Validate release integrity and runtime
+        run: |
+          set -euo pipefail
+          mapfile -t scripts < <(grep -oP '<script src="\K[^"]+' index.html)
+          for script in "${scripts[@]}"; do
+            node --check "$script"
+          done
+          node --check sw.js
+          node --check tests/browser-production-smoke.mjs
+          node tests/verify-release.mjs
+          node tests/remote-static-smoke.mjs
+
       - name: Install pinned Playwright runtime
         run: |
           npm install --no-save --no-package-lock playwright@1.55.0
