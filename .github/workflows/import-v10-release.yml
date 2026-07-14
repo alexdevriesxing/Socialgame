@@ -28,7 +28,39 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          cat .release-import/*.txt | base64 -d > /tmp/release.zip
+          test "$(git hash-object .release-import/01.txt)" = "cc69ecd8207388180eddb73f8107899762beedf5"
+          test "$(git hash-object .release-repair/03a.txt)" = "50e7e3f7351cfa86e95b08f39f482b0a4e6a12b0"
+          test "$(git hash-object .release-repair/03b.txt)" = "3e36e57e43107792c9c963b3c1d5533c33c9d0bb"
+          test "$(git hash-object .release-repair/04a1.txt)" = "ba65f27335e3f20729ce2ae27e313cf7424fbaa5"
+          test "$(git hash-object .release-repair/04a2.txt)" = "542a10be507625e1353c517e2a7373f6beab6493"
+          test "$(git hash-object .release-repair/04a3.txt)" = "8993588900bd3a5300021cbff990cb9d1a2c4fbd"
+          test "$(git hash-object .release-repair/04a4.txt)" = "0df2f01d9a05dbb3589208a152e27624fadf2664"
+          test "$(git hash-object .release-repair/04b.txt)" = "7c1e31433dda2ed51a21fd13da130341941d1ca5"
+          test "$(git hash-object .release-repair/05a.txt)" = "86712b47aaa769bb4c40f00dacf4c90048638545"
+          test "$(git hash-object .release-repair/05b.txt)" = "2afc5d69e4a9778d1d5c0f97b04ebf5caec5c1b3"
+          test "$(git hash-object .release-repair/09a.txt)" = "075ed617c8984ac9e38c39ec371b7cca8b0b7017"
+          test "$(git hash-object .release-repair/09b.txt)" = "aceff1b0dbb5097224982c2e3fa7f240908c328f"
+          cat \
+            .release-import/00.txt \
+            .release-import/01.txt \
+            .release-import/02.txt \
+            .release-repair/03a.txt \
+            .release-repair/03b.txt \
+            .release-repair/04a1.txt \
+            .release-repair/04a2.txt \
+            .release-repair/04a3.txt \
+            .release-repair/04a4.txt \
+            .release-repair/04b.txt \
+            .release-repair/05a.txt \
+            .release-repair/05b.txt \
+            .release-import/06.txt \
+            .release-import/07.txt \
+            .release-import/08.txt \
+            .release-repair/09a.txt \
+            .release-repair/09b.txt \
+            .release-import/10.txt \
+            .release-import/11.txt \
+            | base64 -d > /tmp/release.zip
           echo "b95eeaa5825d1961f9a24883aabff57f382355c8a616469c20fd5fd767b15356  /tmp/release.zip" | sha256sum -c -
           rm -rf /tmp/release
           mkdir -p /tmp/release
