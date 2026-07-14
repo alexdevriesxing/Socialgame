@@ -45,7 +45,7 @@ const waitForGame = async page => {
   }
 
   const release = await page.evaluate(() => window.SAKURA_RELEASE);
-  if (release?.version !== '1.1.0') throw new Error(`Unexpected release marker: ${JSON.stringify(release)}`);
+  if (release?.version !== '1.2.0') throw new Error(`Unexpected release marker: ${JSON.stringify(release)}`);
 };
 
 const clickCanvas = async (page, x, y) => {
@@ -95,11 +95,38 @@ try {
     name: game.player.name,
     year: game.year,
     month: game.month,
-    mode: game.mode
+    mode: game.mode,
+    routineCoverage: validateCampusRoutines()
   }));
   if (playerState.name !== 'QA Student' || playerState.year !== 1 || playerState.month !== 1 || playerState.mode !== 'play') {
     throw new Error(`New-game state is invalid: ${JSON.stringify(playerState)}`);
   }
+  if (!playerState.routineCoverage.valid || playerState.routineCoverage.studentPeriods !== 110 || playerState.routineCoverage.teacherPeriods !== 44) {
+    throw new Error(`Living Campus coverage is invalid: ${JSON.stringify(playerState.routineCoverage)}`);
+  }
+
+  const beforeMovement = await page.evaluate(() => Object.fromEntries(game.npcs.map(npc => [npc.id, { x:npc.x, y:npc.y }])));
+  await page.evaluate(() => {
+    game.time = 510;
+    game.lastSlot = null;
+    checkSchedule();
+  });
+  await page.waitForTimeout(900);
+  const afterMovement = await page.evaluate(() => ({
+    positions:Object.fromEntries(game.npcs.map(npc => [npc.id, { x:npc.x, y:npc.y, state:npc.campus?.state, room:npc.campus?.room }])),
+    finite:[...game.npcs,...game.teachers].every(actor => Number.isFinite(actor.x) && Number.isFinite(actor.y)),
+    valid:[...game.npcs,...game.teachers].every(actor => Boolean(ROOMS[actor.campus?.room]))
+  }));
+  const moved = Object.keys(beforeMovement).some(id => Math.hypot(afterMovement.positions[id].x-beforeMovement[id].x, afterMovement.positions[id].y-beforeMovement[id].y) > 2);
+  if (!moved || !afterMovement.finite || !afterMovement.valid) {
+    throw new Error(`Living Campus movement failed: ${JSON.stringify(afterMovement)}`);
+  }
+
+  await page.keyboard.press('c');
+  await page.waitForFunction(() => game.overlay?.type === 'livingCampus', { timeout: 3000 });
+  await page.screenshot({ path: 'test-results/campus-desktop.png', fullPage: true });
+  await page.keyboard.press('c');
+  await page.waitForFunction(() => !game.overlay, { timeout: 3000 });
 
   await page.keyboard.press('o');
   await page.waitForFunction(() => game.overlay?.type === 'accessibility', { timeout: 3000 });
@@ -154,4 +181,4 @@ if (failures.length) {
   throw new Error(`Browser smoke captured ${failures.length} failure(s):\n${failures.join('\n')}`);
 }
 
-console.log('Production browser smoke passed: desktop gameplay, accessibility, rankings, service worker offline reload and mobile layout.');
+console.log('Production browser smoke passed: living-campus movement, Campus Pulse, accessibility, rankings, service worker offline reload and mobile layout.');
