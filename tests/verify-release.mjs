@@ -3,7 +3,7 @@ import { createHash } from 'node:crypto';
 
 const manifest = JSON.parse(await readFile('build-manifest.json', 'utf8'));
 if (manifest.version !== '1.3.0') throw new Error(`Expected release 1.3.0, received ${manifest.version}.`);
-if (!Array.isArray(manifest.files) || manifest.files.length < 24) throw new Error('Release inventory is incomplete.');
+if (!Array.isArray(manifest.files) || manifest.files.length < 25) throw new Error('Release inventory is incomplete.');
 
 const digests = {};
 for (const path of manifest.files) {
@@ -15,7 +15,7 @@ for (const path of manifest.files) {
 
 const index = await readFile(manifest.entrypoint, 'utf8');
 const scripts = [...index.matchAll(/<script src="([^"]+)"><\/script>/g)].map(match => match[1]);
-if (scripts.length < 16) throw new Error(`Expected at least 16 production scripts; found ${scripts.length}.`);
+if (scripts.length < 17) throw new Error(`Expected at least 17 production scripts; found ${scripts.length}.`);
 for (const script of scripts) {
   if (!manifest.files.includes(script)) throw new Error(`${script}: referenced by index.html but absent from build-manifest.json.`);
 }
@@ -32,6 +32,7 @@ for (const path of manifest.files) {
 if (!serviceWorker.includes("sakura-crest-v1.3.0")) throw new Error('Service-worker cache version does not match release 1.3.0.');
 if (!index.includes('src/campus.js')) throw new Error('Living Campus runtime is not wired into index.html.');
 if (!index.includes('src/activity.js')) throw new Error('Active School runtime is not wired into index.html.');
+if (!index.includes('src/visual.js')) throw new Error('Visual QA polish runtime is not wired into index.html.');
 if (!index.includes('orientation-hint')) throw new Error('Portrait orientation guidance is missing from index.html.');
 
 console.log(`Release inventory passed for ${manifest.files.length} files and ${scripts.length} production scripts.`);
