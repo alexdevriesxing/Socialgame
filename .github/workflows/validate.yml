@@ -1,0 +1,29 @@
+name: Validate Cloudflare Release
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Reconstruct and verify payload
+        run: |
+          node <<'NODE'
+          const fs=require('fs'),zlib=require('zlib'),crypto=require('crypto'),vm=require('vm');
+          const manifest=JSON.parse(fs.readFileSync('build-manifest.json','utf8'));
+          const sandbox={window:{}};sandbox.window.window=sandbox.window;
+          for(let i=0;i<manifest.chunks;i++)vm.runInNewContext(fs.readFileSync(`part-${i}.js`,'utf8'),sandbox);
+          const payload=sandbox.window.__SC_CHUNKS.join('');
+          const html=zlib.gunzipSync(Buffer.from(payload,'base64'));
+          const sha=crypto.createHash('sha256').update(html).digest('hex');
+          if(html.length!==manifest.standaloneBytes)throw new Error(`Byte mismatch ${html.length}`);
+          if(sha!==manifest.sha256)throw new Error(`SHA mismatch ${sha}`);
+          for(const marker of ['Immersive Foundations','Reputation & Circles','lessonChallenge','Comeback & Recovery'])if(!html.includes(marker))throw new Error(`Missing ${marker}`);
+          console.log(`Verified ${html.length} bytes across ${manifest.chunks} chunks.`);
+          NODE

@@ -1,0 +1,8 @@
+{
+  "version": "1.2.0",
+  "format": "cloudflare-chunked-standalone",
+  "chunks": 12,
+  "standaloneBytes": 326896,
+  "sha256": "76373b04f6d4bcb8b0d7edeee0b3c76b99e1f8229ad5bf4a764c57c6a8cc74df",
+  "payloadSha256": "320d9413cf1f0a48f0bf04aea6693143ac60dcf6a9383b58c03d414e27571314"
+}
