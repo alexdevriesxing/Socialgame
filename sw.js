@@ -24,6 +24,8 @@ const CORE_FILES = [
   './src/activity.js',
   './src/visual.js',
   './src/world.js',
+  './src/world-polish.js',
+  './src/world-title.js',
   './src/platform.js'
 ];
 
