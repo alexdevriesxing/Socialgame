@@ -1,44 +1,50 @@
 # Sakura Crest: Social Summit — Cloudflare Release
 
-This branch is the **Expanded World, Customization & Collections v1.4** release of Sakura Crest. It retains the complete four-year / 48-chapter campaign, living-campus simulation, active classroom and club gameplay, thirty school friendship-route chapters, twenty phone conversations, twelve monthly showcases, twenty rivalry chapters, ten illustrated friendship moments, twenty-four contextual campus incidents, forty achievements, eight seasonal examinations, eight weekend outings, four annual elections and twelve graduation legacies.
+This branch is the **Commercial Art & Walkable District v1.5** release of Sakura Crest. It retains the complete four-year / 48-chapter campaign, living-campus simulation, active classroom and club gameplay, thirty school friendship chapters, thirty off-campus friendship scenes, twenty phone conversations, twelve monthly showcases, twenty rivalry chapters, forty achievements, eight seasonal examinations, four annual elections and the complete graduation and New Game+ systems.
 
-The v1.4 pass gives evenings, optional periods and weekends a meaningful life outside school. The district now contains thirteen off-campus destinations plus a persistent bedroom hub. Every core student has a birthday, interests, likes, dislikes, a favorite place, conversation topics and three unique off-campus scenes. Style, room décor, gifts, allowance, visits, scenes and collection progress persist through the version-9 save format.
+The v1.5 pass removes the remaining placeholder-style presentation. Sakura Crest Academy, the bedroom and every district destination are now proper illustrated 2D environments that the player can walk through with camera movement, collision geometry, entrances, exits, local props, wandering characters and location-specific interactions.
 
-## Expanded world
+## Commercial visual foundation
 
-- Thirteen off-campus destinations: Shopping Street, Maple Café, Starline Arcade, Riverside Park, Public Library, Moonlight Cinema, Sports Center, Echo Live House, Festival Grounds, City Museum, Study Center, Crest Convenience and Sakura Station.
-- A bedroom hub with wardrobe preview, room themes, display wall, trophies, memory cards, posters and music.
-- Free-period and after-school travel from the HUD with **X**; weekend travel is also available from the month-end screen.
-- Deterministic visitors at each destination based on interests, favorite places, date and location.
-- Exploration rewards, allowance income, stat effects and first-visit collectibles.
+- Premium rounded and glass-panel UI with gradients, lighting, depth, illustrated icons and consistent typography.
+- A fully illustrated academy replacing the former diagram-like school map.
+- Material-specific classroom, hallway, library, courtyard, cafeteria and gym artwork.
+- Seasonal courtyard trees, windows, weather and environmental lighting.
+- Improved character grounding, shadows, relationship/rival indicators and nearest-character labels.
+- Illustrated district navigation instead of a grid of generic destination cards.
+- Product artwork for every gift, visual wardrobe previews and category-specific collectible icons.
+- Modal screens hide the HUD and notification clutter correctly.
 
-## Friend profiles, scenes and gifts
+## Fourteen walkable 2D maps
 
-- Ten complete preference profiles covering birthdays, interests, liked and disliked gift categories, favorite locations and conversation topics.
-- Three unique off-campus scenes per core student, for thirty authored scenes and thirty matching memory cards.
-- Profile screens show bond, birthday, favorite place, known interests, scene progress and gift history.
-- Twelve purchasable gift types with clear interest matching and birthday bonuses.
-- Gifts affect relationships positively, neutrally or negatively based on each person’s preferences.
-- Nested shop, profile and gift navigation returns to the same destination without charging travel time or creating duplicate visits.
+The player can freely walk through:
 
-## Persistent customization
+- Sakura Crest Academy;
+- the persistent bedroom;
+- Shopping Street;
+- Maple Café;
+- Starline Arcade;
+- Riverside Park;
+- Public Library;
+- Moonlight Cinema;
+- Sports Center;
+- Echo Live House;
+- Festival Grounds;
+- City Museum;
+- Study Center;
+- Crest Convenience;
+- Sakura Station.
 
-- Eight customization categories: hair, skin, face, outfit, accessory, bag, phone theme and room theme.
-- Four options in every category, purchased with in-game allowance and retained permanently once unlocked.
-- Equipped selections persist in saves and are reflected on the player sprite, bedroom preview and phone presentation.
-- The bedroom can display collected posters, trophies, memory cards and music.
+The bedroom and thirteen off-campus areas use their own collision maps, camera-follow movement, entrances, return points, illustrated props and interactive hotspots. Students who visit these locations wander through the environment rather than appearing only in menus.
 
-## Duplicate-safe collection system
+## Off-campus life
 
-- Yearbook photos, badges, trophies, posters, thirty memory cards, seasonal wallpapers, music tracks and graduation keepsakes.
-- Every collectible has a stable unique ID and unlock source.
-- `grantCollectible()` refuses duplicate unique items and never inflates collection totals.
-- Collections unlock from exploration, scenes, thoughtful gifts, styling and complete district progress.
-- The Crest Collection book tracks category totals and reveals the source requirement for locked items.
-
-## Active School and Living Campus
-
-The v1.3 systems remain intact: nine playable subjects, sixteen club activities, sixteen seasonal club competitions, practice and assist modes, 110 student-period routines, 44 teacher-duty routines, weather rerouting, school services and Campus Pulse.
+- Free-period, after-school and weekend district travel.
+- Ten complete NPC preference profiles with birthdays, interests, likes, dislikes and favorite places.
+- Three unique off-campus scenes per core student, for thirty authored scenes and memory cards.
+- Twelve purchasable gifts with preference and birthday reactions.
+- Eight persistent customization categories: hair, skin, face, outfit, accessory, bag, phone theme and room theme.
+- Duplicate-safe photos, badges, trophies, posters, memory cards, wallpapers, music and graduation keepsakes.
 
 ## Cloudflare Pages
 
@@ -47,26 +53,27 @@ The v1.3 systems remain intact: nine playable subjects, sixteen club activities,
 - Build output directory: **/** or **.**
 - Environment variables: none
 
-The repository root is the deployable site. No Worker, package installation, database, external image host or secrets are required. `sw.js` caches the complete v1.4 runtime for offline play.
+The repository root is the deployable site. No package installation, external image host, database or secrets are required. `sw.js` caches the complete v1.5 runtime for offline play after the first successful load.
 
 ## Controls
 
-WASD / arrows to move, E or Space to interact, **X district map**, **B bedroom**, **U collection book**, G active learning, C campus pulse, R rankings, Q schedule, J friendships, P phone, K memories, A campus activities, V rivals, Y yearbook, O accessibility/options, L leadership, M sound and Escape pause. Number keys operate sequence and decision activities. Standard controllers and touch buttons are supported.
+WASD or arrows move the character in the academy, bedroom and every district area. E or Space interacts. **X** opens the district map, **B** enters the bedroom and **U** opens collections. G opens Active Learning, C Campus Pulse, R rankings, Q schedule, J friendships, P phone, K memories, A campus activities, V rivals, Y yearbook, O accessibility, L leadership and M sound. Touch controls appear on coarse-pointer devices; standard controllers remain supported.
 
-## Production validation
+## Production and visual validation
 
-The `Production browser QA` workflow launches the exact static release in Chromium and checks:
+The `Production browser QA` workflow validates:
 
-- the complete 48-month campaign, 154 living-campus routines and all v1.3 active-school systems;
-- thirteen off-campus locations, ten preference profiles and thirty unique off-campus scenes;
-- eight customization categories and persisted equipment after save/load;
-- liked, neutral, disliked and birthday gift behavior;
-- duplicate-safe collectible unlocks and category totals;
-- nested world navigation without extra time or visit counts;
-- district map, destination, bedroom, customization, gifts and collection overlays;
-- revised v1.4 title, live HUD, offline reload, portrait guidance and landscape mobile containment;
-- browser errors, failed requests and screenshot evidence for manual visual QA.
+- the complete campaign, active-school systems and all 154 living-campus routines;
+- the premium UI and eight-room commercial academy renderer;
+- fourteen walkable maps and thirteen free-roaming off-campus destinations;
+- player movement, prop collision, camera containment and NPC wandering;
+- every map’s illustrated canvas complexity, color diversity and visual transitions;
+- the illustrated district map, gift shop, wardrobe and collection book;
+- zero placeholder map/card flags from all commercial-art validators;
+- customization persistence, gift behavior and duplicate-safe collection unlocks;
+- offline reload, portrait guidance and landscape mobile containment;
+- screenshot evidence for every walkable environment and major interface.
 
 ## Release scope
 
-This is a deployable complete-campaign browser release with active school days, a living campus, meaningful evenings and weekends, persistent self-expression, NPC preference-driven friendships, duplicate-safe collections, four annual leadership campaigns and a post-prom New Game+ loop.
+This is a deployable complete-campaign browser release with commercial-quality procedural illustration, a fully walkable school and city, meaningful evenings and weekends, persistent self-expression, preference-driven friendships, duplicate-safe collections, annual leadership campaigns and a post-prom New Game+ loop.
