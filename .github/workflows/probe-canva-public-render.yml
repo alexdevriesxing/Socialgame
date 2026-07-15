@@ -1,0 +1,55 @@
+name: Probe Canva public render
+
+on:
+  push:
+    branches:
+      - agent/anime-art-canva-probe
+  pull_request:
+    branches:
+      - agent/anime-art-integration-v18
+
+permissions:
+  contents: read
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Render public Canva view links
+        run: |
+          mkdir -p public-render
+          cat > /tmp/render.mjs <<'JS'
+          import { chromium } from 'playwright';
+          const jobs = [
+            ['keyart','https://www.canva.com/d/cO290zCCs31lTa0',1672,941],
+            ['campus','https://www.canva.com/d/_kQBvRQfgZNSPXd',4096,768],
+            ['characters','https://www.canva.com/d/vUdi7lkn8mTf_LM',3456,2048],
+            ['objects','https://www.canva.com/d/eNQi1RjdPi4mx4R',1024,512]
+          ];
+          const browser = await chromium.launch({headless:true});
+          for (const [name,url,width,height] of jobs) {
+            const page = await browser.newPage({viewport:{width:Math.min(width,4096),height:Math.min(height,2048)},deviceScaleFactor:1});
+            await page.goto(url,{waitUntil:'networkidle',timeout:120000});
+            await page.waitForTimeout(6000);
+            await page.screenshot({path:`public-render/${name}-page.png`,fullPage:true});
+            const info = await page.evaluate(() => ({title:document.title,body:[document.body.scrollWidth,document.body.scrollHeight],images:[...document.images].map(i=>({src:i.currentSrc||i.src,w:i.naturalWidth,h:i.naturalHeight,rect:[i.getBoundingClientRect().x,i.getBoundingClientRect().y,i.getBoundingClientRect().width,i.getBoundingClientRect().height]})).sort((a,b)=>b.w*b.h-a.w*a.h).slice(0,20)}));
+            await import('node:fs/promises').then(fs=>fs.writeFile(`public-render/${name}.json`,JSON.stringify(info,null,2)));
+            await page.close();
+          }
+          await browser.close();
+          JS
+          node /tmp/render.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: canva-public-render-probe
+          path: public-render
+          if-no-files-found: error
+          retention-days: 1
