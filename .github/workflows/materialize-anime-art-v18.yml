@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - asset-transfer-v18
+  pull_request:
+    branches:
+      - agent/anime-art-integration-v18
 
 permissions:
   contents: write
@@ -66,7 +69,7 @@ jobs:
           campus_specs = [
               ('campus-00','35Uak','DAHPet35Uak','20260714T202917Z','83606','4d79c09bcbc801ccdfd2e76a1fee57ca7e90c8be216d5db28778423ccce74d93','19:42:43'),
               ('campus-01','AOpEY','DAHPerAOpEY','20260714T231745Z','73551','a1937762c7a2905aebe63fe506ecabb3757d7d42725867f455d05c69f24d915f','19:43:36'),
-              ('campus-02','8qArA','DAHPev8qArA','20260715T095728Z','35205','269d84224c005e83dc6ec1fa72212a8cff004f66c92381b9b2ae62965041b5b4','19:44:13'),
+              ('campus-02','8qArA','DAHPev8qArA','20260715T095728Z','35205','269d84224c005e83dc6ec1fa72212a8cff004f66c92381b9b2ae629faaff9ccf','19:44:13'),
               ('campus-03','wqNIc','DAHPeiwqNIc','20260715T084510Z','39578','3b9ae395c454387105ef3817385c79bc41e22969d8405bd5da71be8e3945fbaf','19:44:48'),
               ('campus-04','g0dOM','DAHPeug0dOM','20260715T041420Z','55865','57a4d179e7bc553df46e292c98805960ec82895260cf42fb8f9e2b1300953dbf','19:45:25'),
               ('campus-05','wsGbA','DAHPekwsGbA','20260714T224204Z','75844','ef2b456948fa080ffe38562900eea9f326a255e2cb093fedd9412d0fe1e55c44','19:46:08'),
@@ -145,6 +148,7 @@ jobs:
         run: |
           set -euo pipefail
           rm -f .github/workflows/materialize-anime-art-v18.yml
+          rm -f docs/asset-transfer-v18-trigger.txt
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add -A
