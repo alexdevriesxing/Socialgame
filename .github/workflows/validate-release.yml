@@ -1,0 +1,45 @@
+name: Validate Leadership & Legacy release
+
+on:
+  push:
+    branches: [agent/leadership-legacy-v10]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          show-progress: false
+      - name: Syntax-check browser scripts
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t scripts < <(grep -oP '<script src="\K[^"]+' index.html)
+          test "${#scripts[@]}" -ge 13
+          for script in "${scripts[@]}"; do
+            test -f "$script"
+            node --check "$script"
+          done
+          echo "Checked ${#scripts[@]} browser scripts."
+      - name: Runtime smoke test
+        run: node tests/remote-static-smoke.mjs
+      - name: Static HTTP verification
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m http.server 4173 >/tmp/sakura-http.log 2>&1 &
+          pid=$!
+          trap 'kill $pid' EXIT
+          for attempt in {1..20}; do curl -fsS http://127.0.0.1:4173/index.html >/dev/null && break; sleep .25; done
+          mapfile -t scripts < <(grep -oP '<script src="\K[^"]+' index.html)
+          for script in "${scripts[@]}"; do curl -fsS "http://127.0.0.1:4173/$script" >/dev/null; done
+          curl -fsS http://127.0.0.1:4173/styles.css >/dev/null
+          curl -fsS http://127.0.0.1:4173/build-manifest.json >/dev/null
