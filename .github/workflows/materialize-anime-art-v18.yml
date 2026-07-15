@@ -1,0 +1,114 @@
+name: Materialize anime art v1.8
+
+on:
+  push:
+    branches:
+      - agent/anime-art-integration-v18
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  materialize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout graphics branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/anime-art-integration-v18
+          fetch-depth: 0
+
+      - name: Download signed full-resolution art
+        env:
+          KEYART_URL: >-
+            https://design-manipulation-download.canva.com/9f3792bf-a4a7-4d72-8f73-1ae1ee735b72/0000-3743000861586284284.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUHWASWGM4Q%2F20260714%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260714T170621Z&X-Amz-Expires=71924&X-Amz-Signature=6a979ba9c3f3c1139bed3292fe9155ef2ae60b27a69aa8e6dbe1d859b55d5f27&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Wed%2C%2015%20Jul%202026%2013%3A05%3A05%20GMT
+          CAMPUS_URL: >-
+            https://design-manipulation-download.canva.com/a9ec1481-15e7-48dd-a75d-3cb439dac822/0000-4179850023346197843.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUHWASWGM4Q%2F20260715%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260715T082947Z&X-Amz-Expires=16114&X-Amz-Signature=c382f91826b722bfb712e66c60585eb8cd866a8c0e22d91a93e0bc591052eb6a&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Wed%2C%2015%20Jul%202026%2012%3A58%3A21%20GMT
+          CHARACTERS_URL: >-
+            https://design-manipulation-download.canva.com/1f2608da-b8f6-4957-a47f-89f83f11a5cc/0000-7022747291044508274.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUHWASWGM4Q%2F20260715%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260715T054155Z&X-Amz-Expires=29119&X-Amz-Signature=1de9cfda1eb7dfd11424a97c4930d19604548998f761d19cfcdb910244808cf0&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Wed%2C%2015%20Jul%202026%2013%3A47%3A14%20GMT
+          OBJECTS_URL: >-
+            https://design-manipulation-download.canva.com/e13ca8cd-f183-4666-a0b7-a8ae8b8072e4/0000-7022747290501344712.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUHWASWGM4Q%2F20260715%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260715T052427Z&X-Amz-Expires=29311&X-Amz-Signature=af744c52cbad74eafdf8dd60c879b48894e3a83ed01398d0f5c55b29e7bac231&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Wed%2C%2015%20Jul%202026%2013%3A32%3A58%20GMT
+        run: |
+          set -euo pipefail
+          mkdir -p /tmp/sakura-art assets/anime
+          curl -L --fail --silent --show-error "$KEYART_URL" -o /tmp/sakura-art/keyart.png
+          curl -L --fail --silent --show-error "$CAMPUS_URL" -o /tmp/sakura-art/campus.png
+          curl -L --fail --silent --show-error "$CHARACTERS_URL" -o /tmp/sakura-art/characters.png
+          curl -L --fail --silent --show-error "$OBJECTS_URL" -o /tmp/sakura-art/objects.png
+
+      - name: Verify and optimize production atlases
+        run: |
+          python3 -m pip install --quiet pillow
+          python3 - <<'PY'
+          from PIL import Image
+          from pathlib import Path
+          import hashlib, json
+
+          source = Path('/tmp/sakura-art')
+          output = Path('assets/anime')
+          output.mkdir(parents=True, exist_ok=True)
+          expected = {
+              'keyart': (1600, 900),
+              'campus': (4000, 700),
+              'characters': (3400, 2000),
+              'objects': (1000, 500),
+          }
+          images = {}
+          for name, minimum in expected.items():
+              image = Image.open(source / f'{name}.png')
+              image.load()
+              if image.width < minimum[0] or image.height < minimum[1]:
+                  raise SystemExit(f'{name} rendition too small: {image.size}, expected at least {minimum}')
+              images[name] = image
+              print(name, image.size, image.mode)
+
+          images['keyart'].convert('RGB').save(output / 'keyart.webp', 'WEBP', quality=88, method=6)
+          images['campus'].convert('RGB').save(output / 'campus.webp', 'WEBP', quality=86, method=6)
+          images['characters'].convert('RGBA').save(output / 'characters.webp', 'WEBP', quality=90, method=6)
+          images['objects'].convert('RGBA').save(output / 'objects.webp', 'WEBP', quality=88, method=6)
+
+          # Create a true 4x4 portrait atlas from each character block's first front-facing frame.
+          characters = images['characters'].convert('RGBA')
+          block_w, block_h = characters.width // 4, characters.height // 4
+          frame_w, frame_h = block_w // 9, block_h // 4
+          portraits = Image.new('RGBA', (512, 512), (0, 0, 0, 0))
+          for index in range(16):
+              bx = (index % 4) * block_w
+              by = (index // 4) * block_h
+              frame = characters.crop((bx, by, bx + frame_w, by + frame_h))
+              head = frame.crop((0, 0, frame_w, max(1, int(frame_h * 0.76))))
+              bbox = head.getbbox()
+              if bbox:
+                  head = head.crop(bbox)
+              head.thumbnail((116, 116), Image.Resampling.LANCZOS)
+              cell = Image.new('RGBA', (128, 128), (235, 242, 250, 255))
+              cell.alpha_composite(head, ((128 - head.width) // 2, 128 - head.height - 4))
+              portraits.alpha_composite(cell, ((index % 4) * 128, (index // 4) * 128))
+          portraits.save(output / 'portraits.webp', 'WEBP', quality=90, method=6)
+
+          manifest = {'version': '1.8.0', 'source': 'original generated anime artwork', 'proceduralFallbacks': False, 'assets': {}}
+          for path in sorted(output.glob('*.webp')):
+              image = Image.open(path)
+              manifest['assets'][path.name] = {
+                  'width': image.width,
+                  'height': image.height,
+                  'bytes': path.stat().st_size,
+                  'sha256': hashlib.sha256(path.read_bytes()).hexdigest(),
+              }
+          (output / 'manifest.json').write_text(json.dumps(manifest, indent=2) + '\n')
+          print(json.dumps(manifest, indent=2))
+          PY
+
+      - name: Commit permanent commercial art assets
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/materialize-anime-art-v18.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/anime .github/workflows/materialize-anime-art-v18.yml
+          test -n "$(git status --porcelain)"
+          git commit -m "Materialize commercial anime art assets v1.8"
+          git push origin HEAD:agent/anime-art-integration-v18
