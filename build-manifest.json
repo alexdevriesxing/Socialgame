@@ -1,5 +1,5 @@
 {
-  "version": "1.6.0",
+  "version": "1.7.0",
   "format": "cloudflare-static",
   "entrypoint": "index.html",
   "offline": "sw.js",
@@ -7,12 +7,16 @@
     "LICENSE",
     "README.md",
     "_headers",
+    "_redirects",
     "assets/favicon.svg",
     "index.html",
     "manifest.webmanifest",
     "styles.css",
     "sw.js",
     "docs/pass-8-audio-accessibility.md",
+    "docs/release-v1.7.md",
+    "docs/cloudflare-release-runbook.md",
+    "docs/known-issues.md",
     "src/content-1.js",
     "src/content-2.js",
     "src/content-3.js",
@@ -41,6 +45,7 @@
     "src/accessibility-history.js",
     "src/accessibility-performance.js",
     "src/accessibility-ui.js",
+    "src/release-readiness.js",
     "src/platform.js"
   ]
 }
