@@ -20,9 +20,11 @@ for(const target of targets){
     page.on('console',message=>{if(message.type()==='error')errors.push(`console.error: ${message.text()}`);});
     page.on('requestfailed',request=>errors.push(`requestfailed: ${request.url()} ${request.failure()?.errorText||''}`));
     await page.goto(baseURL,{waitUntil:'networkidle',timeout:30000});
-    await page.waitForFunction(()=>document.getElementById('loading')?.classList.contains('hidden')&&window.SAKURA_RELEASE?.version==='1.7.0',null,{timeout:20000});
-    const boot=await page.evaluate(()=>({release:window.SAKURA_RELEASE?.version,saveVersion:CURRENT_SAVE_VERSION,readiness:validateReleaseReadiness(),canvas:{width:canvas.width,height:canvas.height},scripts:[...document.scripts].map(script=>script.getAttribute('src')).filter(Boolean).length}));
-    if(boot.release!=='1.7.0'||boot.saveVersion!==10||!boot.readiness.valid||boot.canvas.width!==960||boot.canvas.height!==540||boot.scripts<30)throw new Error(`${target.label} boot validation failed: ${JSON.stringify(boot)}`);
+    await page.waitForFunction(()=>document.getElementById('loading')?.classList.contains('hidden')&&window.SAKURA_RELEASE?.version==='1.8.0',null,{timeout:20000});
+    const boot=await page.evaluate(()=>({release:window.SAKURA_RELEASE?.version,saveVersion:CURRENT_SAVE_VERSION,readiness:validateReleaseReadiness(),anime:validateAnimeArtV18(),canvas:{width:canvas.width,height:canvas.height},scripts:[...document.scripts].map(script=>script.getAttribute('src')).filter(Boolean).length}));
+    if(boot.release!=='1.8.0'||boot.saveVersion!==10||!boot.readiness.valid||!boot.anime.valid||boot.anime.externalRuntimeDependency!==false||boot.anime.proceduralFallbacks!==false||boot.canvas.width!==960||boot.canvas.height!==540||boot.scripts<32)throw new Error(`${target.label} boot validation failed: ${JSON.stringify(boot)}`);
+    const artResponses=await Promise.all(['keyart.webp','campus.webp','characters.webp','portraits.webp','objects.webp'].map(name=>page.request.get(`${baseURL}/assets/anime/${name}`)));
+    if(artResponses.some(response=>!response.ok()))throw new Error(`${target.label} could not load all permanent anime assets.`);
     await page.evaluate(()=>{resetGame();game.mode='play';game.player.name='Engine QA';game.player.gender='girl';game.player.club='tech';game.player.socialStatus='ordinary';initializeSocialStatus();writeSave(localStorage,gameSnapshot());openAccessibility(0);});
     await page.waitForFunction(()=>game.overlay?.type==='accessibility');
     await page.screenshot({path:`test-results/engines/${target.label}-accessibility.png`,fullPage:true});
@@ -36,4 +38,4 @@ for(const target of targets){
     results.push({label:target.label,canvasHealth,release:boot.release});await context.close();
   }finally{await browser.close();}
 }
-console.log(`Multi-engine browser QA passed: ${results.map(result=>result.label).join(', ')}.`);
+console.log(`Multi-engine v1.8 browser QA passed: ${results.map(result=>result.label).join(', ')}.`);
