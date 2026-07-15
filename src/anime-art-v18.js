@@ -25,6 +25,17 @@ createArtSources=function(){
     ui_icons:ANIME_ART_PATHS.objects
   };
 };
+
+// The permanent v1.8 atlas is four 432x256 character sheets, each with 9x4 frames.
+// Sample it at its native 48x64 frame geometry to avoid scaling entire sheet quadrants as sprites.
+drawCharacter=function(name,frameColumn,directionRow,x,y,width=64,height=86){
+  const img=images.character_atlas,index=CHARACTER_INDEX[name];
+  if(!img||index===undefined)return;
+  const frameW=48,frameH=64,sheetW=frameW*9,sheetH=frameH*4;
+  const sheetX=(index%4)*sheetW,sheetY=Math.floor(index/4)*sheetH;
+  ctx.drawImage(img,sheetX+frameColumn*frameW,sheetY+directionRow*frameH,frameW,frameH,x,y,width,height);
+};
+
 window.SAKURA_ANIME_ART=Object.freeze({
   version:ANIME_ART_VERSION,
   paths:ANIME_ART_PATHS,
