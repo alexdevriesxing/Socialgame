@@ -11,9 +11,9 @@ permissions:
   contents: read
 
 jobs:
-  browser-smoke:
+  release-readiness:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 55
     steps:
       - name: Checkout release
         uses: actions/checkout@v4
@@ -26,7 +26,7 @@ jobs:
       - name: Prepare QA output
         run: mkdir -p test-results
 
-      - name: Syntax-check production scripts
+      - name: Syntax-check production and QA scripts
         run: |
           set -euo pipefail
           mapfile -t scripts < <(grep -oP '<script src="\K[^"]+' index.html)
@@ -35,23 +35,31 @@ jobs:
           done
           node --check sw.js
           node --check tests/browser-production-smoke.mjs
+          node --check tests/browser-engine-smoke.mjs
+          node --check tests/release-readiness-smoke.mjs
           node --check tests/remote-static-smoke.mjs
           node --check tests/verify-release.mjs
 
-      - name: Validate v1.6 release inventory
+      - name: Validate v1.7 release inventory and Cloudflare artifact
         run: |
           set -o pipefail
           node tests/verify-release.mjs 2>&1 | tee test-results/release-inventory.log
 
-      - name: Validate campaign, accessibility, audio and performance
+      - name: Validate complete runtime integration
         run: |
           set -o pipefail
           node tests/remote-static-smoke.mjs 2>&1 | tee test-results/runtime-smoke.log
 
-      - name: Install pinned Playwright runtime
+      - name: Simulate full campaigns saves endings and long sessions
+        run: |
+          set -o pipefail
+          node tests/release-readiness-smoke.mjs 2>&1 | tee test-results/release-readiness.log
+
+      - name: Install pinned Playwright and browser engines
         run: |
           npm install --no-save --no-package-lock playwright@1.55.0
-          npx playwright install --with-deps chromium
+          npx playwright install --with-deps chromium firefox webkit
+          npx playwright install chrome msedge
 
       - name: Start static server
         run: |
@@ -64,18 +72,25 @@ jobs:
           cat /tmp/sakura-http.log
           exit 1
 
-      - name: Run desktop tablet mobile and offline QA in Chromium
+      - name: Run complete Chromium visual mobile recovery and offline QA
         env:
           BASE_URL: http://127.0.0.1:4173
         run: |
           set -o pipefail
-          node tests/browser-production-smoke.mjs 2>&1 | tee test-results/browser-smoke.log
+          node tests/browser-production-smoke.mjs 2>&1 | tee test-results/browser-production-smoke.log
 
-      - name: Upload Pass 8 accessibility and device evidence
+      - name: Run Chrome Edge Firefox and WebKit compatibility QA
+        env:
+          BASE_URL: http://127.0.0.1:4173
+        run: |
+          set -o pipefail
+          node tests/browser-engine-smoke.mjs 2>&1 | tee test-results/browser-engine-smoke.log
+
+      - name: Upload v1.7 release evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: sakura-crest-v16-accessibility-audio-device-qa
+          name: sakura-crest-v17-release-readiness-qa
           path: test-results
           if-no-files-found: warn
           retention-days: 14
