@@ -31,6 +31,7 @@ const CORE_FILES = [
   './src/walkable-world.js',
   './src/commercial-world-ui.js',
   './src/accessibility-core.js',
+  './src/accessibility-preferences.js',
   './src/accessibility-performance.js',
   './src/accessibility-ui.js',
   './src/platform.js'
