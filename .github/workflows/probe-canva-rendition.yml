@@ -1,48 +1,89 @@
-name: Probe Canva rendition
+name: Materialize Sakura Crest anime art
 
 on:
-  push:
-    branches:
-      - agent/anime-art-canva-probe
   pull_request:
     branches:
       - agent/anime-art-integration-v18
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
-  probe:
+  materialize:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
-      - name: Download signed rendition variants
+      - name: Checkout target graphics branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/anime-art-integration-v18
+          fetch-depth: 0
+
+      - name: Download full-resolution signed artwork
         env:
-          CANVA_URL: >-
-            https://media.canva.com/v2/document-image/hash:1942789321/height:335/id:DAHPc7OupGM/type:B/width:596?brand=BAGB1PhMIKI&csig=AAAAAAAAAAAAAAAAAAAAADJig3Oh8SwtTbWPJ4D2U_vxu97CnWQliMlsJHW6K9Nk&disableexport=T&exp=1784118133&fallback=https%3A%2F%2Fs3.amazonaws.com%2Fdocument-export.canva.com%2FOupGM%2FDAHPc7OupGM%2F1%2Fthumbnail%2F0001.png%3FX-Amz-Algorithm%3DAWS4-HMAC-SHA256%26X-Amz-Credential%3DAKIAQYCGKMUHXSTDDERN%252F20260714%252Fus-east-1%252Fs3%252Faws4_request%26X-Amz-Date%3D20260714T122521Z%26X-Amz-Expires%3D86212%26X-Amz-Signature%3Dea66a22e977af2552e7c750a5c7b38a56af879c317ab4e416fc57bae2b799b8d%26X-Amz-SignedHeaders%3Dhost%26response-expires%3DWed%252C%252015%2520Jul%25202026%252012%253A22%253A13%2520GMT&osig=AAAAAAAAAAAAAAAAAAAAAHkZAD3YGDP_tTr65cNVrndQGTwQA6e8VVLfH4F7hqBr&page=1&signed=brand%2Cdisableexport%2Cfallback%2Cpage%2Cversion&signer=document-rpc&version=1
+          KEYART_URL: >-
+            https://design-manipulation-download.canva.com/9f3792bf-a4a7-4d72-8f73-1ae1ee735b72/0000-3743000861586284284.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUHWASWGM4Q%2F20260714%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260714T170621Z&X-Amz-Expires=71924&X-Amz-Signature=6a979ba9c3f3c1139bed3292fe9155ef2ae60b27a69aa8e6dbe1d859b55d5f27&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Wed%2C%2015%20Jul%202026%2013%3A05%3A05%20GMT
+          CAMPUS_URL: >-
+            https://design-manipulation-download.canva.com/a9ec1481-15e7-48dd-a75d-3cb439dac822/0000-4179850023346197843.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUHWASWGM4Q%2F20260715%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260715T082947Z&X-Amz-Expires=16114&X-Amz-Signature=c382f91826b722bfb712e66c60585eb8cd866a8c0e22d91a93e0bc591052eb6a&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Wed%2C%2015%20Jul%202026%2012%3A58%3A21%20GMT
+          CHARACTERS_URL: >-
+            https://design-manipulation-download.canva.com/1f2608da-b8f6-4957-a47f-89f83f11a5cc/0000-7022747291044508274.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUHWASWGM4Q%2F20260715%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260715T054155Z&X-Amz-Expires=29119&X-Amz-Signature=1de9cfda1eb7dfd11424a97c4930d19604548998f761d19cfcdb910244808cf0&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Wed%2C%2015%20Jul%202026%2013%3A47%3A14%20GMT
+          OBJECTS_URL: >-
+            https://design-manipulation-download.canva.com/e13ca8cd-f183-4666-a0b7-a8ae8b8072e4/0000-7022747290501344712.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUHWASWGM4Q%2F20260715%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260715T052427Z&X-Amz-Expires=29311&X-Amz-Signature=af744c52cbad74eafdf8dd60c879b48894e3a83ed01398d0f5c55b29e7bac231&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Wed%2C%2015%20Jul%202026%2013%3A32%3A58%20GMT
         run: |
           set -euo pipefail
-          mkdir -p probe
-          curl -L --fail --silent --show-error "$CANVA_URL" -o probe/original.png
-          LARGE_URL="${CANVA_URL/height:335/height:1080}"
-          LARGE_URL="${LARGE_URL/width:596/width:1920}"
-          curl -L --fail --silent --show-error "$LARGE_URL" -o probe/large.png || true
+          mkdir -p /tmp/sakura-art assets/anime
+          curl -L --fail --silent --show-error "$KEYART_URL" -o /tmp/sakura-art/keyart.png
+          curl -L --fail --silent --show-error "$CAMPUS_URL" -o /tmp/sakura-art/campus.png
+          curl -L --fail --silent --show-error "$CHARACTERS_URL" -o /tmp/sakura-art/characters.png
+          curl -L --fail --silent --show-error "$OBJECTS_URL" -o /tmp/sakura-art/objects.png
+
+      - name: Verify optimize and build portraits
+        run: |
+          python3 -m pip install --quiet pillow
           python3 - <<'PY'
+          from PIL import Image
           from pathlib import Path
-          import struct
-          for path in sorted(Path('probe').glob('*.png')):
-              data=path.read_bytes()
-              if data[:8]==b'\x89PNG\r\n\x1a\n':
-                  w,h=struct.unpack('>II',data[16:24])
-                  print(path.name, w, h, len(data))
-              else:
-                  print(path.name, data[:24], len(data))
+          import hashlib, json
+          src=Path('/tmp/sakura-art'); out=Path('assets/anime'); out.mkdir(parents=True,exist_ok=True)
+          minimum={'keyart':(1600,900),'campus':(4000,700),'characters':(3400,2000),'objects':(1000,500)}
+          images={}
+          for name,size in minimum.items():
+              im=Image.open(src/f'{name}.png'); im.load()
+              if im.width<size[0] or im.height<size[1]: raise SystemExit(f'{name} too small: {im.size}')
+              images[name]=im
+              print(name,im.size,im.mode)
+          images['keyart'].convert('RGB').save(out/'keyart.webp','WEBP',quality=88,method=6)
+          images['campus'].convert('RGB').save(out/'campus.webp','WEBP',quality=86,method=6)
+          images['characters'].convert('RGBA').save(out/'characters.webp','WEBP',quality=90,method=6)
+          images['objects'].convert('RGBA').save(out/'objects.webp','WEBP',quality=88,method=6)
+          chars=images['characters'].convert('RGBA'); bw,bh=chars.width//4,chars.height//4; fw,fh=bw//9,bh//4
+          portraits=Image.new('RGBA',(512,512),(0,0,0,0))
+          for i in range(16):
+              bx=(i%4)*bw; by=(i//4)*bh
+              head=chars.crop((bx,by,bx+fw,by+max(1,int(fh*.76))))
+              box=head.getbbox(); head=head.crop(box) if box else head
+              head.thumbnail((116,116),Image.Resampling.LANCZOS)
+              cell=Image.new('RGBA',(128,128),(235,242,250,255)); cell.alpha_composite(head,((128-head.width)//2,128-head.height-4))
+              portraits.alpha_composite(cell,((i%4)*128,(i//4)*128))
+          portraits.save(out/'portraits.webp','WEBP',quality=90,method=6)
+          manifest={'version':'1.8.0','proceduralFallbacks':False,'assets':{}}
+          for p in sorted(out.glob('*.webp')):
+              im=Image.open(p); manifest['assets'][p.name]={'width':im.width,'height':im.height,'bytes':p.stat().st_size,'sha256':hashlib.sha256(p.read_bytes()).hexdigest()}
+          (out/'manifest.json').write_text(json.dumps(manifest,indent=2)+'\n')
+          print(json.dumps(manifest,indent=2))
           PY
-      - uses: actions/upload-artifact@v4
-        with:
-          name: canva-rendition-probe
-          path: probe
-          if-no-files-found: error
-          retention-days: 1
+
+      - name: Commit permanent binary artwork
+        run: |
+          set -euo pipefail
+          rm -f .github/workflows/materialize-anime-art-v18.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A assets/anime .github/workflows/materialize-anime-art-v18.yml
+          if git diff --cached --quiet; then
+            echo "Assets already materialized"
+            exit 0
+          fi
+          git commit -m "Materialize commercial anime art assets v1.8"
+          git push origin HEAD:agent/anime-art-integration-v18
