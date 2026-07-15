@@ -1,1 +1,0 @@
-Trigger the verified v1.8 artwork reconstruction workflow.
