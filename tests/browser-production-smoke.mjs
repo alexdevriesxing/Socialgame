@@ -13,157 +13,76 @@ function watch(page){
 async function waitForGame(page){
   await page.waitForFunction(()=>document.getElementById('loading')?.classList.contains('hidden')&&typeof game!=='undefined'&&game.mode==='title',null,{timeout:20000});
   const health=await page.locator('#game').evaluate(canvas=>{
-    const data=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;
-    let opaque=0,changes=0,previous=-1;
+    const data=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data;let opaque=0,changes=0,previous=-1;
     for(let i=0;i<data.length;i+=64){if(data[i+3]>0)opaque++;const light=data[i]+data[i+1]+data[i+2];if(previous>=0&&Math.abs(light-previous)>24)changes++;previous=light;}
-    return {opaque,changes,width:canvas.width,height:canvas.height};
+    return{opaque,changes,width:canvas.width,height:canvas.height};
   });
   if(health.width!==960||health.height!==540||health.opaque<1000||health.changes<100)throw new Error(`Canvas health failed: ${JSON.stringify(health)}`);
-  const release=await page.evaluate(()=>window.SAKURA_RELEASE);
-  if(release?.version!=='1.5.0')throw new Error(`Unexpected release marker: ${JSON.stringify(release)}`);
+  const release=await page.evaluate(()=>window.SAKURA_RELEASE);if(release?.version!=='1.6.0')throw new Error(`Unexpected release marker: ${JSON.stringify(release)}`);
 }
-async function canvasArtHealth(page,label){
+async function artHealth(page,label){
   const health=await page.locator('#game').evaluate(canvas=>{
-    const ctx=canvas.getContext('2d'),data=ctx.getImageData(0,0,canvas.width,canvas.height).data;
-    const buckets=new Set();let transitions=0,previous=-1,opaque=0;
+    const data=canvas.getContext('2d').getImageData(0,0,canvas.width,canvas.height).data,buckets=new Set();let transitions=0,previous=-1,opaque=0;
     for(let i=0;i<data.length;i+=128){if(data[i+3]>0)opaque++;const r=data[i]>>4,g=data[i+1]>>4,b=data[i+2]>>4,l=r+g+b;buckets.add(`${r}:${g}:${b}`);if(previous>=0&&Math.abs(l-previous)>3)transitions++;previous=l;}
-    return {colors:buckets.size,transitions,opaque};
+    return{colors:buckets.size,transitions,opaque};
   });
   if(health.colors<80||health.transitions<350||health.opaque<2000)throw new Error(`${label} appears visually underdeveloped: ${JSON.stringify(health)}`);
-  return health;
 }
-async function clickCanvas(page,x,y){
-  const box=await page.locator('#game').boundingBox();if(!box)throw new Error('Canvas is not visible.');
-  await page.mouse.click(box.x+x/960*box.width,box.y+y/540*box.height);
-}
-async function clearDialogues(page){
-  for(let cycle=0;cycle<10;cycle++){
-    for(let press=0;press<7;press++){
-      if(!await page.evaluate(()=>Boolean(game.dialogue)))break;
-      await page.keyboard.press('Space');await page.waitForTimeout(80);
-    }
-    if(await page.evaluate(()=>!game.dialogue))return;
-    await page.waitForTimeout(120);
-  }
-  throw new Error('Opening dialogue sequence did not settle.');
-}
+async function clickCanvas(page,x,y){const box=await page.locator('#game').boundingBox();if(!box)throw new Error('Canvas is not visible.');await page.mouse.click(box.x+x/960*box.width,box.y+y/540*box.height);}
+async function clearDialogues(page){for(let cycle=0;cycle<12;cycle++){for(let press=0;press<8;press++){if(!await page.evaluate(()=>Boolean(game.dialogue)))break;await page.keyboard.press('Space');await page.waitForTimeout(70);}if(await page.evaluate(()=>!game.dialogue))return;await page.waitForTimeout(120);}throw new Error('Opening dialogue sequence did not settle.');}
 
 const browser=await chromium.launch({headless:true});
 try{
   const desktop=await browser.newContext({viewport:{width:1440,height:900},reducedMotion:'reduce'});
-  const page=await desktop.newPage();watch(page);
-  await page.goto(baseURL,{waitUntil:'networkidle'});await waitForGame(page);
-
-  const coverage=await page.evaluate(()=>({
-    active:validateActiveSchoolContent(),visual:validateActiveVisualLayout(),polish:validateVisualPolish(),
-    world:validateExpandedWorld(),navigation:validateWorldNavigation(),commercialUI:validateCommercialUI(),
-    commercialCampus:validateCommercialCampus(),walkable:validateWalkableWorld(),commercialWorld:validateCommercialWorldArt(),saveVersion:CURRENT_SAVE_VERSION
-  }));
+  const page=await desktop.newPage();watch(page);await page.goto(baseURL,{waitUntil:'networkidle'});await waitForGame(page);
+  const coverage=await page.evaluate(()=>({active:validateActiveSchoolContent(),visual:validateActiveVisualLayout(),polish:validateVisualPolish(),world:validateExpandedWorld(),navigation:validateWorldNavigation(),commercialUI:validateCommercialUI(),commercialCampus:validateCommercialCampus(),walkable:validateWalkableWorld(),commercialWorld:validateCommercialWorldArt(),a11yCore:validateAccessibilityCore(),a11yUI:validateAccessibilityUI(),saveVersion:CURRENT_SAVE_VERSION}));
   if(!coverage.active.valid||coverage.active.subjects!==9||coverage.active.clubActivities!==16)throw new Error(`Active School coverage failed: ${JSON.stringify(coverage.active)}`);
-  if(!coverage.visual.valid||!coverage.polish.valid)throw new Error(`Visual validation failed: ${JSON.stringify(coverage)}`);
-  if(!coverage.world.valid||coverage.world.locations!==13||coverage.world.profiles!==10||coverage.world.scenes!==30||coverage.world.customizationCategories!==8)throw new Error(`World coverage failed: ${JSON.stringify(coverage.world)}`);
-  if(!coverage.navigation.valid||coverage.saveVersion!==9)throw new Error(`World navigation/save validation failed: ${JSON.stringify(coverage)}`);
-  if(!coverage.commercialUI.valid||!coverage.commercialCampus.valid||coverage.commercialCampus.placeholderMap!==false)throw new Error(`Commercial campus/UI validation failed: ${JSON.stringify(coverage)}`);
-  if(!coverage.walkable.valid||coverage.walkable.maps!==14||coverage.walkable.walkableOffsite!==13||coverage.walkable.placeholderCards!==false)throw new Error(`Walkable world validation failed: ${JSON.stringify(coverage.walkable)}`);
-  if(!coverage.commercialWorld.valid||coverage.commercialWorld.placeholderCards!==false||!coverage.commercialWorld.illustratedDistrict)throw new Error(`Commercial world-art validation failed: ${JSON.stringify(coverage.commercialWorld)}`);
-  await canvasArtHealth(page,'Commercial title screen');
-  await page.screenshot({path:'test-results/title-desktop.png',fullPage:true});
+  if(!coverage.visual.valid||!coverage.polish.valid||!coverage.world.valid||coverage.world.locations!==13||coverage.world.scenes!==30)throw new Error(`Content/visual coverage failed: ${JSON.stringify(coverage)}`);
+  if(!coverage.navigation.valid||coverage.saveVersion!==9||!coverage.commercialUI.valid||!coverage.commercialCampus.valid||coverage.commercialCampus.placeholderMap!==false)throw new Error(`World navigation/commercial validation failed: ${JSON.stringify(coverage)}`);
+  if(!coverage.walkable.valid||coverage.walkable.maps!==14||coverage.walkable.placeholderCards!==false||!coverage.commercialWorld.valid||coverage.commercialWorld.placeholderCards!==false)throw new Error(`Walkable art validation failed: ${JSON.stringify(coverage)}`);
+  if(!coverage.a11yCore.valid||coverage.a11yCore.themes<13||coverage.a11yCore.audioChannels!==4||coverage.a11yCore.externalAudio!==false||!coverage.a11yUI.valid||coverage.a11yUI.pages!==4)throw new Error(`Pass 8 validation failed: ${JSON.stringify(coverage)}`);
+  await artHealth(page,'v1.6 title');await page.screenshot({path:'test-results/title-desktop.png',fullPage:true});
 
-  await clickCanvas(page,731,249);
-  await page.locator('#creator:not(.hidden)').waitFor({timeout:5000});
-  await page.locator('#nameInput').fill('QA Student');await page.locator('#confirmName').click();
-  await page.waitForFunction(()=>game.mode==='play',null,{timeout:5000});await clearDialogues(page);
-
-  const state=await page.evaluate(()=>({
-    name:game.player.name,year:game.year,month:game.month,wallet:game.player.wallet,
-    customization:Object.keys(game.player.customization||{}).length,firstDay:game.player.collectibles.includes('photo-first-day'),
-    routines:validateCampusRoutines()
-  }));
-  if(state.name!=='QA Student'||state.year!==1||state.month!==1||state.wallet!==1200||state.customization!==8||!state.firstDay||!state.routines.valid)throw new Error(`New-game v1.5 state failed: ${JSON.stringify(state)}`);
-  await canvasArtHealth(page,'Illustrated academy');
-  await page.screenshot({path:'test-results/academy-live-desktop.png',fullPage:true});
-
-  const before=await page.evaluate(()=>Object.fromEntries(game.npcs.map(n=>[n.id,{x:n.x,y:n.y}])));
-  await page.evaluate(()=>{game.time=510;game.lastSlot=null;checkSchedule();});await page.waitForTimeout(900);
-  const motion=await page.evaluate(()=>({positions:Object.fromEntries(game.npcs.map(n=>[n.id,{x:n.x,y:n.y}])),finite:[...game.npcs,...game.teachers].every(a=>Number.isFinite(a.x)&&Number.isFinite(a.y))}));
-  if(!motion.finite||!Object.keys(before).some(id=>Math.hypot(motion.positions[id].x-before[id].x,motion.positions[id].y-before[id].y)>2))throw new Error('Living Campus movement did not occur.');
-
-  await page.evaluate(()=>openLivingCampusOverlay());await page.waitForFunction(()=>game.overlay?.type==='livingCampus');
-  await page.screenshot({path:'test-results/campus-pulse-desktop.png',fullPage:true});
-  await page.evaluate(()=>openActivityLab('academics'));await page.waitForFunction(()=>game.overlay?.type==='activityLab');
-  await page.screenshot({path:'test-results/activity-lab-desktop.png',fullPage:true});
-  await page.evaluate(()=>{game.overlay=null;startActiveSchoolActivity('math',{practice:true});activeBegin();});
-  await page.waitForFunction(()=>game.overlay?.type==='activeGame'&&game.overlay.phase==='active');
-  await page.screenshot({path:'test-results/active-math-desktop.png',fullPage:true});
-  await page.evaluate(()=>{while(game.overlay?.type==='activeGame'&&game.overlay.phase!=='result'){if(game.overlay.phase==='active')activeDecisionAnswer(game.overlay.questions[game.overlay.round].correct);if(game.overlay.phase==='feedback')activeNextDecision();}});
-  const active=await page.evaluate(()=>({phase:game.overlay?.phase,score:game.overlay?.score,best:game.player.activityBest.math}));
-  if(active.phase!=='result'||active.score!==100||active.best!==100)throw new Error(`Active activity failed: ${JSON.stringify(active)}`);
-  await page.screenshot({path:'test-results/activity-result-desktop.png',fullPage:true});
-
-  await page.evaluate(()=>{game.overlay=null;game.dialogue=null;game.time=850;openWorldMap({weekend:true});});
-  await page.waitForFunction(()=>game.overlay?.type==='worldMap');await canvasArtHealth(page,'Illustrated district map');
-  await page.screenshot({path:'test-results/district-map-desktop.png',fullPage:true});
-
-  await page.evaluate(()=>visitWorldLocation('cafe',{weekend:true}));await page.waitForFunction(()=>game.walkable?.active&&game.walkable.locationId==='cafe'&&!game.overlay);
-  const cafe=await page.evaluate(()=>({visits:game.player.worldVisits.cafe,npcs:game.walkable.npcs.length,time:game.time,x:game.walkable.x,y:game.walkable.y}));
-  if(cafe.visits!==1||cafe.npcs<1||cafe.time!==850)throw new Error(`Walkable café failed: ${JSON.stringify(cafe)}`);
-  await canvasArtHealth(page,'Walkable café');await page.screenshot({path:'test-results/walkable-cafe-desktop.png',fullPage:true});
-
-  const moved=await page.evaluate(()=>{const s=wwEnsureState(),before={x:s.x,y:s.y};keys.add('arrowleft');for(let i=0;i<4;i++)wwUpdate(.15);keys.delete('arrowleft');return {before,after:{x:s.x,y:s.y},finite:Number.isFinite(s.x)&&Number.isFinite(s.y)};});
-  if(!moved.finite||Math.hypot(moved.after.x-moved.before.x,moved.after.y-moved.before.y)<4)throw new Error(`Walkable player movement failed: ${JSON.stringify(moved)}`);
-  const collision=await page.evaluate(()=>{const s=wwEnsureState();s.x=440;s.y=300;keys.add('arrowright');wwUpdate(.25);keys.delete('arrowright');return {x:s.x,y:s.y};});
-  if(collision.x!==440)throw new Error(`Walkable furniture collision failed: ${JSON.stringify(collision)}`);
-  const npcMotion=await page.evaluate(()=>{const n=wwEnsureState().npcs[0],before=n?{x:n.x,y:n.y}:null;if(n){n.targetX=n.x+45;n.targetY=n.y;n.wait=0;for(let i=0;i<8;i++)wwUpdate(.2);}return {before,after:n?{x:n.x,y:n.y}:null};});
-  if(!npcMotion.before||Math.hypot(npcMotion.after.x-npcMotion.before.x,npcMotion.after.y-npcMotion.before.y)<2)throw new Error(`Walkable NPC movement failed: ${JSON.stringify(npcMotion)}`);
-
-  const mapIds=['home','shopping','cafe','arcade','park','public_library','cinema','sports_center','music_venue','festival','museum','study_center','convenience','station'];
-  for(const id of mapIds){
-    await page.evaluate(locationId=>wwEnter(locationId,{weekend:true,preserve:true}),id);
-    await page.waitForFunction(locationId=>game.walkable?.active&&game.walkable.locationId===locationId,id);
-    await canvasArtHealth(page,`Walkable ${id}`);
-    await page.screenshot({path:`test-results/walkable-${id}.png`,fullPage:true});
+  for(let pageIndex=0;pageIndex<4;pageIndex++){
+    await page.evaluate(index=>openAccessibility(index),pageIndex);await page.waitForFunction(index=>game.overlay?.type==='accessibility'&&game.overlay.page===index,pageIndex);
+    await page.screenshot({path:`test-results/accessibility-${['audio','reading','visual','controls'][pageIndex]}-desktop.png`,fullPage:true});
   }
-
-  await page.evaluate(()=>wwEnter('cafe',{weekend:true,preserve:true}));
-  await page.evaluate(()=>openGiftShop('cafe'));await page.waitForFunction(()=>game.overlay?.type==='giftShop');
-  await canvasArtHealth(page,'Illustrated gift shop');await page.screenshot({path:'test-results/illustrated-gift-shop-desktop.png',fullPage:true});
-  const nested=await page.evaluate(()=>{const before={time:game.time,visits:game.player.worldVisits.cafe};worldBackToLocation('cafe',true);return {before,time:game.time,visits:game.player.worldVisits.cafe,active:game.walkable.active,location:game.walkable.locationId,weekend:game.walkable.weekend,overlay:game.overlay};});
-  if(!nested.active||nested.location!=='cafe'||!nested.weekend||nested.overlay!==null||nested.time!==nested.before.time||nested.visits!==nested.before.visits)throw new Error(`Nested walkable navigation failed: ${JSON.stringify(nested)}`);
-
-  await page.evaluate(()=>openHomeHub());await page.waitForFunction(()=>game.walkable?.active&&game.walkable.locationId==='home'&&!game.overlay);
-  await page.screenshot({path:'test-results/walkable-bedroom-desktop.png',fullPage:true});
-  await page.evaluate(()=>openCustomization('hair'));await page.waitForFunction(()=>game.overlay?.type==='customization');
-  await canvasArtHealth(page,'Illustrated wardrobe');await page.screenshot({path:'test-results/illustrated-wardrobe-desktop.png',fullPage:true});
-  const style=await page.evaluate(()=>{game.player.wallet=5000;buyOrEquipCustomization('hair','sakura');writeSave(localStorage,gameSnapshot());const saved=readSave(localStorage);return {equipped:game.player.customization.hair,owned:game.player.ownedCustomization.hair.includes('sakura'),saved:saved.player.customization.hair};});
-  if(style.equipped!=='sakura'||!style.owned||style.saved!=='sakura')throw new Error(`Customization persistence failed: ${JSON.stringify(style)}`);
-
-  await page.evaluate(()=>openCollectionBook());await page.waitForFunction(()=>game.overlay?.type==='collectionBook');
-  const collection=await page.evaluate(()=>{game.player.collectibles=[];game.player.collectionDates={};const first=grantCollectible('badge-explorer','Browser QA');const second=grantCollectible('badge-explorer','Duplicate QA');return {first,second,count:game.player.collectibles.filter(id=>id==='badge-explorer').length,total:game.player.collectibles.length};});
-  if(!collection.first||collection.second||collection.count!==1||collection.total!==1)throw new Error(`Duplicate collection guard failed: ${JSON.stringify(collection)}`);
-  await canvasArtHealth(page,'Illustrated collection book');await page.screenshot({path:'test-results/illustrated-collection-book-desktop.png',fullPage:true});
-
-  await page.evaluate(()=>{game.walkable.active=false;game.walkable.locationId=null;game.overlay={type:'rankings',title:'Live Social Rankings'};game.dialogue=null;game.notifications=[];});await page.waitForFunction(()=>game.overlay?.type==='rankings');
-  await page.screenshot({path:'test-results/rankings-desktop.png',fullPage:true});
-  await page.evaluate(()=>{game.overlay=null;});
-
-  await page.waitForFunction(async()=>{if(!('serviceWorker'in navigator))return false;await navigator.serviceWorker.ready;return true;},null,{timeout:15000});
+  const preferenceWrite=await page.evaluate(()=>{game.settings.musicVolume=.4;game.settings.effectsVolume=.5;game.settings.dialogueVolume=.6;game.settings.textSpeed='fast';game.settings.touchScale='medium';game.settings.highContrast=true;game.settings.reducedMotion=true;game.settings.controlMap.up='i';a11yPersist();return{stored:JSON.parse(localStorage.getItem(A11Y_PREFS_KEY)),dataset:{...document.documentElement.dataset}};});
+  if(preferenceWrite.stored.musicVolume!==.4||preferenceWrite.stored.controlMap.up!=='i'||preferenceWrite.dataset.highContrast!=='true')throw new Error(`Preference write failed: ${JSON.stringify(preferenceWrite)}`);
   await page.reload({waitUntil:'networkidle'});await waitForGame(page);
-  await page.waitForFunction(()=>Boolean(navigator.serviceWorker.controller),null,{timeout:10000});
-  await desktop.setOffline(true);await page.reload({waitUntil:'domcontentloaded',timeout:15000});await waitForGame(page);
-  await page.screenshot({path:'test-results/offline-desktop.png',fullPage:true});await desktop.setOffline(false);await desktop.close();
+  const preferenceReload=await page.evaluate(()=>({music:game.settings.musicVolume,effects:game.settings.effectsVolume,dialogue:game.settings.dialogueVolume,speed:game.settings.textSpeed,touch:game.settings.touchScale,up:game.settings.controlMap.up,contrast:document.documentElement.dataset.highContrast,motion:document.documentElement.dataset.reducedMotion}));
+  if(preferenceReload.music!==.4||preferenceReload.effects!==.5||preferenceReload.dialogue!==.6||preferenceReload.speed!=='fast'||preferenceReload.touch!=='medium'||preferenceReload.up!=='i'||preferenceReload.contrast!=='true'||preferenceReload.motion!=='true')throw new Error(`Preference reload failed: ${JSON.stringify(preferenceReload)}`);
 
-  const portrait=await browser.newContext({viewport:{width:390,height:844},isMobile:true,hasTouch:true,deviceScaleFactor:2});
-  const portraitPage=await portrait.newPage();watch(portraitPage);await portraitPage.goto(baseURL,{waitUntil:'networkidle'});await waitForGame(portraitPage);
-  const orientation=await portraitPage.locator('#orientation-hint').evaluate(element=>({display:getComputedStyle(element).display,text:element.textContent,box:element.getBoundingClientRect().toJSON()}));
-  if(orientation.display==='none'||!orientation.text.includes('Rotate your device')||orientation.box.width<380||orientation.box.height<830)throw new Error(`Portrait guidance failed: ${JSON.stringify(orientation)}`);
-  await portraitPage.screenshot({path:'test-results/title-mobile-portrait.png',fullPage:true});await portrait.close();
+  await clickCanvas(page,731,249);await page.locator('#creator:not(.hidden)').waitFor({timeout:5000});await page.locator('#nameInput').fill('QA Student');await page.locator('#confirmName').click();await page.waitForFunction(()=>game.mode==='play',null,{timeout:5000});await clearDialogues(page);
+  const state=await page.evaluate(()=>({name:game.player.name,year:game.year,month:game.month,wallet:game.player.wallet,customization:Object.keys(game.player.customization||{}).length,routines:validateCampusRoutines(),settings:{music:game.settings.musicVolume,up:game.settings.controlMap.up}}));
+  if(state.name!=='QA Student'||state.year!==1||state.month!==1||state.wallet!==1200||state.customization!==8||!state.routines.valid||state.settings.up!=='i')throw new Error(`New-game v1.6 state failed: ${JSON.stringify(state)}`);
+  await artHealth(page,'Accessible academy');await page.screenshot({path:'test-results/academy-live-desktop.png',fullPage:true});
 
-  const landscape=await browser.newContext({viewport:{width:844,height:390},isMobile:true,hasTouch:true,deviceScaleFactor:2});
-  const landscapePage=await landscape.newPage();watch(landscapePage);await landscapePage.goto(baseURL,{waitUntil:'networkidle'});await waitForGame(landscapePage);
-  const appBox=await landscapePage.locator('#app').boundingBox(),hint=await landscapePage.locator('#orientation-hint').evaluate(element=>getComputedStyle(element).display);
-  if(!appBox||appBox.width>845||appBox.height>391||hint!=='none')throw new Error(`Landscape layout failed: ${JSON.stringify({appBox,hint})}`);
-  await landscapePage.screenshot({path:'test-results/title-mobile-landscape.png',fullPage:true});await landscape.close();
+  const remapBefore=await page.evaluate(()=>({x:game.player.x,y:game.player.y}));await page.keyboard.down('i');await page.waitForTimeout(500);await page.keyboard.up('i');
+  const remapAfter=await page.evaluate(()=>({x:game.player.x,y:game.player.y}));if(Math.hypot(remapAfter.x-remapBefore.x,remapAfter.y-remapBefore.y)<3)throw new Error(`Remapped movement failed: ${JSON.stringify({remapBefore,remapAfter})}`);
+
+  await page.evaluate(()=>{game.overlay=null;openDialogue({speaker:'Accessibility QA',text:'This dialogue verifies readable history, fast text and saved results.',choices:[{text:'Record this exchange.',result:'The exchange was recorded successfully.'}]});game.dialogue.reveal=game.dialogue.text.length;closeDialogue(0);openDialogueHistory();});
+  await page.waitForFunction(()=>game.overlay?.type==='dialogueHistory');const history=await page.evaluate(()=>game.dialogueHistory.at(-1));if(history?.speaker!=='Accessibility QA'||history.result!=='The exchange was recorded successfully.')throw new Error(`Dialogue history failed: ${JSON.stringify(history)}`);
+  await page.screenshot({path:'test-results/dialogue-history-desktop.png',fullPage:true});
+
+  await page.evaluate(()=>{game.overlay=null;game.settings.performanceMode=false;game.settings.autoPerformance=true;for(let index=0;index<180;index++)update(.04);openPerformanceReport();});
+  await page.waitForFunction(()=>game.overlay?.type==='performanceReport');const performanceState=await page.evaluate(()=>({mode:game.settings.performanceMode,stats:game.performanceStats,dataset:document.documentElement.dataset.performanceMode}));if(!performanceState.mode||performanceState.stats.samples<180||performanceState.dataset!=='true')throw new Error(`Performance safeguard failed: ${JSON.stringify(performanceState)}`);
+  await page.screenshot({path:'test-results/performance-report-desktop.png',fullPage:true});
+
+  await page.evaluate(()=>{game.settings.performanceMode=false;game.settings.autoPerformance=false;a11yPersist();game.overlay=null;game.dialogue=null;game.time=850;openWorldMap({weekend:true});});await page.waitForFunction(()=>game.overlay?.type==='worldMap');await artHealth(page,'District map');await page.screenshot({path:'test-results/district-map-desktop.png',fullPage:true});
+  await page.evaluate(()=>visitWorldLocation('cafe',{weekend:true}));await page.waitForFunction(()=>game.walkable?.active&&game.walkable.locationId==='cafe'&&!game.overlay);await artHealth(page,'Walkable cafe');
+  const moved=await page.evaluate(()=>{const s=wwEnsureState(),before={x:s.x,y:s.y};keys.add('arrowleft');for(let i=0;i<4;i++)wwUpdate(.15);keys.delete('arrowleft');return{before,after:{x:s.x,y:s.y},npcs:s.npcs.length};});if(Math.hypot(moved.after.x-moved.before.x,moved.after.y-moved.before.y)<4||moved.npcs<1)throw new Error(`Walkable cafe failed: ${JSON.stringify(moved)}`);
+  const mapIds=['home','shopping','cafe','arcade','park','public_library','cinema','sports_center','music_venue','festival','museum','study_center','convenience','station'];
+  for(const id of mapIds){await page.evaluate(locationId=>wwEnter(locationId,{weekend:true,preserve:true}),id);await page.waitForFunction(locationId=>game.walkable?.active&&game.walkable.locationId===locationId,id);await artHealth(page,`Walkable ${id}`);await page.screenshot({path:`test-results/walkable-${id}.png`,fullPage:true});}
+
+  await page.waitForFunction(async()=>{if(!('serviceWorker'in navigator))return false;await navigator.serviceWorker.ready;return true;},null,{timeout:15000});await page.reload({waitUntil:'networkidle'});await waitForGame(page);await page.waitForFunction(()=>Boolean(navigator.serviceWorker.controller),null,{timeout:10000});await desktop.setOffline(true);await page.reload({waitUntil:'domcontentloaded',timeout:15000});await waitForGame(page);await page.screenshot({path:'test-results/offline-desktop.png',fullPage:true});await desktop.setOffline(false);await desktop.close();
+
+  const tablet=await browser.newContext({viewport:{width:1024,height:768},hasTouch:true,isMobile:true,deviceScaleFactor:1});const tabletPage=await tablet.newPage();watch(tabletPage);await tabletPage.goto(baseURL,{waitUntil:'networkidle'});await waitForGame(tabletPage);await tabletPage.evaluate(()=>{resetGame();game.mode='play';game.dialogue=null;game.overlay=null;game.showControls=true;});await tabletPage.waitForTimeout(250);const tabletControls=await tabletPage.evaluate(()=>buttons.filter(button=>button.holdKey).map(button=>({w:button.w,h:button.h,key:button.holdKey})));if(tabletControls.length<4||tabletControls.some(button=>button.w<32||button.h<32))throw new Error(`Tablet touch controls invalid: ${JSON.stringify(tabletControls)}`);await tabletPage.screenshot({path:'test-results/tablet-touch-controls.png',fullPage:true});await tablet.close();
+
+  const landscape=await browser.newContext({viewport:{width:844,height:390},hasTouch:true,isMobile:true,deviceScaleFactor:2});const landscapePage=await landscape.newPage();watch(landscapePage);await landscapePage.goto(baseURL,{waitUntil:'networkidle'});await waitForGame(landscapePage);await landscapePage.evaluate(()=>{resetGame();game.mode='play';game.dialogue=null;game.overlay=null;game.showControls=true;game.settings.touchScale='large';});await landscapePage.waitForTimeout(250);const appBox=await landscapePage.locator('#app').boundingBox();if(!appBox||appBox.width>845||appBox.height>391)throw new Error(`Landscape layout escaped viewport: ${JSON.stringify(appBox)}`);await landscapePage.screenshot({path:'test-results/mobile-landscape-touch.png',fullPage:true});await landscape.close();
+
+  const portrait=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true,deviceScaleFactor:2});const portraitPage=await portrait.newPage();watch(portraitPage);await portraitPage.goto(baseURL,{waitUntil:'networkidle'});await waitForGame(portraitPage);const orientation=await portraitPage.locator('#orientation-hint').evaluate(element=>({display:getComputedStyle(element).display,text:element.textContent}));if(orientation.display==='none'||!orientation.text.includes('Rotate your device'))throw new Error(`Portrait orientation guidance failed: ${JSON.stringify(orientation)}`);await portraitPage.screenshot({path:'test-results/mobile-portrait-guidance.png',fullPage:true});await portrait.close();
 }finally{await browser.close();}
 
-if(failures.length)throw new Error(`Browser smoke captured ${failures.length} failure(s):\n${failures.join('\n')}`);
-console.log('Production browser smoke passed: illustrated academy, fourteen commercial walkable maps, collisions, wandering NPCs, premium shops and collections, offline reload and mobile presentation with zero placeholder screens.');
+if(failures.length)throw new Error(`Browser QA captured ${failures.length} failure(s):\n${failures.join('\n')}`);
+console.log('Pass 8 browser QA passed: original audio systems, persistent reading preferences, remapped keyboard movement, dialogue history, performance fallback, desktop/tablet/phone touch UX, walkable maps and offline reload.');

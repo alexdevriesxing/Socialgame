@@ -1,50 +1,48 @@
 # Sakura Crest: Social Summit — Cloudflare Release
 
-This branch is the **Commercial Art & Walkable District v1.5** release of Sakura Crest. It retains the complete four-year / 48-chapter campaign, living-campus simulation, active classroom and club gameplay, thirty school friendship chapters, thirty off-campus friendship scenes, twenty phone conversations, twelve monthly showcases, twenty rivalry chapters, forty achievements, eight seasonal examinations, four annual elections and the complete graduation and New Game+ systems.
+This branch is the **Audio, Accessibility, Mobile UX & Performance v1.6** release of Sakura Crest. It retains the complete four-year campaign, living campus, active classes and clubs, fourteen walkable illustrated environments, thirty school friendship chapters, thirty off-campus friendship scenes, monthly rankings, exams, elections, prom, graduation and New Game+.
 
-The v1.5 pass removes the remaining placeholder-style presentation. Sakura Crest Academy, the bedroom and every district destination are now proper illustrated 2D environments that the player can walk through with camera movement, collision geometry, entrances, exits, local props, wandering characters and location-specific interactions.
+## Original procedural audio
 
-## Commercial visual foundation
+All music and effects are generated locally through the Web Audio API. The game uses no copyrighted recordings, external audio hosts or downloadable audio packs.
 
-- Premium rounded and glass-panel UI with gradients, lighting, depth, illustrated icons and consistent typography.
-- A fully illustrated academy replacing the former diagram-like school map.
-- Material-specific classroom, hallway, library, courtyard, cafeteria and gym artwork.
-- Seasonal courtyard trees, windows, weather and environmental lighting.
-- Improved character grounding, shadows, relationship/rival indicators and nearest-character labels.
-- Illustrated district navigation instead of a grid of generic destination cards.
-- Product artwork for every gift, visual wardrobe previews and category-specific collectible icons.
-- Modal screens hide the HUD and notification clutter correctly.
+- Thirteen contextual themes cover the title, four seasons, classes, clubs, incidents, competitions, district exploration, café scenes, prom and endings.
+- Four independent controls cover master mute, music, effects and dialogue voice volume.
+- Bells, movement, weather, crowds, messages, activities and interface actions have distinct synthesized cues.
+- Every important audio cue also has a textual, symbolic or status-label equivalent.
+- Audio preferences persist across reloads, save recovery and new-game resets.
 
-## Fourteen walkable 2D maps
+## Reading and accessibility
 
-The player can freely walk through:
+- Slow, normal, fast and instant text speeds.
+- Safe single-choice auto-advance.
+- Skip-read support using a bounded completed-dialogue index.
+- An in-game history containing the latest eighty conversations and selected results.
+- Persistent large text, high contrast and reduced-motion settings.
+- Color-independent labels and status text for critical feedback.
+- Screen-reader live regions for dialogue, menus, location changes, notifications and urgent warnings.
+- Strong browser focus indicators and a descriptive canvas label.
 
-- Sakura Crest Academy;
-- the persistent bedroom;
-- Shopping Street;
-- Maple Café;
-- Starline Arcade;
-- Riverside Park;
-- Public Library;
-- Moonlight Cinema;
-- Sports Center;
-- Echo Live House;
-- Festival Grounds;
-- City Museum;
-- Study Center;
-- Crest Convenience;
-- Sakura Station.
+## Flexible input and mobile UX
 
-The bedroom and thirteen off-campus areas use their own collision maps, camera-follow movement, entrances, return points, illustrated props and interactive hotspots. Students who visit these locations wander through the environment rather than appearing only in menus.
+- Fully remappable keyboard movement, interaction, options, history, map and bedroom controls.
+- Existing controller support remains available and can be disabled independently.
+- Touch controls appear only on coarse-pointer devices and offer small, medium and large sizing.
+- Tablet and landscape-phone layouts retain the complete playable canvas.
+- Portrait phones receive a readable orientation screen rather than a cramped game interface.
+- WASD or arrows move by default; E or Space interacts; O opens accessibility; H opens dialogue history; X opens the district map; B enters the bedroom.
 
-## Off-campus life
+## Performance safeguards
 
-- Free-period, after-school and weekend district travel.
-- Ten complete NPC preference profiles with birthdays, interests, likes, dislikes and favorite places.
-- Three unique off-campus scenes per core student, for thirty authored scenes and memory cards.
-- Twelve purchasable gifts with preference and birthday reactions.
-- Eight persistent customization categories: hair, skin, face, outfit, accessory, bag, phone theme and room theme.
-- Duplicate-safe photos, badges, trophies, posters, memory cards, wallpapers, music and graduation keepsakes.
+- A rolling local frame monitor reports average frame time, estimated FPS, sampled frames and long frames.
+- Automatic low-power mode activates only after sustained slow rendering.
+- Low-power mode reduces decorative weather particles, ambient sound frequency and expensive presentation effects while preserving gameplay, collision, dialogue and UI clarity.
+- Accessibility settings are normalized once and do not read storage during the frame loop.
+- No performance analytics are transmitted externally.
+
+## Commercial world retained
+
+The player can freely walk through Sakura Crest Academy, their bedroom, Shopping Street, Maple Café, Starline Arcade, Riverside Park, Public Library, Moonlight Cinema, Sports Center, Echo Live House, Festival Grounds, City Museum, Study Center, Crest Convenience and Sakura Station. Every map includes collision geometry, camera-follow movement, exits, illustrated props, hotspots and wandering classmates.
 
 ## Cloudflare Pages
 
@@ -53,27 +51,24 @@ The bedroom and thirteen off-campus areas use their own collision maps, camera-f
 - Build output directory: **/** or **.**
 - Environment variables: none
 
-The repository root is the deployable site. No package installation, external image host, database or secrets are required. `sw.js` caches the complete v1.5 runtime for offline play after the first successful load.
+The repository root is the deployable site. `sw.js` caches the complete v1.6 runtime for offline play after the first successful load. No package installation, database, external image host, audio host or secrets are required.
 
-## Controls
-
-WASD or arrows move the character in the academy, bedroom and every district area. E or Space interacts. **X** opens the district map, **B** enters the bedroom and **U** opens collections. G opens Active Learning, C Campus Pulse, R rankings, Q schedule, J friendships, P phone, K memories, A campus activities, V rivals, Y yearbook, O accessibility, L leadership and M sound. Touch controls appear on coarse-pointer devices; standard controllers remain supported.
-
-## Production and visual validation
+## Validation
 
 The `Production browser QA` workflow validates:
 
-- the complete campaign, active-school systems and all 154 living-campus routines;
-- the premium UI and eight-room commercial academy renderer;
-- fourteen walkable maps and thirteen free-roaming off-campus destinations;
-- player movement, prop collision, camera containment and NPC wandering;
-- every map’s illustrated canvas complexity, color diversity and visual transitions;
-- the illustrated district map, gift shop, wardrobe and collection book;
-- zero placeholder map/card flags from all commercial-art validators;
-- customization persistence, gift behavior and duplicate-safe collection unlocks;
-- offline reload, portrait guidance and landscape mobile containment;
-- screenshot evidence for every walkable environment and major interface.
+- all campaign, living-campus, active-school, social, collection and walkable-world systems;
+- thirteen original themes and four independent audio controls;
+- persistent volume, reading, visual, touch and remapping preferences after reload;
+- dialogue history and recorded choice outcomes;
+- remapped keyboard-only movement;
+- touch-only controls on tablet and landscape phone;
+- screen-reader structures, strong focus styling and portrait guidance;
+- automatic low-power activation under sustained slow frames;
+- all fourteen commercial-quality maps and zero placeholder flags;
+- service-worker-controlled offline reload;
+- screenshot evidence for accessibility pages, history, performance, desktop, tablet, mobile and every walkable environment.
 
 ## Release scope
 
-This is a deployable complete-campaign browser release with commercial-quality procedural illustration, a fully walkable school and city, meaningful evenings and weekends, persistent self-expression, preference-driven friendships, duplicate-safe collections, annual leadership campaigns and a post-prom New Game+ loop.
+This is a complete-campaign, installable browser release with commercial-quality visuals, an explorable school and city, original procedural audio, persistent accessibility and reading tools, flexible keyboard/controller/touch input, local performance safeguards and offline play.

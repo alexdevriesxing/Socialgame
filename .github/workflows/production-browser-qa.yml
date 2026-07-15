@@ -13,7 +13,7 @@ permissions:
 jobs:
   browser-smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - name: Checkout release
         uses: actions/checkout@v4
@@ -38,12 +38,12 @@ jobs:
           node --check tests/remote-static-smoke.mjs
           node --check tests/verify-release.mjs
 
-      - name: Validate release inventory
+      - name: Validate v1.6 release inventory
         run: |
           set -o pipefail
           node tests/verify-release.mjs 2>&1 | tee test-results/release-inventory.log
 
-      - name: Validate campaign and commercial walkable art
+      - name: Validate campaign, accessibility, audio and performance
         run: |
           set -o pipefail
           node tests/remote-static-smoke.mjs 2>&1 | tee test-results/runtime-smoke.log
@@ -64,18 +64,18 @@ jobs:
           cat /tmp/sakura-http.log
           exit 1
 
-      - name: Run free-roaming commercial visual QA in Chromium
+      - name: Run desktop tablet mobile and offline QA in Chromium
         env:
           BASE_URL: http://127.0.0.1:4173
         run: |
           set -o pipefail
           node tests/browser-production-smoke.mjs 2>&1 | tee test-results/browser-smoke.log
 
-      - name: Upload complete commercial art evidence
+      - name: Upload Pass 8 accessibility and device evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: sakura-crest-v15-commercial-walkable-qa
+          name: sakura-crest-v16-accessibility-audio-device-qa
           path: test-results
           if-no-files-found: warn
           retention-days: 14

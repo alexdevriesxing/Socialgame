@@ -18,7 +18,7 @@ globalThis.Image=class{set src(v){this._src=v;queueMicrotask(()=>this.onload?.()
 
 const index=await readFile('index.html','utf8');
 const scripts=[...index.matchAll(/<script src="([^"]+)"><\/script>/g)].map(match=>match[1]);
-if(scripts.length<24)throw new Error(`Expected at least 24 production scripts; found ${scripts.length}.`);
+if(scripts.length<26)throw new Error(`Expected at least 26 production scripts; found ${scripts.length}.`);
 for(const script of scripts)vm.runInThisContext(await readFile(script,'utf8'),{filename:script});
 await new Promise(resolve=>setTimeout(resolve,25));
 if(!elements.loading.classList.contains('hidden'))throw new Error('Static game did not complete initialization.');
@@ -85,10 +85,7 @@ if(game.overlay.phase!=='result'||!game.player.seasonalCompetitionWins.includes(
 const worldValidation=validateExpandedWorld();
 if(!worldValidation.valid)throw new Error(`Expanded World content invalid: ${worldValidation.issues.join(', ')}`);
 if(worldValidation.locations!==13||worldValidation.profiles!==10||worldValidation.scenes!==30||worldValidation.customizationCategories!==8)throw new Error(`Unexpected Expanded World coverage: ${JSON.stringify(worldValidation)}`);
-for(const npc of NPCS){
-  const profile=profileForNpc(npc.id);
-  if(!profile?.birthday||profile.interests.length<3||profile.likes.length<3||profile.dislikes.length<2||profile.topics.length<3||profile.scenes.length!==3)throw new Error(`${npc.id} preference profile is incomplete.`);
-}
+for(const npc of NPCS){const profile=profileForNpc(npc.id);if(!profile?.birthday||profile.interests.length<3||profile.likes.length<3||profile.dislikes.length<2||profile.topics.length<3||profile.scenes.length!==3)throw new Error(`${npc.id} preference profile is incomplete.`);}
 const migrated=migrateSave({version:8,data:{player:{},dayFlags:{}}});
 if(migrated.version!==9||migrated.data.player.wallet!==1200||Object.keys(migrated.data.player.customization).length!==8)throw new Error('v8 to v9 save migration failed.');
 
@@ -120,6 +117,16 @@ const commercialCampus=validateCommercialCampus();if(!commercialCampus.valid||co
 const walkableValidation=validateWalkableWorld();if(!walkableValidation.valid||walkableValidation.maps!==14||walkableValidation.walkableOffsite!==13||walkableValidation.placeholderCards!==false)throw new Error(`Walkable world invalid: ${JSON.stringify(walkableValidation)}`);
 const commercialWorld=validateCommercialWorldArt();if(!commercialWorld.valid||commercialWorld.placeholderCards!==false||!commercialWorld.illustratedDistrict)throw new Error(`Commercial world art invalid: ${JSON.stringify(commercialWorld)}`);
 
+const accessibilityCore=validateAccessibilityCore();if(!accessibilityCore.valid||accessibilityCore.themes<13||accessibilityCore.audioChannels!==4||accessibilityCore.externalAudio!==false)throw new Error(`Accessibility/audio core invalid: ${JSON.stringify(accessibilityCore)}`);
+const accessibilityUI=validateAccessibilityUI();if(!accessibilityUI.valid||accessibilityUI.pages!==4||!accessibilityUI.remappingUI)throw new Error(`Accessibility UI invalid: ${JSON.stringify(accessibilityUI)}`);
+game.settings.musicVolume=.4;game.settings.effectsVolume=.5;game.settings.dialogueVolume=.6;game.settings.textSpeed='fast';game.settings.touchScale='medium';game.settings.controlMap.up='i';a11yPersist();
+const savedPrefs=JSON.parse(localStorage.getItem(A11Y_PREFS_KEY));if(savedPrefs.musicVolume!==.4||savedPrefs.dialogueVolume!==.6||savedPrefs.controlMap.up!=='i')throw new Error('Accessibility preferences did not persist.');
+const historyBefore=game.dialogueHistory.length;openDialogue({speaker:'QA Narrator',text:'Accessible dialogue history test.',choices:[{text:'Continue',result:'History result recorded.'}]});game.dialogue.reveal=game.dialogue.text.length;closeDialogue(0);
+if(game.dialogueHistory.length!==historyBefore+1||game.dialogueHistory.at(-1)?.result!=='History result recorded.')throw new Error('Dialogue history did not record the completed exchange.');
+openAccessibility(3);if(game.overlay?.type!=='accessibility'||game.overlay.page!==3)throw new Error('Accessibility controls page did not open.');
+game.overlay={type:'performanceReport'};game.settings.performanceMode=false;game.settings.autoPerformance=true;for(let i=0;i<180;i++)update(.04);
+if(!game.settings.performanceMode||!game.performanceStats||game.performanceStats.samples<180)throw new Error('Automatic low-power mode did not activate under sustained slow frames.');
+
 game.overlay=null;openWorldMap({weekend:true});if(game.overlay?.type!=='worldMap')throw new Error('Illustrated district map did not open.');
 visitWorldLocation('cafe',{weekend:true});const walk=wwEnsureState();if(!walk.active||walk.locationId!=='cafe'||game.overlay!==null)throw new Error('Café did not open as a walkable map.');
 const beforeMove=walk.x;keys.add('arrowleft');wwUpdate(.25);keys.delete('arrowleft');if(!(walk.x<beforeMove)&&!wwCollides(beforeMove-31,walk.y))throw new Error('Walkable player movement did not advance.');
@@ -129,6 +136,6 @@ for(const id of Object.keys(WW_SCENES)){wwEnter(id,{weekend:true,preserve:true})
 openHomeHub();if(!wwEnsureState().active||wwEnsureState().locationId!=='home')throw new Error('Bedroom did not open as a walkable map.');
 openCollectionBook();if(game.overlay?.type!=='collectionBook'||!wwEnsureState().active)throw new Error('Collection book did not preserve the walkable bedroom context.');
 
-if(window.SAKURA_RELEASE?.version!=='1.5.0')throw new Error(`Unexpected release marker ${window.SAKURA_RELEASE?.version}.`);
+if(window.SAKURA_RELEASE?.version!=='1.6.0')throw new Error(`Unexpected release marker ${window.SAKURA_RELEASE?.version}.`);
 if(CURRENT_SAVE_VERSION!==9)throw new Error(`Unexpected save version ${CURRENT_SAVE_VERSION}.`);
-console.log(`Remote runtime smoke passed for ${scripts.length} scripts, ${routineValidation.studentPeriods+routineValidation.teacherPeriods} campus routines, ${activeValidation.subjects} subjects, ${walkableValidation.maps} commercial walkable maps, ${worldValidation.scenes} off-campus scenes, ${worldValidation.collectibles} collectibles and zero placeholder screens.`);
+console.log(`Remote runtime smoke passed for ${scripts.length} scripts, ${routineValidation.studentPeriods+routineValidation.teacherPeriods} campus routines, ${activeValidation.subjects} subjects, ${walkableValidation.maps} walkable maps, ${accessibilityCore.themes} original themes, four audio channels, remappable controls, persistent reading settings and zero placeholder screens.`);
