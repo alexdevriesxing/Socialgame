@@ -1,0 +1,45 @@
+name: Probe Canva rendition
+
+on:
+  push:
+    branches:
+      - agent/anime-art-canva-probe
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download signed rendition variants
+        env:
+          CANVA_URL: >-
+            https://media.canva.com/v2/document-image/hash:1942789321/height:335/id:DAHPc7OupGM/type:B/width:596?brand=BAGB1PhMIKI&csig=AAAAAAAAAAAAAAAAAAAAADJig3Oh8SwtTbWPJ4D2U_vxu97CnWQliMlsJHW6K9Nk&disableexport=T&exp=1784118133&fallback=https%3A%2F%2Fs3.amazonaws.com%2Fdocument-export.canva.com%2FOupGM%2FDAHPc7OupGM%2F1%2Fthumbnail%2F0001.png%3FX-Amz-Algorithm%3DAWS4-HMAC-SHA256%26X-Amz-Credential%3DAKIAQYCGKMUHXSTDDERN%252F20260714%252Fus-east-1%252Fs3%252Faws4_request%26X-Amz-Date%3D20260714T122521Z%26X-Amz-Expires%3D86212%26X-Amz-Signature%3Dea66a22e977af2552e7c750a5c7b38a56af879c317ab4e416fc57bae2b799b8d%26X-Amz-SignedHeaders%3Dhost%26response-expires%3DWed%252C%252015%2520Jul%25202026%252012%253A22%253A13%2520GMT&osig=AAAAAAAAAAAAAAAAAAAAAHkZAD3YGDP_tTr65cNVrndQGTwQA6e8VVLfH4F7hqBr&page=1&signed=brand%2Cdisableexport%2Cfallback%2Cpage%2Cversion&signer=document-rpc&version=1
+        run: |
+          set -euo pipefail
+          mkdir -p probe
+          curl -L --fail --silent --show-error "$CANVA_URL" -o probe/original.png
+          LARGE_URL="${CANVA_URL/height:335/height:1080}"
+          LARGE_URL="${LARGE_URL/width:596/width:1920}"
+          curl -L --fail --silent --show-error "$LARGE_URL" -o probe/large.png || true
+          python3 - <<'PY'
+          from pathlib import Path
+          import struct
+          for path in sorted(Path('probe').glob('*.png')):
+              data=path.read_bytes()
+              if data[:8]==b'\x89PNG\r\n\x1a\n':
+                  w,h=struct.unpack('>II',data[16:24])
+                  print(path.name, w, h, len(data))
+              else:
+                  print(path.name, data[:24], len(data))
+          PY
+      - uses: actions/upload-artifact@v4
+        with:
+          name: canva-rendition-probe
+          path: probe
+          if-no-files-found: error
+          retention-days: 1
