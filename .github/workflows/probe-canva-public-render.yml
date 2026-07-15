@@ -4,19 +4,20 @@ on:
   push:
     branches:
       - agent/anime-art-canva-probe
-  pull_request:
-    branches:
-      - agent/anime-art-integration-v18
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   render:
+    if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: agent/anime-art-canva-probe
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -24,8 +25,8 @@ jobs:
           npm install --no-save --no-package-lock playwright@1.55.0
           npx playwright install --with-deps chromium
       - name: Render public Canva view links
-        continue-on-error: true
         run: |
+          rm -rf public-render
           mkdir -p public-render
           cat > /tmp/render.mjs <<'JS'
           import { chromium } from 'playwright';
@@ -60,10 +61,10 @@ jobs:
           JS
           node /tmp/render.mjs
           du -ah public-render | sort -h | tail -20
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: canva-public-render-probe
-          path: public-render
-          if-no-files-found: error
-          retention-days: 1
+      - name: Commit compact render evidence to probe branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public-render
+          git commit -m "Capture Canva public render evidence"
+          git push origin HEAD:agent/anime-art-canva-probe
