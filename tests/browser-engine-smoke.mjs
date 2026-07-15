@@ -1,0 +1,39 @@
+import { mkdir } from 'node:fs/promises';
+import { chromium, firefox, webkit } from 'playwright';
+
+const baseURL=process.env.BASE_URL||'http://127.0.0.1:4173';
+await mkdir('test-results/engines',{recursive:true});
+const targets=[
+  {label:'chromium',browserType:chromium,options:{},context:{viewport:{width:1366,height:768}}},
+  {label:'chrome',browserType:chromium,options:{channel:'chrome'},context:{viewport:{width:1366,height:768}}},
+  {label:'edge',browserType:chromium,options:{channel:'msedge'},context:{viewport:{width:1366,height:768}}},
+  {label:'firefox',browserType:firefox,options:{},context:{viewport:{width:1366,height:768}}},
+  {label:'webkit-desktop',browserType:webkit,options:{},context:{viewport:{width:1366,height:768}}},
+  {label:'webkit-mobile',browserType:webkit,options:{},context:{viewport:{width:844,height:390},isMobile:true,hasTouch:true,deviceScaleFactor:2}}
+];
+const results=[];
+for(const target of targets){
+  const errors=[];const browser=await target.browserType.launch({headless:true,...target.options});
+  try{
+    const context=await browser.newContext(target.context);const page=await context.newPage();
+    page.on('pageerror',error=>errors.push(`pageerror: ${error.message}`));
+    page.on('console',message=>{if(message.type()==='error')errors.push(`console.error: ${message.text()}`);});
+    page.on('requestfailed',request=>errors.push(`requestfailed: ${request.url()} ${request.failure()?.errorText||''}`));
+    await page.goto(baseURL,{waitUntil:'networkidle',timeout:30000});
+    await page.waitForFunction(()=>document.getElementById('loading')?.classList.contains('hidden')&&window.SAKURA_RELEASE?.version==='1.7.0',null,{timeout:20000});
+    const boot=await page.evaluate(()=>({release:window.SAKURA_RELEASE?.version,saveVersion:CURRENT_SAVE_VERSION,readiness:validateReleaseReadiness(),canvas:{width:canvas.width,height:canvas.height},scripts:[...document.scripts].map(script=>script.getAttribute('src')).filter(Boolean).length}));
+    if(boot.release!=='1.7.0'||boot.saveVersion!==10||!boot.readiness.valid||boot.canvas.width!==960||boot.canvas.height!==540||boot.scripts<30)throw new Error(`${target.label} boot validation failed: ${JSON.stringify(boot)}`);
+    await page.evaluate(()=>{resetGame();game.mode='play';game.player.name='Engine QA';game.player.gender='girl';game.player.club='tech';game.player.socialStatus='ordinary';initializeSocialStatus();writeSave(localStorage,gameSnapshot());openAccessibility(0);});
+    await page.waitForFunction(()=>game.overlay?.type==='accessibility');
+    await page.screenshot({path:`test-results/engines/${target.label}-accessibility.png`,fullPage:true});
+    await page.evaluate(()=>{game.overlay=null;game.player.score=321;writeSave(localStorage,gameSnapshot());});
+    await page.reload({waitUntil:'networkidle'});await page.waitForFunction(()=>document.getElementById('loading')?.classList.contains('hidden'));
+    const loaded=await page.evaluate(()=>({loaded:loadGame(),name:game.player.name,score:game.player.score,club:game.player.club,recovery:getSaveRecoveryReport()}));
+    if(!loaded.loaded||loaded.name!=='Engine QA'||loaded.score!==321||loaded.club!=='tech'||loaded.recovery.failures.length)throw new Error(`${target.label} save/load failed: ${JSON.stringify(loaded)}`);
+    const canvasHealth=await page.locator('#game').evaluate(element=>{const data=element.getContext('2d').getImageData(0,0,element.width,element.height).data;let opaque=0,variation=0,last=-1;for(let index=0;index<data.length;index+=128){if(data[index+3])opaque++;const value=data[index]+data[index+1]+data[index+2];if(last>=0&&Math.abs(value-last)>20)variation++;last=value;}return{opaque,variation};});
+    if(canvasHealth.opaque<1500||canvasHealth.variation<200)throw new Error(`${target.label} canvas health failed: ${JSON.stringify(canvasHealth)}`);
+    if(errors.length)throw new Error(`${target.label} emitted browser errors: ${errors.join(' | ')}`);
+    results.push({label:target.label,canvasHealth,release:boot.release});await context.close();
+  }finally{await browser.close();}
+}
+console.log(`Multi-engine browser QA passed: ${results.map(result=>result.label).join(', ')}.`);
