@@ -27,9 +27,18 @@ jobs:
         run: python3 -m pip install --quiet pillow
 
       - name: Reconstruct permanent commercial artwork
-        run: python3 scripts/materialize_v18_art.py
+        id: build
+        continue-on-error: true
+        shell: bash
+        run: |
+          set +e
+          python3 scripts/materialize_v18_art.py > materialize-v18.log 2>&1
+          status=$?
+          cat materialize-v18.log
+          exit $status
 
       - name: Validate permanent asset inventory
+        if: steps.build.outcome == 'success'
         shell: bash
         run: |
           set -euo pipefail
@@ -55,7 +64,21 @@ jobs:
             print(name,image.size,image.mode)
           PY
 
+      - name: Preserve materialization failure diagnostics
+        if: steps.build.outcome == 'failure'
+        shell: bash
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          mkdir -p debug-art
+          cp materialize-v18.log debug-art/materialize-v18.log
+          git add -f debug-art/materialize-v18.log
+          git commit -m 'Capture anime materialization failure' || exit 0
+          git push origin HEAD:asset-transfer-v18
+          exit 1
+
       - name: Commit clean artwork to the v1.8 integration branch
+        if: steps.build.outcome == 'success'
         shell: bash
         run: |
           set -euo pipefail
@@ -63,6 +86,7 @@ jobs:
           rm -f .github/workflows/debug-anime-tile-v18.yml
           rm -f scripts/materialize_v18_art.py
           rm -rf debug-art
+          rm -f materialize-v18.log
           rm -f docs/asset-transfer-v18-trigger.txt docs/asset-transfer-v18-trigger-2.txt
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
