@@ -27,9 +27,10 @@ for(const script of scripts)vm.runInThisContext(await readFile(script,'utf8'),{f
 await new Promise(resolve=>setTimeout(resolve,30));
 
 if(CURRENT_SAVE_VERSION!==10)throw new Error(`Expected save version 10, received ${CURRENT_SAVE_VERSION}.`);
-if(window.SAKURA_RELEASE?.version!=='1.7.0')throw new Error(`Expected release 1.7.0, received ${window.SAKURA_RELEASE?.version}.`);
+if(window.SAKURA_RELEASE?.version!=='1.8.0')throw new Error(`Expected release 1.8.0, received ${window.SAKURA_RELEASE?.version}.`);
 const readiness=validateReleaseReadiness();if(!readiness.valid)throw new Error(`Release validator failed: ${JSON.stringify(readiness)}`);
 if(readiness.knownCriticalIssues!==0||readiness.knownHighIssues!==0)throw new Error('Release validator reports unresolved critical or high issues.');
+const animeArt=validateAnimeArtV18();if(!animeArt.valid||animeArt.externalRuntimeDependency!==false||animeArt.proceduralFallbacks!==false)throw new Error(`Anime art release validation failed: ${JSON.stringify(animeArt)}`);
 
 class MemoryStorage{
   constructor(){this.data={};}getItem(key){return this.data[key]??null;}setItem(key,value){this.data[key]=String(value);}removeItem(key){delete this.data[key];}clear(){this.data={};}
@@ -82,4 +83,4 @@ for(const gender of ['boy','girl']){
 
 for(let iteration=0;iteration<50000;iteration++){game.year=iteration%4+1;game.month=iteration%12+1;game.day=iteration%20+1;const playerScore=releaseSocialScore(game.player,game);const rivalScore=releaseNpcScore(NPCS[iteration%NPCS.length],game,game.player);if(!Number.isFinite(playerScore)||!Number.isFinite(rivalScore))throw new Error(`Long-session score became non-finite at iteration ${iteration}.`);}
 
-console.log(`Release readiness passed: ${profiles.length} complete 48-month profiles, both ranking ladders, all clubs and difficulties, both ending families, save v1-v10 migration, corruption recovery and 50,000 long-session score checks.`);
+console.log(`Release readiness passed for v1.8: ${profiles.length} complete 48-month profiles, both ranking ladders, all clubs and difficulties, both ending families, permanent anime artwork, save v1-v10 migration, corruption recovery and 50,000 long-session score checks.`);
