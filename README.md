@@ -1,74 +1,79 @@
-# Sakura Crest: Social Summit — Cloudflare Release
+# Sakura Crest: Social Summit — Production Release v1.7
 
-This branch is the **Audio, Accessibility, Mobile UX & Performance v1.6** release of Sakura Crest. It retains the complete four-year campaign, living campus, active classes and clubs, fourteen walkable illustrated environments, thirty school friendship chapters, thirty off-campus friendship scenes, monthly rankings, exams, elections, prom, graduation and New Game+.
+This branch is the **QA, Balance, Save Recovery & Release Readiness v1.7** release of Sakura Crest. It retains the complete four-year campaign, living campus, active classes and clubs, fourteen walkable illustrated environments, thirty school friendship chapters, thirty off-campus friendship scenes, monthly rankings, exams, elections, prom, graduation, New Game+ and the complete v1.6 audio and accessibility layer.
 
-## Original procedural audio
+## Final campaign and balance pass
 
-All music and effects are generated locally through the Web Audio API. The game uses no copyrighted recordings, external audio hosts or downloadable audio packs.
+- Forty-eight authored monthly chapters remain playable for both boys' and girls' ranking ladders.
+- All four club paths and Established, Ordinary and Outsider difficulty modes are covered by deterministic full-campaign simulations.
+- Ranking contributions now use caps or diminishing returns, preventing cumulative multi-year systems from creating uncontrolled score inflation.
+- Monthly momentum retention and daily recovery vary by difficulty while preserving earned progression.
+- Committed play can reach the final top two with every ladder, club and difficulty combination; passive play does not receive an elite ending automatically.
+- Prom crown and non-crown endings are validated for both ranking ladders.
 
-- Thirteen contextual themes cover the title, four seasons, classes, clubs, incidents, competitions, district exploration, café scenes, prom and endings.
-- Four independent controls cover master mute, music, effects and dialogue voice volume.
-- Bells, movement, weather, crowds, messages, activities and interface actions have distinct synthesized cues.
-- Every important audio cue also has a textual, symbolic or status-label equivalent.
-- Audio preferences persist across reloads, save recovery and new-game resets.
+## Resilient save format v10
 
-## Reading and accessibility
+- Save envelopes include an integrity checksum.
+- The previous valid save is retained as a last-known-good backup.
+- Writes pass through a pending envelope so interrupted writes can recover safely.
+- Invalid JSON and checksum mismatches are quarantined rather than silently accepted.
+- Unsafe numeric values are repaired into supported gameplay ranges.
+- Save formats v1 through v9 migrate forward to v10.
+- Continue recognizes the main save, pending write and backup.
 
-- Slow, normal, fast and instant text speeds.
-- Safe single-choice auto-advance.
-- Skip-read support using a bounded completed-dialogue index.
-- An in-game history containing the latest eighty conversations and selected results.
-- Persistent large text, high contrast and reduced-motion settings.
-- Color-independent labels and status text for critical feedback.
-- Screen-reader live regions for dialogue, menus, location changes, notifications and urgent warnings.
-- Strong browser focus indicators and a descriptive canvas label.
+Progress remains local to the browser. Clearing the site's browser storage removes local progress and recovery files.
 
-## Flexible input and mobile UX
+## Audio, accessibility and input
 
-- Fully remappable keyboard movement, interaction, options, history, map and bedroom controls.
-- Existing controller support remains available and can be disabled independently.
-- Touch controls appear only on coarse-pointer devices and offer small, medium and large sizing.
-- Tablet and landscape-phone layouts retain the complete playable canvas.
-- Portrait phones receive a readable orientation screen rather than a cramped game interface.
-- WASD or arrows move by default; E or Space interacts; O opens accessibility; H opens dialogue history; X opens the district map; B enters the bedroom.
+- Thirteen original Web Audio themes and independent master, music, effects and dialogue controls.
+- Slow, normal, fast and instant text speeds; safe auto-advance; skip-read; eighty-entry dialogue history.
+- Persistent large text, high contrast, reduced motion and screen-reader live announcements.
+- Remappable keyboard movement and actions, controller support and scalable touch controls.
+- Tablet, landscape-phone and portrait-guidance layouts.
+- Local performance monitor and automatic low-power fallback with no external analytics.
 
-## Performance safeguards
-
-- A rolling local frame monitor reports average frame time, estimated FPS, sampled frames and long frames.
-- Automatic low-power mode activates only after sustained slow rendering.
-- Low-power mode reduces decorative weather particles, ambient sound frequency and expensive presentation effects while preserving gameplay, collision, dialogue and UI clarity.
-- Accessibility settings are normalized once and do not read storage during the frame loop.
-- No performance analytics are transmitted externally.
-
-## Commercial world retained
+## Commercial walkable world
 
 The player can freely walk through Sakura Crest Academy, their bedroom, Shopping Street, Maple Café, Starline Arcade, Riverside Park, Public Library, Moonlight Cinema, Sports Center, Echo Live House, Festival Grounds, City Museum, Study Center, Crest Convenience and Sakura Station. Every map includes collision geometry, camera-follow movement, exits, illustrated props, hotspots and wandering classmates.
 
 ## Cloudflare Pages
 
 - Framework preset: **None**
+- Root directory: repository root
 - Build command: leave blank
-- Build output directory: **/** or **.**
+- Build output directory: **.**
 - Environment variables: none
 
-The repository root is the deployable site. `sw.js` caches the complete v1.6 runtime for offline play after the first successful load. No package installation, database, external image host, audio host or secrets are required.
+The repository root is the complete static artifact. `_headers` supplies the production security and cache policy, `_redirects` provides stable entry aliases, and `sw.js` caches the v1.7 runtime for offline play after the first successful load.
+
+Operational documents:
+
+- `docs/release-v1.7.md` — release notes and validation scope.
+- `docs/cloudflare-release-runbook.md` — production verification and rollback.
+- `docs/known-issues.md` — explicit tradeoffs and severity register.
+- `docs/pass-8-audio-accessibility.md` — audio and accessibility implementation notes.
 
 ## Validation
 
 The `Production browser QA` workflow validates:
 
-- all campaign, living-campus, active-school, social, collection and walkable-world systems;
-- thirteen original themes and four independent audio controls;
-- persistent volume, reading, visual, touch and remapping preferences after reload;
-- dialogue history and recorded choice outcomes;
-- remapped keyboard-only movement;
-- touch-only controls on tablet and landscape phone;
-- screen-reader structures, strong focus styling and portrait guidance;
-- automatic low-power activation under sustained slow frames;
+- syntax for every production and QA script;
+- release inventory, service-worker cache, headers and redirects;
+- the complete campaign, living-campus, active-school, social, collection and walkable-world systems;
+- twenty-four deterministic 48-month campaign profiles;
+- both Prom ending families for both ranking ladders;
+- save v1-v10 migration, checksum tampering, interrupted writes, corrupted-main recovery and deletion;
+- 50,000 long-session ranking calculations;
+- thirteen original themes, four audio channels and persistent accessibility settings;
+- remapped keyboard movement and touch-only controls;
 - all fourteen commercial-quality maps and zero placeholder flags;
 - service-worker-controlled offline reload;
-- screenshot evidence for accessibility pages, history, performance, desktop, tablet, mobile and every walkable environment.
+- Chromium, installed Chrome, installed Edge, Firefox and WebKit desktop/mobile compatibility.
 
-## Release scope
+## Known release status
 
-This is a complete-campaign, installable browser release with commercial-quality visuals, an explorable school and city, original procedural audio, persistent accessibility and reading tools, flexible keyboard/controller/touch input, local performance safeguards and offline play.
+The validated repository build contains no known critical or high-severity defects. Final verification of the owner's custom domain, DNS, certificate and promoted Cloudflare production deployment occurs after merge using the release runbook.
+
+## Controls
+
+WASD or arrows move by default. E or Space interacts. O opens Accessibility, Audio & Controls; H opens dialogue history; X opens the district; B enters the bedroom; U opens collections. Keyboard mappings can be changed in-game. Touch controls appear on coarse-pointer devices and standard controllers remain supported.
