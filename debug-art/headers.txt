@@ -1,11 +1,11 @@
 HTTP/2 200 
-date: Wed, 15 Jul 2026 19:29:01 GMT
+date: Wed, 15 Jul 2026 19:29:55 GMT
 content-type: image/png
-cf-ray: a1bb2c702fc82d22-IAD
+cf-ray: a1bb2dc3df3eb788-IAD
 cf-cache-status: HIT
-age: 623
+age: 678
 cache-control: public, max-age=604800
-expires: Wed, 22 Jul 2026 19:29:01 GMT
+expires: Wed, 22 Jul 2026 19:29:55 GMT
 last-modified: Wed, 15 Jul 2026 19:18:37 GMT
 server: cloudflare
 strict-transport-security: max-age=31536000; includeSubDomains; preload
@@ -13,7 +13,7 @@ vary: accept-encoding, Origin
 x-content-type-options: nosniff
 content-security-policy: script-src 'none'; frame-src 'none'; object-src 'none'; default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; media-src 'self'; form-action 'none'; base-uri 'none'; report-uri https://csp.canva.com/_cspreport?app=s3_media
 x-request-id: a1bb1d339ec1f5b0
-set-cookie: __cf_bm=6BKk2.1skNC_teLFl_jpXR0tqkWlTB7qfJlWudUD1GE-1784143741.4657516-1.0.1.1-0uK5NxuAx2C0oBAD0XpSrCmAAq5x6Tuwv3eJV3AYN1x_xlnzRkbE1cBtxQ0nvt0JxMeYRGcKXom4LRDpihm55Vc.c._l.m9J7q8UJa8YsXbcQ8GFFvAwZNgQS7FEXk9mSYMxonmtF2yswgnvV5CynJj9tl_x11E.WFgF7Z0XviE; HttpOnly; SameSite=None; Secure; Path=/; Domain=canva.com; Expires=Wed, 15 Jul 2026 19:59:01 GMT
-report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=FtV7M9nddCUuy7SspholW0kKNlJQhLt74FLTifGwSTxIVjkUwifC4wb3kadqxCsMvaLjc6Hgg3Z82fhFHtNUHMUh%2FzIdOh25dzjIYDSPYrJ4BIP3Z5mcmEwiEyDGqKbmlg%3D%3D"}]}
+set-cookie: __cf_bm=KJ_10.GizBXjAnMFRUNwuCwgf0bDBUJLqW.FtkGaseU-1784143795.815697-1.0.1.1-IBysDuZtaDssRq20_4AxFrFbnLTFLLv9bsAaj9_ENv6_DQXMv5Tav13.glXam1y0M.F0chT.Yq.3ObKlKTTcNoWTBRdvtGu.nNb7l74YnWztFS0Pdjm6w4T8C1py6Tyn5MP21wyf0Ka9zgAf.QRJ8v.L2Apue5FiDdZ4AzhHyLo; HttpOnly; SameSite=None; Secure; Path=/; Domain=canva.com; Expires=Wed, 15 Jul 2026 19:59:55 GMT
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=zGWIYJ8Ctntm0JTJ3ghZDXJaP5e%2Fr0JGgJvH765aKaClr7GjIM9j%2Bcif68Zg%2FqaJCqFpNnlLJ64V1614kLwzWa3499iN7csSUeYoZ2ok36YhiknSgd%2FauhdElTpdquHMjg%3D%3D"}]}
 nel: {"report_to":"cf-nel","success_fraction":0.01,"max_age":604800}
 
