@@ -10,7 +10,7 @@ permissions:
 
 jobs:
   materialize:
-    if: ${{ hashFiles('.asset-import/READY') != '' && github.actor != 'github-actions[bot]' }}
+    if: ${{ github.actor != 'github-actions[bot]' }}
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
@@ -20,39 +20,33 @@ jobs:
           ref: agent/anime-art-integration-v18
           fetch-depth: 0
 
-      - name: Decode permanent GitHub-hosted artwork
+      - name: Download optimized artwork from private transfer copies
         shell: bash
         run: |
           set -euo pipefail
           mkdir -p assets/anime
-          for asset in keyart campus characters portraits objects; do
-            mapfile -t parts < <(find ".asset-import/$asset" -type f -name '*.part' | sort)
-            test "${#parts[@]}" -gt 0
-            cat "${parts[@]}" | base64 --decode > "assets/anime/$asset.webp"
-          done
+          download_drive() {
+            local id="$1" output="$2"
+            curl -L --fail --silent --show-error \
+              "https://drive.usercontent.google.com/download?id=${id}&export=download&confirm=t" \
+              -o "$output"
+          }
+          download_drive '1Oy1SBxUXnOmNWvphpycQ7XtibzgDKO0t' assets/anime/keyart.webp
+          download_drive '1n--CTb6UJeOvF38gKZSeD_0tkaWlLrAN' assets/anime/campus.webp
+          download_drive '1geqWMKffhHV3m9nZ3OR4gXc0YJSEir2u' assets/anime/characters.webp
+          download_drive '1E3BMfjLl9Tnfu3XTlhdwpC7WULwlg85-' assets/anime/portraits.webp
+          download_drive '1e3u0t87tzJpfQXm2WCNgGc92BGBe1VjE' assets/anime/objects.webp
 
+      - name: Verify exact binaries and dimensions
+        shell: bash
+        run: |
+          set -euo pipefail
           echo 'b5ab370db2af2964d708297a896cf3af23c61c4da2bc3bfc9ff7f8f757a155ea  assets/anime/keyart.webp' | sha256sum -c -
           echo 'a5f80612da54bc50fb5a0e0f1b1ab7a0bd9657d13cb0acf220c2b7cfe3f9865d  assets/anime/campus.webp' | sha256sum -c -
           echo '1761f2d6c9764cedb57f138c3846e8800955602e329b127e57c8431d95a0caee  assets/anime/characters.webp' | sha256sum -c -
           echo '6f2ebb8dce5d086134611ab7cab52105aee86726b8a75815ec3959c2b6c68811  assets/anime/portraits.webp' | sha256sum -c -
           echo 'be0030f3d8855683ce062b15ab8bd5efb78ab6c3cf686e89a2082423b23064a9  assets/anime/objects.webp' | sha256sum -c -
-
-          cat > assets/anime/manifest.json <<'JSON'
-          {
-            "version": "1.8.0",
-            "source": "original generated anime artwork",
-            "proceduralFallbacks": false,
-            "externalRuntimeDependency": false,
-            "assets": {
-              "keyart.webp": {"width": 1672, "height": 941, "bytes": 280236, "sha256": "b5ab370db2af2964d708297a896cf3af23c61c4da2bc3bfc9ff7f8f757a155ea"},
-              "campus.webp": {"width": 4096, "height": 768, "bytes": 640304, "sha256": "a5f80612da54bc50fb5a0e0f1b1ab7a0bd9657d13cb0acf220c2b7cfe3f9865d"},
-              "characters.webp": {"width": 3456, "height": 2048, "bytes": 852670, "sha256": "1761f2d6c9764cedb57f138c3846e8800955602e329b127e57c8431d95a0caee"},
-              "portraits.webp": {"width": 512, "height": 512, "bytes": 32824, "sha256": "6f2ebb8dce5d086134611ab7cab52105aee86726b8a75815ec3959c2b6c68811"},
-              "objects.webp": {"width": 1024, "height": 512, "bytes": 102554, "sha256": "be0030f3d8855683ce062b15ab8bd5efb78ab6c3cf686e89a2082423b23064a9"}
-            }
-          }
-          JSON
-
+          python3 -m pip install --quiet pillow
           python3 - <<'PY'
           from PIL import Image
           expected = {
@@ -69,12 +63,26 @@ jobs:
                   raise SystemExit(f'{name}: {image.size} != {size}')
               print(name, image.size, image.mode)
           PY
+          cat > assets/anime/manifest.json <<'JSON'
+          {
+            "version": "1.8.0",
+            "source": "original generated anime artwork",
+            "proceduralFallbacks": false,
+            "externalRuntimeDependency": false,
+            "assets": {
+              "keyart.webp": {"width": 1672, "height": 941, "bytes": 280236, "sha256": "b5ab370db2af2964d708297a896cf3af23c61c4da2bc3bfc9ff7f8f757a155ea"},
+              "campus.webp": {"width": 4096, "height": 768, "bytes": 640304, "sha256": "a5f80612da54bc50fb5a0e0f1b1ab7a0bd9657d13cb0acf220c2b7cfe3f9865d"},
+              "characters.webp": {"width": 3456, "height": 2048, "bytes": 852670, "sha256": "1761f2d6c9764cedb57f138c3846e8800955602e329b127e57c8431d95a0caee"},
+              "portraits.webp": {"width": 512, "height": 512, "bytes": 32824, "sha256": "6f2ebb8dce5d086134611ab7cab52105aee86726b8a75815ec3959c2b6c68811"},
+              "objects.webp": {"width": 1024, "height": 512, "bytes": 102554, "sha256": "be0030f3d8855683ce062b15ab8bd5efb78ab6c3cf686e89a2082423b23064a9"}
+            }
+          }
+          JSON
 
-      - name: Commit permanent artwork and remove transfer scaffolding
+      - name: Commit permanent artwork and remove transfer workflow
         shell: bash
         run: |
           set -euo pipefail
-          rm -rf .asset-import
           rm -f .github/workflows/materialize-anime-art-v18.yml
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
