@@ -1,0 +1,25 @@
+keyart-00 (595, 335) 153688 13222.93
+keyart-01 (595, 335) 143970 14046.83
+keyart-10 (595, 335) 137455 10818.02
+keyart-11 (595, 335) 98454 7479.09
+campus-00 (421, 474) 156506 9309.16
+campus-01 (421, 474) 146998 11808.55
+campus-02 (421, 474) 144800 12623.9
+campus-03 (421, 474) 162449 9444.34
+campus-04 (421, 474) 121314 9024.29
+campus-05 (421, 474) 115422 9769.76
+character-00 (580, 344) 132709 1653.06
+character-01 (580, 344) 112637 1002.08
+character-02 (580, 344) 61747 6916.32
+character-03 (580, 344) 59806 10537.09
+character-10 (580, 344) 102109 3018.11
+character-11 (580, 344) 104989 2938.18
+Traceback (most recent call last):
+  File "/home/runner/work/Socialgame/Socialgame/scripts/materialize_v18_art.py", line 201, in <module>
+    main()
+  File "/home/runner/work/Socialgame/Socialgame/scripts/materialize_v18_art.py", line 146, in main
+    tile = fetch(spec).resize((432, 256), Image.Resampling.LANCZOS)
+           ^^^^^^^^^^^
+  File "/home/runner/work/Socialgame/Socialgame/scripts/materialize_v18_art.py", line 72, in fetch
+    raise RuntimeError(f"{name}: insufficient visual variance ({variance})")
+RuntimeError: character-12: insufficient visual variance (14.30433174738659)
