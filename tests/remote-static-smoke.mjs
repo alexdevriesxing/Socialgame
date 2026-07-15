@@ -18,7 +18,7 @@ globalThis.Image=class{set src(v){this._src=v;queueMicrotask(()=>this.onload?.()
 
 const index=await readFile('index.html','utf8');
 const scripts=[...index.matchAll(/<script src="([^"]+)"><\/script>/g)].map(match=>match[1]);
-if(scripts.length<20)throw new Error(`Expected 20 production scripts; found ${scripts.length}.`);
+if(scripts.length<24)throw new Error(`Expected at least 24 production scripts; found ${scripts.length}.`);
 for(const script of scripts)vm.runInThisContext(await readFile(script,'utf8'),{filename:script});
 await new Promise(resolve=>setTimeout(resolve,25));
 if(!elements.loading.classList.contains('hidden'))throw new Error('Static game did not complete initialization.');
@@ -29,7 +29,7 @@ const checks=[
   [CAMPUS_INCIDENTS.length,24,'campus incidents'],[GRADUATION_LEGACIES.length,12,'graduation legacies'],[LEADERSHIP_ELECTIONS.length,4,'elections']
 ];
 for(const [actual,expected,label] of checks)if(actual!==expected)throw new Error(`Expected ${expected} ${label}; got ${actual}.`);
-ensureV10State();ensureActiveSchoolState();ensureWorldState();
+ensureV10State();ensureActiveSchoolState();ensureWorldState();wwEnsureState();
 game.player.gender='boy';game.player.routeScenes=['ren-1','ren-2','ren-3'];game.player.relationships.ren=15;
 const ren=game.npcs.find(n=>n.id==='ren');if(!nextFriendshipMoment(ren))throw new Error('Illustrated friendship moment did not unlock.');
 game.time=855;game.dayFlags.activity=false;const activity=CAMPUS_ACTIVITIES.find(a=>a.mechanic==='focus');startCampusMastery(activity);
@@ -115,11 +115,20 @@ game.overlay={type:'giftShop',returnLocation:'cafe',returnWeekend:true};
 const navigationValidation=validateWorldNavigation();
 if(!navigationValidation.valid||game.time!==timeBefore||JSON.stringify(game.player.worldVisits)!==JSON.stringify(visitsBefore))throw new Error(`World nested navigation failed: ${navigationValidation.issues.join(', ')}`);
 
-game.overlay=null;openWorldMap({weekend:true});if(game.overlay?.type!=='worldMap')throw new Error('District map did not open.');
-visitWorldLocation('cafe',{weekend:true});if(game.overlay?.type!=='worldLocation'||game.overlay.locationId!=='cafe')throw new Error('World location did not open.');
-openHomeHub();if(game.overlay?.type!=='homeHub')throw new Error('Bedroom hub did not open.');
-openCollectionBook();if(game.overlay?.type!=='collectionBook')throw new Error('Collection book did not open.');
+const commercialUI=validateCommercialUI();if(!commercialUI.valid||!commercialUI.roundedPanels||!commercialUI.modalSafeHud)throw new Error(`Commercial UI invalid: ${JSON.stringify(commercialUI)}`);
+const commercialCampus=validateCommercialCampus();if(!commercialCampus.valid||commercialCampus.placeholderMap!==false||commercialCampus.illustratedRooms!==8)throw new Error(`Commercial campus invalid: ${JSON.stringify(commercialCampus)}`);
+const walkableValidation=validateWalkableWorld();if(!walkableValidation.valid||walkableValidation.maps!==14||walkableValidation.walkableOffsite!==13||walkableValidation.placeholderCards!==false)throw new Error(`Walkable world invalid: ${JSON.stringify(walkableValidation)}`);
+const commercialWorld=validateCommercialWorldArt();if(!commercialWorld.valid||commercialWorld.placeholderCards!==false||!commercialWorld.illustratedDistrict)throw new Error(`Commercial world art invalid: ${JSON.stringify(commercialWorld)}`);
 
-if(window.SAKURA_RELEASE?.version!=='1.4.0')throw new Error(`Unexpected release marker ${window.SAKURA_RELEASE?.version}.`);
+game.overlay=null;openWorldMap({weekend:true});if(game.overlay?.type!=='worldMap')throw new Error('Illustrated district map did not open.');
+visitWorldLocation('cafe',{weekend:true});const walk=wwEnsureState();if(!walk.active||walk.locationId!=='cafe'||game.overlay!==null)throw new Error('Café did not open as a walkable map.');
+const beforeMove=walk.x;keys.add('arrowleft');wwUpdate(.25);keys.delete('arrowleft');if(!(walk.x<beforeMove)&&!wwCollides(beforeMove-31,walk.y))throw new Error('Walkable player movement did not advance.');
+walk.x=440;walk.y=300;keys.add('arrowright');wwUpdate(.25);keys.delete('arrowright');if(walk.x!==440)throw new Error('Walkable furniture collision did not block movement.');
+if(walk.npcs.length){const npc=walk.npcs[0],npcStart=npc.x;npc.targetX=npc.x+40;npc.targetY=npc.y;npc.wait=0;for(let i=0;i<8;i++)wwUpdate(.25);if(!Number.isFinite(npc.x)||npc.x===npcStart)throw new Error('Walkable NPC wandering did not advance.');}
+for(const id of Object.keys(WW_SCENES)){wwEnter(id,{weekend:true,preserve:true});const state=wwEnsureState();if(!state.active||state.locationId!==id||wwCollides(state.x,state.y))throw new Error(`${id} walkable map has an invalid spawn.`);wwDrawScene();}
+openHomeHub();if(!wwEnsureState().active||wwEnsureState().locationId!=='home')throw new Error('Bedroom did not open as a walkable map.');
+openCollectionBook();if(game.overlay?.type!=='collectionBook'||!wwEnsureState().active)throw new Error('Collection book did not preserve the walkable bedroom context.');
+
+if(window.SAKURA_RELEASE?.version!=='1.5.0')throw new Error(`Unexpected release marker ${window.SAKURA_RELEASE?.version}.`);
 if(CURRENT_SAVE_VERSION!==9)throw new Error(`Unexpected save version ${CURRENT_SAVE_VERSION}.`);
-console.log(`Remote runtime smoke passed for ${scripts.length} scripts, ${routineValidation.studentPeriods+routineValidation.teacherPeriods} campus routines, ${activeValidation.subjects} subjects, ${worldValidation.locations} off-campus locations, ${worldValidation.scenes} off-campus scenes, ${worldValidation.collectibles} collectibles and save version ${CURRENT_SAVE_VERSION}.`);
+console.log(`Remote runtime smoke passed for ${scripts.length} scripts, ${routineValidation.studentPeriods+routineValidation.teacherPeriods} campus routines, ${activeValidation.subjects} subjects, ${walkableValidation.maps} commercial walkable maps, ${worldValidation.scenes} off-campus scenes, ${worldValidation.collectibles} collectibles and zero placeholder screens.`);
