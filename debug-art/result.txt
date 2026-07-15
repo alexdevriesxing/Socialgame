@@ -1,0 +1,8 @@
+http=200
+content_type=image/png
+size=156506
+url=https://media.canva.com/v2/document-image/hash:1170641146/height:473/id:DAHPet35Uak/type:B/width:421?brand=BAGB1PhMIKI&csig=AAAAAAAAAAAAAAAAAAAAABNEcuc48bvqrKw5vWSrXWgELo5w971riKirgD1EbfLe&disableexport=T&exp=1784144563&fallback=https%3A%2F%2Fs3.amazonaws.com%2Fdocument-export.canva.com%2F35Uak%2FDAHPet35Uak%2F1%2Fthumbnail%2F0001.png%3FX-Amz-Algorithm%3DAWS4-HMAC-SHA256%26X-Amz-Credential%3DAKIAQYCGKMUHXSTDDERN%252F20260714%252Fus-east-1%252Fs3%252Faws4_request%26X-Amz-Date%3D20260714T202917Z%26X-Amz-Expires%3D83606%26X-Amz-Signature%3D4d79c09bcbc801ccdfd2e76a1fee57ca7e90c8be216d5db28778423ccce74d93%26X-Amz-SignedHeaders%3Dhost%26response-expires%3DWed%252C%252015%2520Jul%25202026%252019%253A42%253A43%2520GMT&osig=AAAAAAAAAAAAAAAAAAAAAKYHxcGqckWJ0fmk8C7NGdteFXEq7WAY2LajnJRVWylN&page=1&signed=brand%2Cdisableexport%2Cfallback%2Cpage%2Cversion&signer=document-rpc&version=1
+debug-art/tile.bin: PNG image data, 421 x 474, 8-bit colormap, non-interlaced
+Traceback (most recent call last):
+  File "<stdin>", line 1, in <module>
+ModuleNotFoundError: No module named 'PIL'

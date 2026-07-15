@@ -1,0 +1,19 @@
+HTTP/2 200 
+date: Wed, 15 Jul 2026 19:24:35 GMT
+content-type: image/png
+cf-ray: a1bb25f2c9b1c3b9-IAD
+cf-cache-status: HIT
+age: 358
+cache-control: public, max-age=604800
+expires: Wed, 22 Jul 2026 19:24:35 GMT
+last-modified: Wed, 15 Jul 2026 19:18:37 GMT
+server: cloudflare
+strict-transport-security: max-age=31536000; includeSubDomains; preload
+vary: accept-encoding, Origin
+x-content-type-options: nosniff
+content-security-policy: script-src 'none'; frame-src 'none'; object-src 'none'; default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; media-src 'self'; form-action 'none'; base-uri 'none'; report-uri https://csp.canva.com/_cspreport?app=s3_media
+x-request-id: a1bb1d339ec1f5b0
+set-cookie: __cf_bm=lZbF03AbLSMGF4nYPwJcaz3AIJZCjN4nSo4cUj1FZsU-1784143475.6430175-1.0.1.1-Cl3TYEU2OuSDjmX0blYTA_Lp2XrKUHQXK5m.gb1FuvGao.MbdsVwnTlx1UlZV2l4IZsqy7DPZMh2kcMrHmyyKxujScqfjcyk5A0Kravesk49BxUzOXLNNegn2I.TVVHb.kXc7zX.FdT9Qi4JJ89_kZWXdtOla4NwfnwOmLV1lYk; HttpOnly; SameSite=None; Secure; Path=/; Domain=canva.com; Expires=Wed, 15 Jul 2026 19:54:35 GMT
+report-to: {"group":"cf-nel","max_age":604800,"endpoints":[{"url":"https://a.nel.cloudflare.com/report/v4?s=5qdyfMTcGNdEu6Vg50CiTmhkP0UHoXFXDDOAmg6fS1j405BmM1r8qjGRoZl68oD3LhSjgYhp9eLATut1bbaV9YuyH9eoSFTS6s00NYG9FCCVj0aweMyJ1WSxZhDZ%2FzWGQg%3D%3D"}]}
+nel: {"report_to":"cf-nel","success_fraction":0.01,"max_age":604800}
+
