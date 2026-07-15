@@ -18,12 +18,13 @@ This release replaces the visible procedural presentation with permanent local a
 - Visible classroom doors and aligned collision openings
 - Thirty assigned classroom seats with seated lesson behavior
 - Walking, sitting, reading, talking, waving, teaching and training poses
+- Native 48×64 atlas-frame sampling for clean character rendering without sheet-quadrant artifacts
 - Illustrated campus crops for the fourteen off-campus walkable locations
 - Hallway entry begins in the clear central corridor rather than inside furniture collision geometry
 
 ## Release validation
 
-The v1.8 release gate validates the exact artwork digests and dimensions, 32 production scripts, all campaign and save systems, the rendered desktop/tablet/phone experience, offline service-worker recovery and Chromium, Chrome, Edge, Firefox and WebKit compatibility. The browser suite also renders the title, expanded academy and every walkable destination to guard against blank, missing or visually underdeveloped screens.
+The v1.8 release gate validates the exact artwork digests and dimensions, 32 production scripts, all campaign and save systems, the rendered desktop/tablet/phone experience, offline service-worker recovery and Chromium, Chrome, Edge, Firefox and WebKit compatibility. The browser suite waits for the complete asynchronous opening dialogue sequence, then renders the title, expanded academy and every walkable destination to guard against blank, missing or visually underdeveloped screens.
 
 ## Deployment
 
