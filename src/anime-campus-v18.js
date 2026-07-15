@@ -100,7 +100,7 @@ campusPath=animeCampusPath;
 function animeEnsurePlayerLocation(){
   if(game.player.animeCampusV18)return;
   const room=ANIME_ROOM_GEOMETRY[game.currentRoom]?game.currentRoom:'hallway';
-  const spawn={homeroom:[198,188],math:[494,188],literature:[790,188],hallway:[680,520],courtyard:[1450,560],cafeteria:[2100,560],library:[2800,570],gym:[3735,570]}[room]||[680,520];
+  const spawn={homeroom:[198,188],math:[494,188],literature:[790,188],hallway:[680,600],courtyard:[1450,560],cafeteria:[2100,560],library:[2800,570],gym:[3735,570]}[room]||[680,520];
   game.player.x=spawn[0];game.player.y=spawn[1];game.player.animeCampusV18=true;game.player.animeSeated=false;
   game.camera.x=clamp(game.player.x-VIEW_W/2,0,ANIME_CAMPUS_W-VIEW_W);game.camera.y=clamp(game.player.y-H/2,0,ANIME_CAMPUS_H-H);
   if(game.campus)Object.assign(game.campus,{initialized:false,signature:null});
