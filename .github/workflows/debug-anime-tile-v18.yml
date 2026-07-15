@@ -1,0 +1,44 @@
+name: Debug anime tile v1.8
+
+on:
+  pull_request:
+    branches:
+      - agent/anime-art-integration-v18
+
+permissions:
+  contents: write
+
+jobs:
+  debug:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: asset-transfer-v18
+          fetch-depth: 0
+      - name: Download one authenticated tile
+        shell: bash
+        run: |
+          set +e
+          rm -rf debug-art && mkdir debug-art
+          URL='https://media.canva.com/v2/document-image/hash:1170641146/height:473/id:DAHPet35Uak/type:B/width:421?brand=BAGB1PhMIKI&csig=AAAAAAAAAAAAAAAAAAAAABNEcuc48bvqrKw5vWSrXWgELo5w971riKirgD1EbfLe&disableexport=T&exp=1784144563&fallback=https%3A%2F%2Fs3.amazonaws.com%2Fdocument-export.canva.com%2F35Uak%2FDAHPet35Uak%2F1%2Fthumbnail%2F0001.png%3FX-Amz-Algorithm%3DAWS4-HMAC-SHA256%26X-Amz-Credential%3DAKIAQYCGKMUHXSTDDERN%252F20260714%252Fus-east-1%252Fs3%252Faws4_request%26X-Amz-Date%3D20260714T202917Z%26X-Amz-Expires%3D83606%26X-Amz-Signature%3D4d79c09bcbc801ccdfd2e76a1fee57ca7e90c8be216d5db28778423ccce74d93%26X-Amz-SignedHeaders%3Dhost%26response-expires%3DWed%252C%252015%2520Jul%25202026%252019%253A42%253A43%2520GMT&osig=AAAAAAAAAAAAAAAAAAAAAKYHxcGqckWJ0fmk8C7NGdteFXEq7WAY2LajnJRVWylN&page=1&signed=brand%2Cdisableexport%2Cfallback%2Cpage%2Cversion&signer=document-rpc&version=1'
+          curl -L --silent --show-error --dump-header debug-art/headers.txt --output debug-art/tile.bin --write-out 'http=%{http_code}\ncontent_type=%{content_type}\nsize=%{size_download}\nurl=%{url_effective}\n' "$URL" > debug-art/result.txt 2> debug-art/curl-error.txt
+          file debug-art/tile.bin >> debug-art/result.txt
+          python3 - <<'PY' >> debug-art/result.txt 2>&1
+          from PIL import Image
+          image=Image.open('debug-art/tile.bin')
+          image.load()
+          print('image=', image.size, image.mode)
+          PY
+          cat debug-art/result.txt
+          cat debug-art/curl-error.txt
+      - name: Preserve diagnostic result
+        if: always()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          rm -f debug-art/tile.bin
+          git add -f debug-art
+          git commit -m 'Capture anime tile transport diagnostic' || exit 0
+          git push origin HEAD:asset-transfer-v18
