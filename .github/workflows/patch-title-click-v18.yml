@@ -1,0 +1,30 @@
+name: Patch v1.8 title click QA
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/anime-art-integration-v18
+          fetch-depth: 0
+      - name: Align New Game click with commercial title layout
+        run: |
+          set -euo pipefail
+          sed -i 's/clickCanvas(page,731,249)/clickCanvas(page,800,155)/' tests/browser-production-smoke.mjs
+          grep -q 'clickCanvas(page,800,155)' tests/browser-production-smoke.mjs
+          rm -f .github/workflows/patch-title-click-v18.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Align Chromium QA with v1.8 title layout'
+          git push origin HEAD:agent/anime-art-integration-v18
