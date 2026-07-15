@@ -24,10 +24,12 @@ jobs:
           npm install --no-save --no-package-lock playwright@1.55.0
           npx playwright install --with-deps chromium
       - name: Render public Canva view links
+        continue-on-error: true
         run: |
           mkdir -p public-render
           cat > /tmp/render.mjs <<'JS'
           import { chromium } from 'playwright';
+          import { writeFile } from 'node:fs/promises';
           const jobs = [
             ['keyart','https://www.canva.com/d/cO290zCCs31lTa0',1672,941],
             ['campus','https://www.canva.com/d/_kQBvRQfgZNSPXd',4096,768],
@@ -37,17 +39,28 @@ jobs:
           const browser = await chromium.launch({headless:true});
           for (const [name,url,width,height] of jobs) {
             const page = await browser.newPage({viewport:{width:Math.min(width,4096),height:Math.min(height,2048)},deviceScaleFactor:1});
-            await page.goto(url,{waitUntil:'networkidle',timeout:120000});
-            await page.waitForTimeout(6000);
-            await page.screenshot({path:`public-render/${name}-page.png`,fullPage:true});
-            const info = await page.evaluate(() => ({title:document.title,body:[document.body.scrollWidth,document.body.scrollHeight],images:[...document.images].map(i=>({src:i.currentSrc||i.src,w:i.naturalWidth,h:i.naturalHeight,rect:[i.getBoundingClientRect().x,i.getBoundingClientRect().y,i.getBoundingClientRect().width,i.getBoundingClientRect().height]})).sort((a,b)=>b.w*b.h-a.w*a.h).slice(0,20)}));
-            await import('node:fs/promises').then(fs=>fs.writeFile(`public-render/${name}.json`,JSON.stringify(info,null,2)));
+            const errors=[];
+            page.on('console',msg=>{if(msg.type()==='error')errors.push(`console: ${msg.text()}`)});
+            page.on('pageerror',error=>errors.push(`page: ${error.message}`));
+            try {
+              await page.goto(url,{waitUntil:'domcontentloaded',timeout:120000});
+              await page.waitForTimeout(12000);
+              await page.screenshot({path:`public-render/${name}-page.png`,fullPage:true});
+              const info = await page.evaluate(() => ({title:document.title,url:location.href,body:[document.body.scrollWidth,document.body.scrollHeight],html:document.documentElement.outerHTML.slice(0,200000),images:[...document.images].map(i=>({src:i.currentSrc||i.src,w:i.naturalWidth,h:i.naturalHeight,rect:[i.getBoundingClientRect().x,i.getBoundingClientRect().y,i.getBoundingClientRect().width,i.getBoundingClientRect().height]})).sort((a,b)=>b.w*b.h-a.w*a.h).slice(0,40),canvases:[...document.querySelectorAll('canvas')].map(c=>({w:c.width,h:c.height,rect:[c.getBoundingClientRect().x,c.getBoundingClientRect().y,c.getBoundingClientRect().width,c.getBoundingClientRect().height]})).sort((a,b)=>b.w*b.h-a.w*a.h).slice(0,20)}));
+              info.errors=errors;
+              await writeFile(`public-render/${name}.json`,JSON.stringify(info,null,2));
+            } catch(error) {
+              errors.push(error.stack||String(error));
+              await writeFile(`public-render/${name}-error.txt`,errors.join('\n'));
+              try { await page.screenshot({path:`public-render/${name}-error.png`,fullPage:true}); } catch {}
+            }
             await page.close();
           }
           await browser.close();
           JS
           node /tmp/render.mjs
       - uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: canva-public-render-probe
           path: public-render
