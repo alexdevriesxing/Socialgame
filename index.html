@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no" />
+  <meta name="theme-color" content="#1c1d2b" />
+  <meta name="application-name" content="Sakura Crest" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="description" content="Sakura Crest: Social Summit — a release-ready anime school-life RPG with four complete school years, resilient offline saves, original audio and accessible controls." />
+  <meta name="robots" content="index,follow,max-image-preview:large" />
+  <meta name="sakura-release" content="1.7.0" />
+  <title>Sakura Crest: Social Summit</title>
+  <link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <meta property="og:title" content="Sakura Crest: Social Summit" />
+  <meta property="og:description" content="Complete four school years across a walkable academy and illustrated district with resilient saves, original music and flexible accessible controls." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main id="app" aria-label="Sakura Crest: Social Summit game">
+    <canvas id="game" width="960" height="540" tabindex="0" aria-label="Interactive game canvas. Open Accessibility and Controls from the title screen or press O during play."></canvas>
+    <section id="creator" class="creator hidden" aria-label="Character creator">
+      <label for="nameInput">Student name</label>
+      <input id="nameInput" maxlength="12" value="Akira" autocomplete="off" />
+      <button id="confirmName" type="button">Begin School Life</button>
+    </section>
+    <div class="loading" id="loading" role="status" aria-live="polite">Preparing Sakura Crest Academy…</div>
+  </main>
+  <section id="orientation-hint" class="orientation-hint" aria-label="Landscape orientation recommended">
+    <div class="orientation-crest" aria-hidden="true"><span>SC</span></div>
+    <p class="orientation-kicker">Sakura Crest Academy</p>
+    <h1>Rotate your device</h1>
+    <p>Sakura Crest is designed as a widescreen school world. Turn your phone sideways for readable dialogue, adjustable touch controls and full campus play.</p>
+    <div class="orientation-phone" aria-hidden="true"><span></span></div>
+  </section>
+  <noscript>This game requires JavaScript.</noscript>
+  <script src="src/content-1.js"></script>
+  <script src="src/content-2.js"></script>
+  <script src="src/content-3.js"></script>
+  <script src="src/content-4.js"></script>
+  <script src="src/content-5.js"></script>
+  <script src="src/content-6.js"></script>
+  <script src="src/save.js"></script>
+  <script src="src/art.js"></script>
+  <script src="src/game-1.js"></script>
+  <script src="src/game-2.js"></script>
+  <script src="src/game-3.js"></script>
+  <script src="src/game-4.js"></script>
+  <script src="src/game-5.js"></script>
+  <script src="src/campus.js"></script>
+  <script src="src/activity.js"></script>
+  <script src="src/visual.js"></script>
+  <script src="src/world.js"></script>
+  <script src="src/world-polish.js"></script>
+  <script src="src/world-title.js"></script>
+  <script src="src/commercial-ui.js"></script>
+  <script src="src/commercial-campus.js"></script>
+  <script src="src/walkable-world.js"></script>
+  <script src="src/commercial-world-ui.js"></script>
+  <script src="src/accessibility-core.js"></script>
+  <script src="src/accessibility-preferences.js"></script>
+  <script src="src/accessibility-history.js"></script>
+  <script src="src/accessibility-performance.js"></script>
+  <script src="src/accessibility-ui.js"></script>
+  <script src="src/release-readiness.js"></script>
+  <script src="src/platform.js"></script>
+</body>
+</html>

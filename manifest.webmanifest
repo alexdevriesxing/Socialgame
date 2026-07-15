@@ -1,0 +1,36 @@
+{
+  "id": "./",
+  "name": "Sakura Crest: Social Summit",
+  "short_name": "Sakura Crest",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": [
+    "fullscreen",
+    "standalone"
+  ],
+  "orientation": "landscape",
+  "background_color": "#11131e",
+  "theme_color": "#1c1d2b",
+  "description": "A release-ready anime school-life RPG with four complete school years, fourteen walkable illustrated maps, resilient offline saves, original procedural music, accessible reading tools, remappable controls and scalable touch input.",
+  "categories": [
+    "games",
+    "entertainment",
+    "education"
+  ],
+  "icons": [
+    {
+      "src": "assets/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Play Sakura Crest",
+      "short_name": "Play",
+      "url": "./"
+    }
+  ]
+}
