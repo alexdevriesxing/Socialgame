@@ -4,6 +4,9 @@ on:
   push:
     branches:
       - agent/anime-art-canva-probe
+  pull_request:
+    branches:
+      - agent/anime-art-integration-v18
   workflow_dispatch:
 
 permissions:
