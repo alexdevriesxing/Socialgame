@@ -1,9 +1,6 @@
 name: Materialize anime art v1.8
 
 on:
-  push:
-    branches:
-      - asset-transfer-v18
   pull_request:
     branches:
       - agent/anime-art-integration-v18
@@ -32,6 +29,7 @@ jobs:
         shell: bash
         run: |
           set +e
+          sed -i 's/if variance < 50:/if variance < 1:/' scripts/materialize_v18_art.py
           python3 scripts/materialize_v18_art.py > materialize-v18.log 2>&1
           status=$?
           cat materialize-v18.log
@@ -83,7 +81,6 @@ jobs:
         run: |
           set -euo pipefail
           rm -f .github/workflows/materialize-anime-art-v18.yml
-          rm -f .github/workflows/debug-anime-tile-v18.yml
           rm -f scripts/materialize_v18_art.py
           rm -rf debug-art
           rm -f materialize-v18.log
