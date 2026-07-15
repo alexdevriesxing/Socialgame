@@ -19,6 +19,7 @@ This release replaces the visible procedural presentation with permanent local a
 - Thirty assigned classroom seats with seated lesson behavior
 - Walking, sitting, reading, talking, waving, teaching and training poses
 - Illustrated campus crops for the fourteen off-campus walkable locations
+- Hallway entry begins in the clear central corridor rather than inside furniture collision geometry
 
 ## Release validation
 
