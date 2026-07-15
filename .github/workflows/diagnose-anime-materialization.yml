@@ -1,0 +1,66 @@
+name: Diagnose anime art materialization
+
+on:
+  pull_request:
+    branches:
+      - agent/anime-art-integration-v18
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download the four signed production renditions
+        env:
+          KEYART_URL: >-
+            https://design-manipulation-download.canva.com/9f3792bf-a4a7-4d72-8f73-1ae1ee735b72/0000-3743000861586284284.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUHWASWGM4Q%2F20260714%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260714T170621Z&X-Amz-Expires=71924&X-Amz-Signature=6a979ba9c3f3c1139bed3292fe9155ef2ae60b27a69aa8e6dbe1d859b55d5f27&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Wed%2C%2015%20Jul%202026%2013%3A05%3A05%20GMT
+          CAMPUS_URL: >-
+            https://design-manipulation-download.canva.com/a9ec1481-15e7-48dd-a75d-3cb439dac822/0000-4179850023346197843.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUHWASWGM4Q%2F20260715%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260715T082947Z&X-Amz-Expires=16114&X-Amz-Signature=c382f91826b722bfb712e66c60585eb8cd866a8c0e22d91a93e0bc591052eb6a&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Wed%2C%2015%20Jul%202026%2012%3A58%3A21%20GMT
+          CHARACTERS_URL: >-
+            https://design-manipulation-download.canva.com/1f2608da-b8f6-4957-a47f-89f83f11a5cc/0000-7022747291044508274.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUHWASWGM4Q%2F20260715%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260715T054155Z&X-Amz-Expires=29119&X-Amz-Signature=1de9cfda1eb7dfd11424a97c4930d19604548998f761d19cfcdb910244808cf0&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Wed%2C%2015%20Jul%202026%2013%3A47%3A14%20GMT
+          OBJECTS_URL: >-
+            https://design-manipulation-download.canva.com/e13ca8cd-f183-4666-a0b7-a8ae8b8072e4/0000-7022747290501344712.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUHWASWGM4Q%2F20260715%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260715T052427Z&X-Amz-Expires=29311&X-Amz-Signature=af744c52cbad74eafdf8dd60c879b48894e3a83ed01398d0f5c55b29e7bac231&X-Amz-SignedHeaders=host%3Bx-amz-expected-bucket-owner&response-expires=Wed%2C%2015%20Jul%202026%2013%3A32%3A58%20GMT
+        run: |
+          mkdir -p /tmp/sakura-art test-results
+          curl -L --fail --silent --show-error "$KEYART_URL" -o /tmp/sakura-art/keyart.png
+          curl -L --fail --silent --show-error "$CAMPUS_URL" -o /tmp/sakura-art/campus.png
+          curl -L --fail --silent --show-error "$CHARACTERS_URL" -o /tmp/sakura-art/characters.png
+          curl -L --fail --silent --show-error "$OBJECTS_URL" -o /tmp/sakura-art/objects.png
+          file /tmp/sakura-art/* | tee test-results/source-files.log
+      - name: Capture exact Pillow conversion traceback
+        continue-on-error: true
+        run: |
+          python3 -m pip install --quiet pillow
+          python3 - <<'PY' 2>&1 | tee test-results/pillow-diagnostics.log
+          from PIL import Image, features
+          from pathlib import Path
+          import traceback
+          print('webp',features.check('webp'),'webp_anim',features.check('webp_anim'),'webp_mux',features.check('webp_mux'))
+          try:
+              src=Path('/tmp/sakura-art'); out=Path('/tmp/output'); out.mkdir(exist_ok=True)
+              images={}
+              for name in ['keyart','campus','characters','objects']:
+                  im=Image.open(src/f'{name}.png'); im.load(); images[name]=im; print(name,im.size,im.mode)
+              images['keyart'].convert('RGB').save(out/'keyart.webp','WEBP',quality=88,method=6); print('keyart saved')
+              images['campus'].convert('RGB').save(out/'campus.webp','WEBP',quality=86,method=6); print('campus saved')
+              images['characters'].convert('RGBA').save(out/'characters.webp','WEBP',quality=90,method=6); print('characters saved')
+              images['objects'].convert('RGBA').save(out/'objects.webp','WEBP',quality=88,method=6); print('objects saved')
+              chars=images['characters'].convert('RGBA'); bw,bh=chars.width//4,chars.height//4; fw,fh=bw//9,bh//4
+              portraits=Image.new('RGBA',(512,512),(0,0,0,0))
+              for i in range(16):
+                  bx=(i%4)*bw; by=(i//4)*bh; head=chars.crop((bx,by,bx+fw,by+max(1,int(fh*.76)))); box=head.getbbox(); head=head.crop(box) if box else head; head.thumbnail((116,116),Image.Resampling.LANCZOS); cell=Image.new('RGBA',(128,128),(235,242,250,255)); cell.alpha_composite(head,((128-head.width)//2,128-head.height-4)); portraits.alpha_composite(cell,((i%4)*128,(i//4)*128))
+              portraits.save(out/'portraits.webp','WEBP',quality=90,method=6); print('portraits saved')
+          except Exception:
+              traceback.print_exc(); raise
+          PY
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: anime-materialization-diagnostics
+          path: test-results
+          if-no-files-found: error
+          retention-days: 1
