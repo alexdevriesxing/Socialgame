@@ -32,6 +32,7 @@ const CORE_FILES = [
   './src/commercial-world-ui.js',
   './src/accessibility-core.js',
   './src/accessibility-preferences.js',
+  './src/accessibility-history.js',
   './src/accessibility-performance.js',
   './src/accessibility-ui.js',
   './src/platform.js'
