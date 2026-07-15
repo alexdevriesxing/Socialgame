@@ -10,7 +10,7 @@ This release replaces the visible procedural presentation with permanent local a
 - `portraits.webp` — 512×512 dialogue portrait atlas
 - `objects.webp` — 1024×512 environment and interface object atlas
 
-`assets/anime/manifest.json` records dimensions, byte sizes and SHA-256 hashes. The released game has no runtime dependency on Canva, Drive, Adobe or another external asset host.
+`assets/anime/manifest.json` records dimensions, byte sizes and SHA-256 hashes. The released game has no runtime dependency on Canva, Drive, Adobe or another external asset host. The character atlas keeps its original transparent pixels; the renderer samples each native frame directly instead of scaling or exposing the surrounding sheet.
 
 ## Gameplay presentation changes
 
