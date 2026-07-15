@@ -31,17 +31,17 @@ jobs:
             cat "${parts[@]}" | base64 --decode > "assets/anime/$asset.webp"
           done
 
-          echo '303961396bb3ce1219206e2e670bc7863c096b20f8f33ed0fadd0926f69e05ae  assets/anime/keyart.webp' | sha256sum -c -
-          echo '26500180d0094844a2c4ed6c35e2ac7ebb5cefc9bbcd8841eb9f07cfa97c7f88  assets/anime/campus.webp' | sha256sum -c -
-          echo 'e6f0a0a4faba0f758608d9978a8c20d20af35a079a81a0ad5925d674293ef7ab  assets/anime/characters.webp' | sha256sum -c -
-          echo '2ef69196f618ecfec78226be2f51aa76b409bcc04e251931d1ab58bb65326a0c  assets/anime/portraits.webp' | sha256sum -c -
-          echo 'ad3578796e3f41f5e6f37f7f17a51aae601816adc6080b973e053aba74c196e2  assets/anime/objects.webp' | sha256sum -c -
+          echo '710731e1b48a58ff4d2a5c29b04ad3fd7260df09d33e8e66a70ece015fad93fe  assets/anime/keyart.webp' | sha256sum -c -
+          echo '0d3453f0ea19154063a4c8675b5189433adf698013804eea035843b4a337b72e  assets/anime/campus.webp' | sha256sum -c -
+          echo '3c5713c79c388f20d6f001f11d6b4dd994337979fc2b4f6d3f39ba0ad25e0044  assets/anime/characters.webp' | sha256sum -c -
+          echo '3901a8bf2eac99a789ca04d73e6df5114ce732f0b94e126640c990aca249186d  assets/anime/portraits.webp' | sha256sum -c -
+          echo '80b9c3d8251ad3bed44ad5aa3446ed852d6bf5fa7a3353e9dd8b20ee4d2c918d  assets/anime/objects.webp' | sha256sum -c -
 
           python3 -m pip install --quiet pillow
           python3 - <<'PY'
           from PIL import Image
           expected = {
-              'keyart.webp': (1280, 720),
+              'keyart.webp': (960, 540),
               'campus.webp': (3072, 576),
               'characters.webp': (1728, 1024),
               'portraits.webp': (512, 512),
@@ -62,11 +62,11 @@ jobs:
             "proceduralFallbacks": false,
             "externalRuntimeDependency": false,
             "assets": {
-              "keyart.webp": {"width": 1280, "height": 720, "bytes": 164184, "sha256": "303961396bb3ce1219206e2e670bc7863c096b20f8f33ed0fadd0926f69e05ae"},
-              "campus.webp": {"width": 3072, "height": 576, "bytes": 310592, "sha256": "26500180d0094844a2c4ed6c35e2ac7ebb5cefc9bbcd8841eb9f07cfa97c7f88"},
-              "characters.webp": {"width": 1728, "height": 1024, "bytes": 413760, "sha256": "e6f0a0a4faba0f758608d9978a8c20d20af35a079a81a0ad5925d674293ef7ab"},
-              "portraits.webp": {"width": 512, "height": 512, "bytes": 29464, "sha256": "2ef69196f618ecfec78226be2f51aa76b409bcc04e251931d1ab58bb65326a0c"},
-              "objects.webp": {"width": 768, "height": 384, "bytes": 67058, "sha256": "ad3578796e3f41f5e6f37f7f17a51aae601816adc6080b973e053aba74c196e2"}
+              "keyart.webp": {"width": 960, "height": 540, "bytes": 89654, "sha256": "710731e1b48a58ff4d2a5c29b04ad3fd7260df09d33e8e66a70ece015fad93fe"},
+              "campus.webp": {"width": 3072, "height": 576, "bytes": 294646, "sha256": "0d3453f0ea19154063a4c8675b5189433adf698013804eea035843b4a337b72e"},
+              "characters.webp": {"width": 1728, "height": 1024, "bytes": 359956, "sha256": "3c5713c79c388f20d6f001f11d6b4dd994337979fc2b4f6d3f39ba0ad25e0044"},
+              "portraits.webp": {"width": 512, "height": 512, "bytes": 26436, "sha256": "3901a8bf2eac99a789ca04d73e6df5114ce732f0b94e126640c990aca249186d"},
+              "objects.webp": {"width": 768, "height": 384, "bytes": 48194, "sha256": "80b9c3d8251ad3bed44ad5aa3446ed852d6bf5fa7a3353e9dd8b20ee4d2c918d"}
             }
           }
           JSON
