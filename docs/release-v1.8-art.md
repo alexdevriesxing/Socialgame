@@ -20,6 +20,10 @@ This release replaces the visible procedural presentation with permanent local a
 - Walking, sitting, reading, talking, waving, teaching and training poses
 - Illustrated campus crops for the fourteen off-campus walkable locations
 
+## Release validation
+
+The v1.8 release gate validates the exact artwork digests and dimensions, 32 production scripts, all campaign and save systems, the rendered desktop/tablet/phone experience, offline service-worker recovery and Chromium, Chrome, Edge, Firefox and WebKit compatibility. The browser suite also renders the title, expanded academy and every walkable destination to guard against blank, missing or visually underdeveloped screens.
+
 ## Deployment
 
-Cloudflare Pages serves the repository root as a static release. No framework build step is required.
+Cloudflare Pages serves the exact artifact listed in `build-manifest.json`. The repository deployment workflow packages that inventory, discovers the Pages project linked to `Socialgame`, deploys the merged `main` commit and verifies that Cloudflare recorded the same commit hash as a successful deployment.
