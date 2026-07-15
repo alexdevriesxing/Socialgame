@@ -1,4 +1,4 @@
-name: Clean v1.8 atlas backgrounds
+name: Apply native v1.8 atlas geometry
 
 on:
   pull_request:
@@ -9,7 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  clean:
+  update:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     steps:
@@ -17,62 +17,16 @@ jobs:
         with:
           ref: agent/anime-art-integration-v18
           fetch-depth: 0
-      - name: Remove sheet backgrounds and use native frame geometry
+      - name: Use native character frame dimensions
         shell: bash
         run: |
           set -euo pipefail
-          python3 -m pip install --quiet pillow
           python3 - <<'PY'
-          from collections import deque
-          from hashlib import sha256
           from pathlib import Path
-          from PIL import Image
-          import json
-
-          def clean_cells(path, cell_w, cell_h):
-              image=Image.open(path).convert('RGBA')
-              pixels=image.load()
-              width,height=image.size
-              transparent_before=sum(1 for value in image.getdata() if value[3]==0)
-              for top in range(0,height,cell_h):
-                  for left in range(0,width,cell_w):
-                      right=min(width,left+cell_w);bottom=min(height,top+cell_h)
-                      queue=deque()
-                      seen=set()
-                      def dark(x,y):
-                          r,g,b,a=pixels[x,y]
-                          return a>0 and max(r,g,b)<=38 and max(r,g,b)-min(r,g,b)<=16
-                      def add(x,y):
-                          key=(x,y)
-                          if key in seen or not dark(x,y):return
-                          seen.add(key);queue.append(key)
-                      for x in range(left,right):add(x,top);add(x,bottom-1)
-                      for y in range(top,bottom):add(left,y);add(right-1,y)
-                      while queue:
-                          x,y=queue.popleft();r,g,b,_=pixels[x,y];pixels[x,y]=(r,g,b,0)
-                          if x>left:add(x-1,y)
-                          if x+1<right:add(x+1,y)
-                          if y>top:add(x,y-1)
-                          if y+1<bottom:add(x,y+1)
-              transparent_after=sum(1 for value in image.getdata() if value[3]==0)
-              if transparent_after<=transparent_before+width*height//5:
-                  raise SystemExit(f'{path}: background cleanup removed too little ({transparent_before} -> {transparent_after})')
-              image.save(path,'WEBP',lossless=True,method=6)
-              print(path,image.size,'transparent',transparent_before,'->',transparent_after)
-
-          clean_cells('assets/anime/characters.webp',48,64)
-          clean_cells('assets/anime/portraits.webp',128,128)
-
-          manifest_path=Path('assets/anime/manifest.json')
-          manifest=json.loads(manifest_path.read_text())
-          for name in ('characters.webp','portraits.webp'):
-              data=Path('assets/anime',name).read_bytes()
-              manifest['assets'][name]['bytes']=len(data)
-              manifest['assets'][name]['sha256']=sha256(data).hexdigest()
-          manifest_path.write_text(json.dumps(manifest,indent=2)+'\n')
-
           game=Path('src/game-1.js')
           text=game.read_text()
+          if 'const SPRITE_FRAME_W = 96;' not in text or 'const SPRITE_FRAME_H = 128;' not in text:
+              raise SystemExit('Legacy frame constants were not found')
           text=text.replace('const SPRITE_FRAME_W = 96;','const SPRITE_FRAME_W = 48;',1)
           text=text.replace('const SPRITE_FRAME_H = 128;','const SPRITE_FRAME_H = 64;',1)
           game.write_text(text)
@@ -93,5 +47,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -A
-          git commit -m 'Clean permanent v1.8 sprite and portrait backgrounds'
+          git commit -m 'Use native v1.8 character atlas geometry'
           git push origin HEAD:agent/anime-art-integration-v18
