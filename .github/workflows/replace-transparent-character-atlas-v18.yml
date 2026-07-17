@@ -1,0 +1,89 @@
+name: Replace transparent character atlas v1.8
+
+on:
+  push:
+    branches:
+      - asset-transfer-v18
+
+permissions:
+  contents: write
+
+jobs:
+  replace:
+    if: ${{ hashFiles('.character-import/READY') != '' && github.actor != 'github-actions[bot]' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout transfer branch
+        uses: actions/checkout@v4
+        with:
+          ref: asset-transfer-v18
+          fetch-depth: 0
+
+      - name: Decode exact transparent atlas
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t parts < <(find .character-import -maxdepth 1 -type f -name '*.part' | sort)
+          test "${#parts[@]}" -eq 21
+          cat "${parts[@]}" | base64 --decode > assets/anime/characters.webp
+          echo '89cdd93ad519ffe48a6f2d38804221d1538de0ba141d47380955fe69f5969925  assets/anime/characters.webp' | sha256sum -c -
+
+      - name: Validate dimensions transparency and frame geometry
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 -m pip install --quiet pillow
+          python3 - <<'PY'
+          from PIL import Image
+          import hashlib, json
+          from pathlib import Path
+          path=Path('assets/anime/characters.webp')
+          image=Image.open(path).convert('RGBA'); image.load()
+          assert image.size==(1728,1024),image.size
+          alpha=list(image.getchannel('A').getdata())
+          transparent=sum(value<8 for value in alpha)
+          ratio=transparent/(image.width*image.height)
+          assert ratio>.78,ratio
+          assert image.width//48==36 and image.height//64==16
+          manifest_path=Path('assets/anime/manifest.json')
+          manifest=json.loads(manifest_path.read_text(encoding='utf-8'))
+          data=path.read_bytes()
+          manifest['source']='original commercial anime artwork with native transparent character frames'
+          manifest['assets']['characters.webp']={
+            'width':image.width,'height':image.height,'bytes':len(data),
+            'sha256':hashlib.sha256(data).hexdigest(),'transparentPixelRatio':round(ratio,6)
+          }
+          manifest_path.write_text(json.dumps(manifest,indent=2)+'\n',encoding='utf-8')
+          print('transparent atlas',image.size,len(data),ratio)
+          PY
+
+      - name: Remove obsolete runtime cleanup and transfer scaffolding
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          from pathlib import Path
+          index=Path('index.html')
+          text=index.read_text(encoding='utf-8').replace('  <script src="src/anime-sprite-cleanup-v18.js"></script>\n','')
+          index.write_text(text,encoding='utf-8')
+          manifest=Path('build-manifest.json')
+          text=manifest.read_text(encoding='utf-8').replace('    "src/anime-sprite-cleanup-v18.js",\n','')
+          manifest.write_text(text,encoding='utf-8')
+          sw=Path('sw.js')
+          text=sw.read_text(encoding='utf-8').replace("'sakura-crest-v1.8.0-sprite-cleanup'","'sakura-crest-v1.8.0-transparent-atlas'").replace("'./src/anime-sprite-cleanup-v18.js',",'')
+          sw.write_text(text,encoding='utf-8')
+          PY
+          rm -f src/anime-sprite-cleanup-v18.js
+          rm -rf .character-import
+          rm -f .github/workflows/replace-transparent-character-atlas-v18.yml
+
+      - name: Commit native transparent artwork to v1.8
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Replace flattened sprites with native transparent anime atlas'
+          git push origin HEAD:agent/anime-art-integration-v18
