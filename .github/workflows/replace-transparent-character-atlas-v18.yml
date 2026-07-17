@@ -23,64 +23,45 @@ jobs:
           ref: asset-transfer-v18
           fetch-depth: 0
 
-      - name: Download native transparent atlas from Alex Canva source
+      - name: Download Canva rendition candidates
         shell: bash
         run: |
           set -euo pipefail
+          mkdir -p atlas-probe
           curl -L --fail --silent --show-error \
             'https://s3.amazonaws.com/document-export.canva.com/69ehI/DAHPq669ehI/1/thumbnail/0001.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUHXSTDDERN%2F20260717%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260717T062228Z&X-Amz-Expires=50366&X-Amz-Signature=7e61941baa83e43b9a9faa215dbbf4a37b7c108afb808d10e50ef8755258ede2&X-Amz-SignedHeaders=host&response-expires=Fri%2C%2017%20Jul%202026%2020%3A21%3A54%20GMT' \
-            -o /tmp/characters-transparent.png
-          test -s /tmp/characters-transparent.png
+            -o atlas-probe/fallback.png
+          curl -L --fail --silent --show-error \
+            'https://media.canva.com/v2/document-image/hash:-1330418100/height:344/id:DAHPq669ehI/type:B/width:580?brand=BAGB1PhMIKI&csig=AAAAAAAAAAAAAAAAAAAAANpWnkXse7o4eytQtfJlS2noNcRqWD6UfOnqKiDmrgEe&disableexport=T&exp=1784319714&fallback=https%3A%2F%2Fs3.amazonaws.com%2Fdocument-export.canva.com%2F69ehI%2FDAHPq669ehI%2F1%2Fthumbnail%2F0001.png%3FX-Amz-Algorithm%3DAWS4-HMAC-SHA256%26X-Amz-Credential%3DAKIAQYCGKMUHXSTDDERN%252F20260717%252Fus-east-1%252Fs3%252Faws4_request%26X-Amz-Date%3D20260717T062228Z%26X-Amz-Expires%3D50366%26X-Amz-Signature%3D7e61941baa83e43b9a9faa215dbbf4a37b7c108afb808d10e50ef8755258ede2%26X-Amz-SignedHeaders%3Dhost%26response-expires%3DFri%252C%252017%2520Jul%25202026%252020%253A21%253A54%2520GMT&osig=AAAAAAAAAAAAAAAAAAAAAIBeK0hLZDqAAgJ49pNdFV3O1C_AxVxqUJzGuQfutdYe&page=1&signed=brand%2Cdisableexport%2Cfallback%2Cpage%2Cversion&signer=document-rpc&version=1' \
+            -o atlas-probe/media-580.png
+          curl -L --fail --silent --show-error \
+            'https://media.canva.com/v2/document-image/hash:-1330418100/height:1024/id:DAHPq669ehI/type:B/width:1728?brand=BAGB1PhMIKI&csig=AAAAAAAAAAAAAAAAAAAAANpWnkXse7o4eytQtfJlS2noNcRqWD6UfOnqKiDmrgEe&disableexport=T&exp=1784319714&fallback=https%3A%2F%2Fs3.amazonaws.com%2Fdocument-export.canva.com%2F69ehI%2FDAHPq669ehI%2F1%2Fthumbnail%2F0001.png%3FX-Amz-Algorithm%3DAWS4-HMAC-SHA256%26X-Amz-Credential%3DAKIAQYCGKMUHXSTDDERN%252F20260717%252Fus-east-1%252Fs3%2Faws4_request%26X-Amz-Date%3D20260717T062228Z%26X-Amz-Expires%3D50366%26X-Amz-Signature%3D7e61941baa83e43b9a9faa215dbbf4a37b7c108afb808d10e50ef8755258ede2%26X-Amz-SignedHeaders%3Dhost%26response-expires%3DFri%252C%252017%2520Jul%25202026%252020%253A21%253A54%2520GMT&osig=AAAAAAAAAAAAAAAAAAAAAIBeK0hLZDqAAgJ49pNdFV3O1C_AxVxqUJzGuQfutdYe&page=1&signed=brand%2Cdisableexport%2Cfallback%2Cpage%2Cversion&signer=document-rpc&version=1' \
+            -o atlas-probe/media-1728.png || true
 
-      - name: Validate transparency and write permanent WebP
+      - name: Record exact image diagnostics
         shell: bash
         run: |
-          set -euo pipefail
           python3 -m pip install --quiet pillow
-          python3 - <<'PY'
+          python3 - <<'PY' | tee atlas-probe/diagnostics.txt
           from PIL import Image
           from pathlib import Path
-          import hashlib, json
-          source=Image.open('/tmp/characters-transparent.png').convert('RGBA');source.load()
-          assert source.size==(1728,1024),source.size
-          alpha=list(source.getchannel('A').getdata())
-          ratio=sum(value<8 for value in alpha)/(source.width*source.height)
-          assert ratio>.75,ratio
-          target=Path('assets/anime/characters.webp')
-          source.save(target,'WEBP',quality=88,method=6)
-          verify=Image.open(target).convert('RGBA');verify.load()
-          verify_ratio=sum(value<8 for value in verify.getchannel('A').getdata())/(verify.width*verify.height)
-          assert verify.size==(1728,1024)
-          assert verify_ratio>.75,verify_ratio
-          data=target.read_bytes()
-          manifest_path=Path('assets/anime/manifest.json')
-          manifest=json.loads(manifest_path.read_text(encoding='utf-8'))
-          manifest['source']='original commercial anime artwork with native transparent character frames'
-          manifest['assets']['characters.webp']={'width':verify.width,'height':verify.height,'bytes':len(data),'sha256':hashlib.sha256(data).hexdigest(),'transparentPixelRatio':round(verify_ratio,6),'frameWidth':48,'frameHeight':64,'characters':16,'actions':9,'directions':4}
-          manifest_path.write_text(json.dumps(manifest,indent=2)+'\n',encoding='utf-8')
-          print('transparent atlas',verify.size,len(data),verify_ratio,hashlib.sha256(data).hexdigest())
+          import hashlib
+          for path in sorted(Path('atlas-probe').glob('*.png')):
+              try:
+                  image=Image.open(path); image.load(); rgba=image.convert('RGBA')
+                  alpha=list(rgba.getchannel('A').getdata())
+                  transparent=sum(v<8 for v in alpha)/(rgba.width*rgba.height)
+                  print(path.name,'size=',rgba.size,'mode=',image.mode,'bytes=',path.stat().st_size,'alpha=',round(transparent,6),'sha256=',hashlib.sha256(path.read_bytes()).hexdigest())
+              except Exception as exc:
+                  print(path.name,'ERROR',repr(exc))
           PY
+          cat atlas-probe/diagnostics.txt
 
-      - name: Remove obsolete cleanup and transfer files
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          index=Path('index.html');index.write_text(index.read_text(encoding='utf-8').replace('  <script src="src/anime-sprite-cleanup-v18.js"></script>\n',''),encoding='utf-8')
-          manifest=Path('build-manifest.json');manifest.write_text(manifest.read_text(encoding='utf-8').replace('    "src/anime-sprite-cleanup-v18.js",\n',''),encoding='utf-8')
-          sw=Path('sw.js');sw.write_text(sw.read_text(encoding='utf-8').replace("'sakura-crest-v1.8.0-sprite-cleanup'","'sakura-crest-v1.8.0-transparent-atlas'").replace("'./src/anime-sprite-cleanup-v18.js',",''),encoding='utf-8')
-          PY
-          rm -f src/anime-sprite-cleanup-v18.js
-          rm -rf .character-import
-          rm -f .github/workflows/replace-transparent-character-atlas-v18.yml
-
-      - name: Commit native transparent artwork to v1.8
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git commit -m 'Replace flattened sprites with native transparent anime atlas'
-          git push origin HEAD:agent/anime-art-integration-v18
+      - name: Upload rendition evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: transparent-atlas-canva-probe
+          path: atlas-probe
+          if-no-files-found: error
+          retention-days: 2
