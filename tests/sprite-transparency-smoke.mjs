@@ -14,28 +14,8 @@ try{
   await page.goto(baseURL,{waitUntil:'networkidle'});
   await page.waitForFunction(()=>document.getElementById('loading')?.classList.contains('hidden')&&game?.mode==='title'&&window.SAKURA_SPRITE_CLEANUP?.processed,null,{timeout:25000});
 
-  const atlasHealth=await page.evaluate(()=>{
-    const atlas=images.character_atlas;
-    const canvas=document.createElement('canvas');canvas.width=atlas.width;canvas.height=atlas.height;
-    const context=canvas.getContext('2d',{willReadFrequently:true});context.drawImage(atlas,0,0);
-    const pixels=context.getImageData(0,0,canvas.width,canvas.height).data;
-    const frameWidth=48,frameHeight=64,columns=canvas.width/frameWidth,rows=canvas.height/frameHeight;
-    let minTransparent=1,maxOpaqueBlack=0,averageTransparent=0;
-    for(let row=0;row<rows;row++)for(let column=0;column<columns;column++){
-      let transparent=0,opaqueBlack=0;
-      for(let y=0;y<frameHeight;y++)for(let x=0;x<frameWidth;x++){
-        const offset=(((row*frameHeight+y)*canvas.width)+(column*frameWidth+x))*4;
-        const alpha=pixels[offset+3];
-        if(alpha<8)transparent++;
-        else if(alpha>220&&pixels[offset]<18&&pixels[offset+1]<18&&pixels[offset+2]<18)opaqueBlack++;
-      }
-      const total=frameWidth*frameHeight,transparentRatio=transparent/total,blackRatio=opaqueBlack/total;
-      minTransparent=Math.min(minTransparent,transparentRatio);maxOpaqueBlack=Math.max(maxOpaqueBlack,blackRatio);averageTransparent+=transparentRatio;
-    }
-    return {cleanup:window.SAKURA_SPRITE_CLEANUP,frames:columns*rows,minTransparent,maxOpaqueBlack,averageTransparent:averageTransparent/(columns*rows)};
-  });
-  if(!atlasHealth.cleanup?.processed||atlasHealth.cleanup.frames!==576||atlasHealth.cleanup.removedPixels<120000)throw new Error(`Sprite cleanup did not process the real atlas: ${JSON.stringify(atlasHealth)}`);
-  if(atlasHealth.frames!==576||atlasHealth.minTransparent<.08||atlasHealth.averageTransparent<.25||atlasHealth.maxOpaqueBlack>.42)throw new Error(`Sprite atlas still contains rectangular backgrounds: ${JSON.stringify(atlasHealth)}`);
+  const compositor=await page.evaluate(()=>validateAnimeSpriteCleanupV18());
+  if(!compositor.valid||compositor.frames!==576||!compositor.realArtwork||compositor.proceduralReplacement)throw new Error(`Real sprite compositor is not active: ${JSON.stringify(compositor)}`);
 
   const gameBox=await page.locator('#game').boundingBox();
   await page.mouse.click(gameBox.x+800/960*gameBox.width,gameBox.y+155/540*gameBox.height);
@@ -48,11 +28,33 @@ try{
     await page.waitForTimeout(120);
     if(!await page.evaluate(()=>Boolean(game.dialogue)))break;
   }
-  await page.waitForTimeout(400);
-  const visibleActors=await page.evaluate(()=>[...game.npcs,...game.teachers,game.player].filter(actor=>{const x=actor.x-game.camera.x,y=actor.y-game.camera.y;return x>-80&&x<VIEW_W+80&&y>-120&&y<H+80;}).length);
-  if(visibleActors<4)throw new Error(`Too few real actors rendered for visual validation: ${visibleActors}`);
+  await page.waitForTimeout(500);
+
+  const renderedHealth=await page.locator('#game').evaluate(canvas=>{
+    const actors=[...game.npcs,...game.teachers,game.player].map(actor=>({x:Math.round(actor.x-game.camera.x-31),y:Math.round(actor.y-game.camera.y-86)})).filter(actor=>actor.x>-62&&actor.x<VIEW_W&&actor.y>-86&&actor.y<H);
+    const context=canvas.getContext('2d',{willReadFrequently:true});
+    const samples=[];
+    for(const actor of actors){
+      const x=Math.max(0,actor.x),y=Math.max(0,actor.y),w=Math.min(62,canvas.width-x),h=Math.min(86,canvas.height-y);
+      if(w<30||h<40)continue;
+      const pixels=context.getImageData(x,y,w,h).data;
+      let nearBlack=0,colourful=0,transitions=0,previous=-1;
+      for(let offset=0;offset<pixels.length;offset+=4){
+        const r=pixels[offset],g=pixels[offset+1],b=pixels[offset+2];
+        if(r<18&&g<18&&b<18)nearBlack++;
+        if(Math.max(r,g,b)-Math.min(r,g,b)>18)colourful++;
+        const light=r+g+b;if(previous>=0&&Math.abs(light-previous)>40)transitions++;previous=light;
+      }
+      const total=pixels.length/4;
+      samples.push({nearBlackRatio:nearBlack/total,colourfulRatio:colourful/total,transitions});
+    }
+    return {actors:actors.length,samples,maxNearBlack:Math.max(0,...samples.map(sample=>sample.nearBlackRatio)),averageColour:samples.reduce((sum,sample)=>sum+sample.colourfulRatio,0)/Math.max(1,samples.length)};
+  });
+  if(renderedHealth.actors<4||renderedHealth.samples.length<4)throw new Error(`Too few real actors rendered for validation: ${JSON.stringify(renderedHealth)}`);
+  if(renderedHealth.maxNearBlack>.48||renderedHealth.averageColour<.12)throw new Error(`Rendered actors still contain rectangular atlas backdrops: ${JSON.stringify(renderedHealth)}`);
+
   await page.screenshot({path:'test-results/sprite-transparency-desktop.png',fullPage:true});
   if(failures.length)throw new Error(`Sprite QA captured ${failures.length} browser failure(s):\n${failures.join('\n')}`);
-  console.log('Anime sprite transparency passed',JSON.stringify({atlasHealth,visibleActors}));
+  console.log('Anime sprite compositing passed',JSON.stringify({compositor,renderedHealth}));
   await context.close();
 }finally{await browser.close();}
