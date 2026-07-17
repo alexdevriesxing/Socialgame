@@ -1,4 +1,4 @@
-name: Replace transparent character atlas v1.8
+name: Bake transparent character atlas v1.8
 
 on:
   push:
@@ -23,45 +23,131 @@ jobs:
           ref: asset-transfer-v18
           fetch-depth: 0
 
-      - name: Download Canva rendition candidates
+      - name: Bake static transparency into every animation frame
         shell: bash
         run: |
           set -euo pipefail
-          mkdir -p atlas-probe
-          curl -L --fail --silent --show-error \
-            'https://s3.amazonaws.com/document-export.canva.com/69ehI/DAHPq669ehI/1/thumbnail/0001.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUHXSTDDERN%2F20260717%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260717T062228Z&X-Amz-Expires=50366&X-Amz-Signature=7e61941baa83e43b9a9faa215dbbf4a37b7c108afb808d10e50ef8755258ede2&X-Amz-SignedHeaders=host&response-expires=Fri%2C%2017%20Jul%202026%2020%3A21%3A54%20GMT' \
-            -o atlas-probe/fallback.png
-          curl -L --fail --silent --show-error \
-            'https://media.canva.com/v2/document-image/hash:-1330418100/height:344/id:DAHPq669ehI/type:B/width:580?brand=BAGB1PhMIKI&csig=AAAAAAAAAAAAAAAAAAAAANpWnkXse7o4eytQtfJlS2noNcRqWD6UfOnqKiDmrgEe&disableexport=T&exp=1784319714&fallback=https%3A%2F%2Fs3.amazonaws.com%2Fdocument-export.canva.com%2F69ehI%2FDAHPq669ehI%2F1%2Fthumbnail%2F0001.png%3FX-Amz-Algorithm%3DAWS4-HMAC-SHA256%26X-Amz-Credential%3DAKIAQYCGKMUHXSTDDERN%252F20260717%252Fus-east-1%252Fs3%252Faws4_request%26X-Amz-Date%3D20260717T062228Z%26X-Amz-Expires%3D50366%26X-Amz-Signature%3D7e61941baa83e43b9a9faa215dbbf4a37b7c108afb808d10e50ef8755258ede2%26X-Amz-SignedHeaders%3Dhost%26response-expires%3DFri%252C%252017%2520Jul%25202026%252020%253A21%253A54%2520GMT&osig=AAAAAAAAAAAAAAAAAAAAAIBeK0hLZDqAAgJ49pNdFV3O1C_AxVxqUJzGuQfutdYe&page=1&signed=brand%2Cdisableexport%2Cfallback%2Cpage%2Cversion&signer=document-rpc&version=1' \
-            -o atlas-probe/media-580.png
-          curl -L --fail --silent --show-error \
-            'https://media.canva.com/v2/document-image/hash:-1330418100/height:1024/id:DAHPq669ehI/type:B/width:1728?brand=BAGB1PhMIKI&csig=AAAAAAAAAAAAAAAAAAAAANpWnkXse7o4eytQtfJlS2noNcRqWD6UfOnqKiDmrgEe&disableexport=T&exp=1784319714&fallback=https%3A%2F%2Fs3.amazonaws.com%2Fdocument-export.canva.com%2F69ehI%2FDAHPq669ehI%2F1%2Fthumbnail%2F0001.png%3FX-Amz-Algorithm%3DAWS4-HMAC-SHA256%26X-Amz-Credential%3DAKIAQYCGKMUHXSTDDERN%252F20260717%252Fus-east-1%252Fs3%2Faws4_request%26X-Amz-Date%3D20260717T062228Z%26X-Amz-Expires%3D50366%26X-Amz-Signature%3D7e61941baa83e43b9a9faa215dbbf4a37b7c108afb808d10e50ef8755258ede2%26X-Amz-SignedHeaders%3Dhost%26response-expires%3DFri%252C%252017%2520Jul%25202026%252020%253A21%253A54%2520GMT&osig=AAAAAAAAAAAAAAAAAAAAAIBeK0hLZDqAAgJ49pNdFV3O1C_AxVxqUJzGuQfutdYe&page=1&signed=brand%2Cdisableexport%2Cfallback%2Cpage%2Cversion&signer=document-rpc&version=1' \
-            -o atlas-probe/media-1728.png || true
+          python3 -m pip install --quiet pillow
+          mkdir -p atlas-proof
+          python3 - <<'PY'
+          from PIL import Image, ImageDraw
+          from collections import deque
+          from pathlib import Path
+          import hashlib, json, statistics
 
-      - name: Record exact image diagnostics
+          path=Path('assets/anime/characters.webp')
+          image=Image.open(path).convert('RGBA'); image.load()
+          assert image.size==(1728,1024), image.size
+          FW,FH=48,64
+          output=Image.new('RGBA',image.size,(0,0,0,0))
+          frame_stats=[]
+
+          for row in range(image.height//FH):
+              for col in range(image.width//FW):
+                  frame=image.crop((col*FW,row*FH,(col+1)*FW,(row+1)*FH)).convert('RGBA')
+                  px=frame.load()
+                  corners=[]
+                  for ox,oy in ((0,0),(FW-1,0),(0,FH-1),(FW-1,FH-1)):
+                      for dy in range(3):
+                          for dx in range(3):
+                              x=min(FW-1,max(0,ox+dx*(1 if ox==0 else -1)))
+                              y=min(FH-1,max(0,oy+dy*(1 if oy==0 else -1)))
+                              corners.append(px[x,y][:3])
+                  bg=tuple(int(statistics.median(c[i] for c in corners)) for i in range(3))
+                  seen=set(); queue=deque()
+                  for x in range(FW): queue.append((x,0));queue.append((x,FH-1))
+                  for y in range(FH): queue.append((0,y));queue.append((FW-1,y))
+                  removed=0
+                  while queue:
+                      x,y=queue.popleft()
+                      if (x,y) in seen: continue
+                      seen.add((x,y))
+                      r,g,b,a=px[x,y]
+                      distance=abs(r-bg[0])+abs(g-bg[1])+abs(b-bg[2])
+                      # Tight threshold: remove only near-background pixels connected to frame edges.
+                      if a==0 or distance>34 or (r+g+b)>125: continue
+                      px[x,y]=(r,g,b,0); removed+=1
+                      if x: queue.append((x-1,y))
+                      if x+1<FW: queue.append((x+1,y))
+                      if y: queue.append((x,y-1))
+                      if y+1<FH: queue.append((x,y+1))
+
+                  # Feather only pixels immediately bordering transparent background.
+                  original=frame.copy(); opx=original.load()
+                  for y in range(FH):
+                      for x in range(FW):
+                          if px[x,y][3]==0: continue
+                          if any(0<=nx<FW and 0<=ny<FH and px[nx,ny][3]==0 for nx,ny in ((x-1,y),(x+1,y),(x,y-1),(x,y+1))):
+                              r,g,b,a=px[x,y]
+                              distance=abs(r-bg[0])+abs(g-bg[1])+abs(b-bg[2])
+                              if distance<70 and r+g+b<190:
+                                  px[x,y]=(r,g,b,max(45,min(255,int(distance/70*255))))
+
+                  alpha=frame.getchannel('A')
+                  bbox=alpha.getbbox()
+                  opaque=sum(v>16 for v in alpha.getdata())
+                  transparent=FW*FH-opaque
+                  if not bbox or opaque<90 or opaque>2200:
+                      raise SystemExit(f'frame {row}:{col} invalid opaque={opaque} bbox={bbox} bg={bg} removed={removed}')
+                  frame_stats.append({'row':row,'col':col,'opaque':opaque,'transparent':transparent,'removed':removed,'bbox':bbox})
+                  output.alpha_composite(frame,(col*FW,row*FH))
+
+          total=image.width*image.height
+          alpha=list(output.getchannel('A').getdata())
+          ratio=sum(v<8 for v in alpha)/total
+          if not .62<ratio<.9: raise SystemExit(f'unexpected atlas transparency ratio {ratio}')
+          output.save(path,'WEBP',quality=86,method=6)
+          verify=Image.open(path).convert('RGBA');verify.load()
+          verify_alpha=list(verify.getchannel('A').getdata())
+          verify_ratio=sum(v<8 for v in verify_alpha)/(verify.width*verify.height)
+          if verify_ratio<.60: raise SystemExit(f'encoded alpha ratio too low {verify_ratio}')
+
+          manifest_path=Path('assets/anime/manifest.json')
+          manifest=json.loads(manifest_path.read_text(encoding='utf-8'))
+          data=path.read_bytes()
+          manifest['source']='original commercial anime artwork with baked per-frame transparency'
+          manifest['assets']['characters.webp']={
+              'width':verify.width,'height':verify.height,'bytes':len(data),
+              'sha256':hashlib.sha256(data).hexdigest(),
+              'transparentPixelRatio':round(verify_ratio,6),
+              'frameWidth':FW,'frameHeight':FH,'frames':len(frame_stats),
+              'characters':16,'actions':9,'directions':4
+          }
+          manifest_path.write_text(json.dumps(manifest,indent=2)+'\n',encoding='utf-8')
+          Path('atlas-proof/frame-stats.json').write_text(json.dumps({'ratio':verify_ratio,'frames':frame_stats},indent=2))
+          output.resize((864,512),Image.Resampling.LANCZOS).save('atlas-proof/characters-transparent-preview.png')
+          print('baked transparent atlas',verify.size,len(data),verify_ratio,hashlib.sha256(data).hexdigest())
+          PY
+
+      - name: Remove obsolete runtime cleanup
         shell: bash
         run: |
-          python3 -m pip install --quiet pillow
-          python3 - <<'PY' | tee atlas-probe/diagnostics.txt
-          from PIL import Image
+          set -euo pipefail
+          python3 - <<'PY'
           from pathlib import Path
-          import hashlib
-          for path in sorted(Path('atlas-probe').glob('*.png')):
-              try:
-                  image=Image.open(path); image.load(); rgba=image.convert('RGBA')
-                  alpha=list(rgba.getchannel('A').getdata())
-                  transparent=sum(v<8 for v in alpha)/(rgba.width*rgba.height)
-                  print(path.name,'size=',rgba.size,'mode=',image.mode,'bytes=',path.stat().st_size,'alpha=',round(transparent,6),'sha256=',hashlib.sha256(path.read_bytes()).hexdigest())
-              except Exception as exc:
-                  print(path.name,'ERROR',repr(exc))
+          index=Path('index.html');index.write_text(index.read_text(encoding='utf-8').replace('  <script src="src/anime-sprite-cleanup-v18.js"></script>\n',''),encoding='utf-8')
+          manifest=Path('build-manifest.json');manifest.write_text(manifest.read_text(encoding='utf-8').replace('    "src/anime-sprite-cleanup-v18.js",\n',''),encoding='utf-8')
+          sw=Path('sw.js');sw.write_text(sw.read_text(encoding='utf-8').replace("'sakura-crest-v1.8.0-sprite-cleanup'","'sakura-crest-v1.8.0-transparent-atlas'").replace("'./src/anime-sprite-cleanup-v18.js',",''),encoding='utf-8')
           PY
-          cat atlas-probe/diagnostics.txt
+          rm -f src/anime-sprite-cleanup-v18.js
+          rm -rf .character-import atlas-probe
+          rm -f .github/workflows/replace-transparent-character-atlas-v18.yml
 
-      - name: Upload rendition evidence
+      - name: Commit static transparent atlas to v1.8
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Bake native transparency into commercial anime sprites'
+          git push origin HEAD:agent/anime-art-integration-v18
+
+      - name: Upload atlas proof
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: transparent-atlas-canva-probe
-          path: atlas-probe
-          if-no-files-found: error
-          retention-days: 2
+          name: baked-transparent-atlas-proof
+          path: atlas-proof
+          if-no-files-found: warn
+          retention-days: 3
