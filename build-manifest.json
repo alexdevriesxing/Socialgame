@@ -34,6 +34,7 @@
     "src/art.js",
     "src/anime-art-v18.js",
     "src/game-1.js",
+    "src/anime-sprite-cleanup-v18.js",
     "src/game-2.js",
     "src/game-3.js",
     "src/game-4.js",
