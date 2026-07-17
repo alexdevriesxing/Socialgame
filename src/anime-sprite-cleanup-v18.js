@@ -5,7 +5,15 @@ function animeV18CleanCharacterAtlas(sourceImage){
   const output=document.createElement('canvas');
   output.width=sourceImage.naturalWidth||sourceImage.width;
   output.height=sourceImage.naturalHeight||sourceImage.height;
+  if(!output||typeof output.getContext!=='function'){
+    window.SAKURA_SPRITE_CLEANUP=Object.freeze({
+      version:'1.8.0',processed:false,deferred:true,width:output?.width||0,height:output?.height||0,
+      frames:576,removedPixels:0,method:'browser canvas required',proceduralReplacement:false
+    });
+    return sourceImage;
+  }
   const outputContext=output.getContext('2d',{willReadFrequently:true});
+  if(!outputContext)throw new Error('Character atlas cleanup could not acquire a 2D canvas context.');
   outputContext.imageSmoothingEnabled=true;
   outputContext.drawImage(sourceImage,0,0);
 
@@ -63,7 +71,7 @@ function animeV18CleanCharacterAtlas(sourceImage){
 
   outputContext.putImageData(imageData,0,0);
   window.SAKURA_SPRITE_CLEANUP=Object.freeze({
-    version:'1.8.0',processed:true,width:output.width,height:output.height,
+    version:'1.8.0',processed:true,deferred:false,width:output.width,height:output.height,
     frames:frameColumns*frameRows,removedPixels,
     method:'per-frame connected-edge chroma cleanup',proceduralReplacement:false
   });
@@ -86,9 +94,9 @@ loadImage=function(name){
 function validateAnimeSpriteCleanupV18(){
   const state=window.SAKURA_SPRITE_CLEANUP;
   const errors=[];
-  if(!state?.processed)errors.push('atlas not processed');
+  if(!state?.processed)errors.push(state?.deferred?'atlas cleanup deferred outside a browser canvas':'atlas not processed');
   if(state&&state.frames!==576)errors.push('unexpected frame count');
-  if(state&&state.removedPixels<120000)errors.push('insufficient background removal');
+  if(state?.processed&&state.removedPixels<120000)errors.push('insufficient background removal');
   if(state?.proceduralReplacement)errors.push('procedural replacement enabled');
   return {valid:errors.length===0,errors,...state};
 }
