@@ -1,0 +1,28 @@
+{
+  "status": 403,
+  "headers": {
+    "accept-ch": "Sec-CH-UA-Bitness, Sec-CH-UA-Arch, Sec-CH-UA-Full-Version, Sec-CH-UA-Mobile, Sec-CH-UA-Model, Sec-CH-UA-Platform-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Platform, Sec-CH-UA, UA-Bitness, UA-Arch, UA-Full-Version, UA-Mobile, UA-Model, UA-Platform-Version, UA-Platform, UA",
+    "cf-mitigated": "challenge",
+    "cf-ray": "a1cb466aea84e438-IAD",
+    "content-encoding": "br",
+    "content-type": "text/html; charset=UTF-8",
+    "critical-ch": "Sec-CH-UA-Bitness, Sec-CH-UA-Arch, Sec-CH-UA-Full-Version, Sec-CH-UA-Mobile, Sec-CH-UA-Model, Sec-CH-UA-Platform-Version, Sec-CH-UA-Full-Version-List, Sec-CH-UA-Platform, Sec-CH-UA, UA-Bitness, UA-Arch, UA-Full-Version, UA-Mobile, UA-Model, UA-Platform-Version, UA-Platform, UA",
+    "cross-origin-embedder-policy": "require-corp",
+    "cross-origin-opener-policy": "same-origin",
+    "cross-origin-resource-policy": "same-origin",
+    "date": "Fri, 17 Jul 2026 18:22:57 GMT",
+    "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.01,\"max_age\":604800}",
+    "origin-agent-cluster": "?1",
+    "permissions-policy": "accelerometer=(),camera=(),clipboard-read=(),clipboard-write=(),geolocation=(),gyroscope=(),hid=(),magnetometer=(),microphone=(),payment=(),publickey-credentials-get=(),screen-wake-lock=(),serial=(),sync-xhr=(),usb=(),xr-spatial-tracking=*",
+    "referrer-policy": "same-origin",
+    "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=8o4vZkTBMN68ZJvMygfQFsL1S%2FBnRYf37bdp5AHRN3xkOfoZhbdTiFPZ9kCznHG1JUQQ1u8evsZsor6LRiXXZykRFcdLLu7dTs5F%2BbmtFa%2FGZR4p7JlAPMwB2PaqwcI%3D\"}]}",
+    "server": "cloudflare",
+    "server-timing": "chlray;desc=\"a1cb466aea84e438\"",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+    "vary": "accept-encoding",
+    "x-content-type-options": "nosniff",
+    "x-frame-options": "SAMEORIGIN"
+  },
+  "url": "https://www.canva.com/api/short/8spWc7FOhDwQYod",
+  "title": "Just a moment..."
+}
