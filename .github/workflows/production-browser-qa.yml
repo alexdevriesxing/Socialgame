@@ -35,6 +35,7 @@ jobs:
           done
           node --check sw.js
           node --check tests/browser-production-smoke.mjs
+          node --check tests/sprite-transparency-smoke.mjs
           node --check tests/browser-engine-smoke.mjs
           node --check tests/release-readiness-smoke.mjs
           node --check tests/remote-static-smoke.mjs
@@ -78,6 +79,13 @@ jobs:
         run: |
           set -o pipefail
           node tests/browser-production-smoke.mjs 2>&1 | tee test-results/browser-production-smoke.log
+
+      - name: Reject rectangular sprite backgrounds
+        env:
+          BASE_URL: http://127.0.0.1:4173
+        run: |
+          set -o pipefail
+          node tests/sprite-transparency-smoke.mjs 2>&1 | tee test-results/sprite-transparency-smoke.log
 
       - name: Run Chrome Edge Firefox and WebKit compatibility QA
         env:
