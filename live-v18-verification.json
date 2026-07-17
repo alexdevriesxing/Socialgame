@@ -1,0 +1,14 @@
+{
+  "verified": true,
+  "release": "1.8.0",
+  "commit": "05f49a704e452560cd96b174ed5cb6ed3f8a93dc",
+  "project": "sakura-crest-social-summit",
+  "liveUrl": "https://sakura-crest-social-summit.pages.dev",
+  "deploymentUrl": "https://7b1aed50.sakura-crest-social-summit.pages.dev",
+  "htmlContainsTitle": true,
+  "htmlContainsRelease": true,
+  "animeManifestValid": true,
+  "keyartBytes": 115018,
+  "campusBytes": 697104,
+  "charactersBytes": 1173722
+}
