@@ -1,6 +1,6 @@
 'use strict';
 
-const CACHE_VERSION = 'sakura-crest-v1.8.1';
+const CACHE_VERSION = 'sakura-crest-v1.8.0-sprite-cleanup';
 const CORE_FILES = [
   './','./index.html','./styles.css','./manifest.webmanifest','./assets/favicon.svg',
   './assets/anime/keyart.webp','./assets/anime/campus.webp','./assets/anime/characters.webp','./assets/anime/portraits.webp','./assets/anime/objects.webp','./assets/anime/manifest.json',
