@@ -1,4 +1,4 @@
-name: Import native transparent atlas v1.8
+name: Diagnose native transparent atlas v1.8
 
 on:
   pull_request:
@@ -9,183 +9,54 @@ permissions:
   contents: write
 
 jobs:
-  import:
+  diagnose:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 10
     steps:
-      - name: Checkout transfer branch
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: asset-transfer-v18-final-clean
           fetch-depth: 0
-
-      - name: Install image tooling
-        run: python3 -m pip install --quiet pillow
-
-      - name: Download Canva original-page rendition
+      - run: python3 -m pip install --quiet pillow
+      - name: Inspect signed original rendition
         shell: bash
         run: |
           set -euo pipefail
           curl --fail --location --silent --show-error \
             'https://s3.amazonaws.com/document-export.canva.com/69ehI/DAHPq669ehI/1/thumbnail/0001.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUHXSTDDERN%2F20260717%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260717T062228Z&X-Amz-Expires=56611&X-Amz-Signature=0c770db26e54b46d98867c7a35a09f9e48f85c8c46dd0f35a4407a6152bc83bd&X-Amz-SignedHeaders=host&response-expires=Fri%2C%2017%20Jul%202026%2022%3A05%3A59%20GMT' \
             --output /tmp/characters-source.png
-          file /tmp/characters-source.png
-          test -s /tmp/characters-source.png
-
-      - name: Validate and materialize native transparent WebP
-        shell: bash
-        run: |
-          set -euo pipefail
           python3 - <<'PY'
-          from PIL import Image
+          from PIL import Image, ImageStat
           from pathlib import Path
-          import hashlib, json
-
-          source=Path('/tmp/characters-source.png')
-          image=Image.open(source).convert('RGBA')
-          image.load()
-          if image.size != (1728,1024):
-              raise SystemExit(f'Canva original is {image.size}, expected 1728x1024')
-          alpha=image.getchannel('A')
-          histogram=alpha.histogram()
-          transparent=sum(histogram[:8])
-          ratio=transparent/(image.width*image.height)
-          if ratio < .75:
-              raise SystemExit(f'Canva source lost transparency: ratio={ratio:.6f}')
-          output=Path('assets/anime/characters.webp')
-          image.save(output,'WEBP',lossless=True,method=6)
-          data=output.read_bytes()
-          digest=hashlib.sha256(data).hexdigest()
-          manifest_path=Path('assets/anime/manifest.json')
-          manifest=json.loads(manifest_path.read_text(encoding='utf-8'))
-          manifest['source']='original commercial anime artwork with native transparent character frames'
-          manifest['proceduralFallbacks']=False
-          manifest['externalRuntimeDependency']=False
-          manifest['assets']['characters.webp']={
-              'width':1728,
-              'height':1024,
-              'bytes':len(data),
-              'sha256':digest,
-              'transparentPixelRatio':round(ratio,6)
-          }
-          manifest_path.write_text(json.dumps(manifest,indent=2)+'\n',encoding='utf-8')
-          print('native atlas',image.size,'bytes',len(data),'sha256',digest,'transparent ratio',ratio)
+          import hashlib
+          path=Path('/tmp/characters-source.png')
+          raw=Image.open(path)
+          rgba=raw.convert('RGBA')
+          alpha=rgba.getchannel('A')
+          hist=alpha.histogram()
+          transparent=sum(hist[:8])/(rgba.width*rgba.height)
+          partial=sum(hist[8:248])/(rgba.width*rgba.height)
+          opaque=sum(hist[248:])/(rgba.width*rgba.height)
+          text='\n'.join([
+            f'bytes={path.stat().st_size}',
+            f'sha256={hashlib.sha256(path.read_bytes()).hexdigest()}',
+            f'format={raw.format}',
+            f'mode={raw.mode}',
+            f'size={raw.size}',
+            f'transparent_ratio={transparent:.9f}',
+            f'partial_alpha_ratio={partial:.9f}',
+            f'opaque_ratio={opaque:.9f}',
+            f'alpha_extrema={alpha.getextrema()}',
+            f'rgb_variance={ImageStat.Stat(rgba.convert("RGB")).var}'
+          ])+'\n'
+          Path('debug-native-atlas.txt').write_text(text,encoding='utf-8')
+          print(text)
           PY
-
-      - name: Remove obsolete compositor and update runtime inventory
-        shell: bash
+      - name: Preserve diagnostics
         run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          import json
-
-          index=Path('index.html')
-          text=index.read_text(encoding='utf-8')
-          text=text.replace('  <script src="src/anime-sprite-cleanup-v18.js"></script>\n','')
-          index.write_text(text,encoding='utf-8')
-
-          build_path=Path('build-manifest.json')
-          build=json.loads(build_path.read_text(encoding='utf-8'))
-          build['files']=[path for path in build['files'] if path!='src/anime-sprite-cleanup-v18.js']
-          build_path.write_text(json.dumps(build,indent=2)+'\n',encoding='utf-8')
-
-          sw=Path('sw.js')
-          text=sw.read_text(encoding='utf-8')
-          text=text.replace("'sakura-crest-v1.8.0-sprite-cleanup'","'sakura-crest-v1.8.0-native-transparent-atlas'")
-          text=text.replace("'./src/anime-sprite-cleanup-v18.js',",'')
-          sw.write_text(text,encoding='utf-8')
-          PY
-          rm -f src/anime-sprite-cleanup-v18.js
-
-      - name: Replace sprite regression test with native-alpha validation
-        shell: bash
-        run: |
-          cat > tests/sprite-transparency-smoke.mjs <<'JS'
-          import { chromium } from 'playwright';
-          import { mkdir } from 'node:fs/promises';
-
-          const baseURL=process.env.BASE_URL||'http://127.0.0.1:4173';
-          await mkdir('test-results',{recursive:true});
-          const browser=await chromium.launch({headless:true});
-          try{
-            const context=await browser.newContext({viewport:{width:1440,height:900},reducedMotion:'reduce'});
-            const page=await context.newPage();
-            const failures=[];
-            page.on('pageerror',error=>failures.push(`pageerror: ${error.stack||error.message}`));
-            page.on('console',message=>{if(message.type()==='error')failures.push(`console.error: ${message.text()}`);});
-            page.on('requestfailed',request=>failures.push(`requestfailed: ${request.url()} — ${request.failure()?.errorText||'unknown'}`));
-            await page.goto(baseURL,{waitUntil:'networkidle'});
-            await page.waitForFunction(()=>document.getElementById('loading')?.classList.contains('hidden')&&game?.mode==='title',null,{timeout:25000});
-
-            const atlas=await page.evaluate(()=>{
-              const image=images.character_atlas;
-              if(!image)return null;
-              const canvas=document.createElement('canvas');
-              canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
-              const context=canvas.getContext('2d',{willReadFrequently:true});
-              context.clearRect(0,0,canvas.width,canvas.height);
-              context.drawImage(image,0,0);
-              const pixels=context.getImageData(0,0,canvas.width,canvas.height).data;
-              let transparent=0,opaque=0;
-              for(let offset=3;offset<pixels.length;offset+=4){
-                if(pixels[offset]<8)transparent++;else if(pixels[offset]>247)opaque++;
-              }
-              const total=pixels.length/4;
-              return {width:image.naturalWidth,height:image.naturalHeight,transparentRatio:transparent/total,opaqueRatio:opaque/total};
-            });
-            if(!atlas||atlas.width!==1728||atlas.height!==1024||atlas.transparentRatio<.70)throw new Error(`Native transparent atlas is invalid: ${JSON.stringify(atlas)}`);
-
-            const gameBox=await page.locator('#game').boundingBox();
-            await page.mouse.click(gameBox.x+800/960*gameBox.width,gameBox.y+155/540*gameBox.height);
-            await page.locator('#creator:not(.hidden)').waitFor({timeout:5000});
-            await page.locator('#nameInput').fill('Sprite QA');
-            await page.locator('#confirmName').click();
-            await page.waitForFunction(()=>game.mode==='play',null,{timeout:5000});
-            for(let cycle=0;cycle<70;cycle++){
-              if(await page.evaluate(()=>Boolean(game.dialogue))){await page.keyboard.press('Space');await page.waitForTimeout(80);continue;}
-              await page.waitForTimeout(120);
-              if(!await page.evaluate(()=>Boolean(game.dialogue)))break;
-            }
-            await page.waitForTimeout(500);
-
-            const renderedHealth=await page.locator('#game').evaluate(canvas=>{
-              const actors=[...game.npcs,...game.teachers,game.player].map(actor=>({x:Math.round(actor.x-game.camera.x-31),y:Math.round(actor.y-game.camera.y-86)})).filter(actor=>actor.x>-62&&actor.x<VIEW_W&&actor.y>-86&&actor.y<H);
-              const context=canvas.getContext('2d',{willReadFrequently:true});
-              const samples=[];
-              for(const actor of actors){
-                const x=Math.max(0,actor.x),y=Math.max(0,actor.y),w=Math.min(62,canvas.width-x),h=Math.min(86,canvas.height-y);
-                if(w<30||h<40)continue;
-                const pixels=context.getImageData(x,y,w,h).data;
-                let nearBlack=0,colourful=0;
-                for(let offset=0;offset<pixels.length;offset+=4){
-                  const r=pixels[offset],g=pixels[offset+1],b=pixels[offset+2];
-                  if(r<18&&g<18&&b<18)nearBlack++;
-                  if(Math.max(r,g,b)-Math.min(r,g,b)>18)colourful++;
-                }
-                const total=pixels.length/4;
-                samples.push({nearBlackRatio:nearBlack/total,colourfulRatio:colourful/total});
-              }
-              return {actors:actors.length,samples,maxNearBlack:Math.max(0,...samples.map(sample=>sample.nearBlackRatio)),averageColour:samples.reduce((sum,sample)=>sum+sample.colourfulRatio,0)/Math.max(1,samples.length)};
-            });
-            if(renderedHealth.actors<4||renderedHealth.samples.length<4)throw new Error(`Too few real actors rendered: ${JSON.stringify(renderedHealth)}`);
-            if(renderedHealth.maxNearBlack>.48||renderedHealth.averageColour<.12)throw new Error(`Rendered actors contain invalid rectangular backdrops: ${JSON.stringify(renderedHealth)}`);
-
-            await page.screenshot({path:'test-results/sprite-transparency-desktop.png',fullPage:true});
-            if(failures.length)throw new Error(`Sprite QA captured ${failures.length} browser failure(s):\n${failures.join('\n')}`);
-            console.log('Native transparent anime atlas passed',JSON.stringify({atlas,renderedHealth}));
-            await context.close();
-          }finally{await browser.close();}
-          JS
-
-      - name: Remove temporary transfer workflow and push corrected v1.8
-        shell: bash
-        run: |
-          set -euo pipefail
-          rm -f .github/workflows/import-native-transparent-atlas-v18.yml
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git commit -m 'Ship native transparent anime character atlas'
-          git push origin HEAD:agent/anime-art-integration-v18
+          git add -f debug-native-atlas.txt
+          git commit -m 'Capture native atlas diagnostics'
+          git push origin HEAD:asset-transfer-v18-final-clean
