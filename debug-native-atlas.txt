@@ -1,0 +1,10 @@
+bytes=137391
+sha256=2681dc575d9bda058b6c5d0b2290b697975a03bbe94131fe50ea740a0e43321b
+format=PNG
+mode=P
+size=(581, 344)
+transparent_ratio=0.000000000
+partial_alpha_ratio=0.000000000
+opaque_ratio=1.000000000
+alpha_extrema=(255, 255)
+rgb_variance=[1952.1301561609946, 1303.9680293691251, 1209.3127981790608]
