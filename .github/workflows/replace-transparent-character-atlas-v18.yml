@@ -25,7 +25,7 @@ jobs:
         run: |
           set -euo pipefail
           mapfile -t parts < <(find .character-import -maxdepth 1 -type f -name '*.part' | sort)
-          test "${#parts[@]}" -eq 21
+          test "${#parts[@]}" -eq 11
           cat "${parts[@]}" | base64 --decode > assets/anime/characters.webp
           echo '89cdd93ad519ffe48a6f2d38804221d1538de0ba141d47380955fe69f5969925  assets/anime/characters.webp' | sha256sum -c -
 
