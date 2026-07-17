@@ -1,4 +1,4 @@
-# Sakura Crest v1.7 known issues and tradeoffs
+# Sakura Crest v1.8 known issues and tradeoffs
 
 ## Severity summary
 
@@ -20,7 +20,7 @@ Severity: low operational risk.
 
 ## Save downgrade compatibility
 
-Version 1.7 writes save format v10. The v1.7 runtime migrates all earlier save formats, but older game versions are not guaranteed to read v10 saves. Emergency rollback procedures therefore preserve access to the v1.7 deployment for progress recovery.
+Version 1.8 continues to write save format v10. The v1.8 runtime migrates all earlier save formats, but older game versions are not guaranteed to read v10 saves. Emergency rollback procedures therefore preserve access to the v1.8 deployment for progress recovery.
 
 Severity: low operational risk.
 
@@ -30,8 +30,14 @@ Progress is stored locally in the browser and is not synchronized between device
 
 Severity: expected product behavior.
 
+## Permanent artwork delivery
+
+The v1.8 artwork is stored locally under `assets/anime/` and cached by the versioned service worker. A first visit requires the browser to download the artwork before it becomes available offline; subsequent offline loads use the local cache.
+
+Severity: expected product behavior.
+
 ## Production infrastructure verification
 
-The repository validates the complete deployable static artifact, headers, redirects, service worker and browser behavior. The final custom-domain certificate, DNS, Cloudflare Pages project settings and promoted production deployment must be checked in the Cloudflare account after merge using `docs/cloudflare-release-runbook.md`.
+The repository validates the complete deployable static artifact, artwork digests, headers, redirects, service worker and browser behavior. The GitHub deployment workflow then submits the exact `main` artifact to Cloudflare Pages and verifies the deployed commit hash. Custom-domain DNS and certificate status remain Cloudflare account settings and should be checked after the first production deployment.
 
 Severity: deployment checklist item.

@@ -7,8 +7,8 @@ const confirmName = document.getElementById('confirmName');
 const loading = document.getElementById('loading');
 
 const W = canvas.width;
-const SPRITE_FRAME_W = 96;
-const SPRITE_FRAME_H = 128;
+const SPRITE_FRAME_W = 48;
+const SPRITE_FRAME_H = 64;
 const PORTRAIT_CELL = 128;
 const UI_FONT = '"Trebuchet MS", Arial, sans-serif';
 const CHARACTER_IDS = ['player_boy','player_girl',...NPCS.map(n=>n.id),...TEACHERS.map(t=>t.id)];

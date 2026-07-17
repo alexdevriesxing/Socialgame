@@ -1,0 +1,40 @@
+{
+  "version": "1.8.0",
+  "source": "original commercial anime artwork with frame-edge-cleaned transparent character backgrounds",
+  "proceduralFallbacks": false,
+  "externalRuntimeDependency": false,
+  "assets": {
+    "keyart.webp": {
+      "width": 960,
+      "height": 540,
+      "bytes": 115018,
+      "sha256": "731e95621f2ce933ef0116b5fea5b1101ef9f5684eb88af6928e7f52928d9439"
+    },
+    "campus.webp": {
+      "width": 4096,
+      "height": 768,
+      "bytes": 697104,
+      "sha256": "70a6e7055599884d34cbc09f4dbc0e345ae2ac9fa2ab77dbe5601754c919e9f5"
+    },
+    "characters.webp": {
+      "width": 1728,
+      "height": 1024,
+      "bytes": 1173722,
+      "sha256": "825f8b96d20ff060639d5c6b954d8acf817f23087c79af6640596a43bed58837",
+      "transparentPixelRatio": 0.926099,
+      "partialAlphaPixelRatio": 0.021432
+    },
+    "portraits.webp": {
+      "width": 512,
+      "height": 512,
+      "bytes": 7160,
+      "sha256": "a09bf8e64c441b40dc7a32d6b2bca09a2ed92a18a60da6daa9af801159a1047a"
+    },
+    "objects.webp": {
+      "width": 1024,
+      "height": 512,
+      "bytes": 114542,
+      "sha256": "be7796fb24cce8a94be65b702226aab8226818677b172a51ddb923eba8f2f6c5"
+    }
+  }
+}

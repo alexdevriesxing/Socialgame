@@ -35,12 +35,13 @@ jobs:
           done
           node --check sw.js
           node --check tests/browser-production-smoke.mjs
+          node --check tests/sprite-transparency-smoke.mjs
           node --check tests/browser-engine-smoke.mjs
           node --check tests/release-readiness-smoke.mjs
           node --check tests/remote-static-smoke.mjs
           node --check tests/verify-release.mjs
 
-      - name: Validate v1.7 release inventory and Cloudflare artifact
+      - name: Validate v1.8 release inventory and Cloudflare artifact
         run: |
           set -o pipefail
           node tests/verify-release.mjs 2>&1 | tee test-results/release-inventory.log
@@ -79,6 +80,13 @@ jobs:
           set -o pipefail
           node tests/browser-production-smoke.mjs 2>&1 | tee test-results/browser-production-smoke.log
 
+      - name: Reject rectangular sprite backgrounds
+        env:
+          BASE_URL: http://127.0.0.1:4173
+        run: |
+          set -o pipefail
+          node tests/sprite-transparency-smoke.mjs 2>&1 | tee test-results/sprite-transparency-smoke.log
+
       - name: Run Chrome Edge Firefox and WebKit compatibility QA
         env:
           BASE_URL: http://127.0.0.1:4173
@@ -86,11 +94,11 @@ jobs:
           set -o pipefail
           node tests/browser-engine-smoke.mjs 2>&1 | tee test-results/browser-engine-smoke.log
 
-      - name: Upload v1.7 release evidence
+      - name: Upload v1.8 release evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: sakura-crest-v17-release-readiness-qa
+          name: sakura-crest-v18-release-readiness-qa
           path: test-results
           if-no-files-found: warn
           retention-days: 14

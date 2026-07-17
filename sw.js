@@ -1,12 +1,13 @@
 'use strict';
 
-const CACHE_VERSION = 'sakura-crest-v1.7.0';
+const CACHE_VERSION = 'sakura-crest-v1.8.0-transparent-atlas';
 const CORE_FILES = [
   './','./index.html','./styles.css','./manifest.webmanifest','./assets/favicon.svg',
+  './assets/anime/keyart.webp','./assets/anime/campus.webp','./assets/anime/characters.webp','./assets/anime/portraits.webp','./assets/anime/objects.webp','./assets/anime/manifest.json',
   './src/content-1.js','./src/content-2.js','./src/content-3.js','./src/content-4.js','./src/content-5.js','./src/content-6.js',
-  './src/save.js','./src/art.js','./src/game-1.js','./src/game-2.js','./src/game-3.js','./src/game-4.js','./src/game-5.js',
+  './src/save.js','./src/art.js','./src/anime-art-v18.js','./src/game-1.js','./src/game-2.js','./src/game-3.js','./src/game-4.js','./src/game-5.js',
   './src/campus.js','./src/activity.js','./src/visual.js','./src/world.js','./src/world-polish.js','./src/world-title.js',
-  './src/commercial-ui.js','./src/commercial-campus.js','./src/walkable-world.js','./src/commercial-world-ui.js',
+  './src/commercial-ui.js','./src/commercial-campus.js','./src/walkable-world.js','./src/commercial-world-ui.js','./src/anime-campus-v18.js',
   './src/accessibility-core.js','./src/accessibility-preferences.js','./src/accessibility-history.js','./src/accessibility-performance.js','./src/accessibility-ui.js',
   './src/release-readiness.js','./src/platform.js'
 ];
