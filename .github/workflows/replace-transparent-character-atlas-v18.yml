@@ -1,4 +1,4 @@
-name: Bake transparent character atlas v1.8
+name: Diagnose transparent character atlas v1.8
 
 on:
   push:
@@ -12,142 +12,63 @@ permissions:
   contents: write
 
 jobs:
-  replace:
+  diagnose:
     if: github.actor != 'github-actions[bot]'
     runs-on: ubuntu-latest
     timeout-minutes: 12
     steps:
-      - name: Checkout transfer branch
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
           ref: asset-transfer-v18
           fetch-depth: 0
-
-      - name: Bake static transparency into every animation frame
+      - name: Measure corner-connected background removal
         shell: bash
         run: |
           set -euo pipefail
           python3 -m pip install --quiet pillow
           mkdir -p atlas-proof
           python3 - <<'PY'
-          from PIL import Image, ImageDraw
+          from PIL import Image
           from collections import deque
           from pathlib import Path
-          import hashlib, json, statistics
-
-          path=Path('assets/anime/characters.webp')
-          image=Image.open(path).convert('RGBA'); image.load()
-          assert image.size==(1728,1024), image.size
+          import json, statistics
+          source=Image.open('assets/anime/characters.webp').convert('RGBA'); source.load()
           FW,FH=48,64
-          output=Image.new('RGBA',image.size,(0,0,0,0))
-          frame_stats=[]
-
-          for row in range(image.height//FH):
-              for col in range(image.width//FW):
-                  frame=image.crop((col*FW,row*FH,(col+1)*FW,(row+1)*FH)).convert('RGBA')
-                  px=frame.load()
-                  corners=[]
-                  for ox,oy in ((0,0),(FW-1,0),(0,FH-1),(FW-1,FH-1)):
-                      for dy in range(3):
-                          for dx in range(3):
-                              x=min(FW-1,max(0,ox+dx*(1 if ox==0 else -1)))
-                              y=min(FH-1,max(0,oy+dy*(1 if oy==0 else -1)))
-                              corners.append(px[x,y][:3])
-                  bg=tuple(int(statistics.median(c[i] for c in corners)) for i in range(3))
-                  seen=set(); queue=deque()
-                  for x in range(FW): queue.append((x,0));queue.append((x,FH-1))
-                  for y in range(FH): queue.append((0,y));queue.append((FW-1,y))
-                  removed=0
-                  while queue:
-                      x,y=queue.popleft()
-                      if (x,y) in seen: continue
-                      seen.add((x,y))
-                      r,g,b,a=px[x,y]
-                      distance=abs(r-bg[0])+abs(g-bg[1])+abs(b-bg[2])
-                      # Tight threshold: remove only near-background pixels connected to frame edges.
-                      if a==0 or distance>34 or (r+g+b)>125: continue
-                      px[x,y]=(r,g,b,0); removed+=1
-                      if x: queue.append((x-1,y))
-                      if x+1<FW: queue.append((x+1,y))
-                      if y: queue.append((x,y-1))
-                      if y+1<FH: queue.append((x,y+1))
-
-                  # Feather only pixels immediately bordering transparent background.
-                  original=frame.copy(); opx=original.load()
-                  for y in range(FH):
-                      for x in range(FW):
-                          if px[x,y][3]==0: continue
-                          if any(0<=nx<FW and 0<=ny<FH and px[nx,ny][3]==0 for nx,ny in ((x-1,y),(x+1,y),(x,y-1),(x,y+1))):
-                              r,g,b,a=px[x,y]
-                              distance=abs(r-bg[0])+abs(g-bg[1])+abs(b-bg[2])
-                              if distance<70 and r+g+b<190:
-                                  px[x,y]=(r,g,b,max(45,min(255,int(distance/70*255))))
-
-                  alpha=frame.getchannel('A')
-                  bbox=alpha.getbbox()
-                  opaque=sum(v>16 for v in alpha.getdata())
-                  transparent=FW*FH-opaque
-                  if not bbox or opaque<90 or opaque>2200:
-                      raise SystemExit(f'frame {row}:{col} invalid opaque={opaque} bbox={bbox} bg={bg} removed={removed}')
-                  frame_stats.append({'row':row,'col':col,'opaque':opaque,'transparent':transparent,'removed':removed,'bbox':bbox})
-                  output.alpha_composite(frame,(col*FW,row*FH))
-
-          total=image.width*image.height
-          alpha=list(output.getchannel('A').getdata())
-          ratio=sum(v<8 for v in alpha)/total
-          if not .62<ratio<.9: raise SystemExit(f'unexpected atlas transparency ratio {ratio}')
-          output.save(path,'WEBP',quality=86,method=6)
-          verify=Image.open(path).convert('RGBA');verify.load()
-          verify_alpha=list(verify.getchannel('A').getdata())
-          verify_ratio=sum(v<8 for v in verify_alpha)/(verify.width*verify.height)
-          if verify_ratio<.60: raise SystemExit(f'encoded alpha ratio too low {verify_ratio}')
-
-          manifest_path=Path('assets/anime/manifest.json')
-          manifest=json.loads(manifest_path.read_text(encoding='utf-8'))
-          data=path.read_bytes()
-          manifest['source']='original commercial anime artwork with baked per-frame transparency'
-          manifest['assets']['characters.webp']={
-              'width':verify.width,'height':verify.height,'bytes':len(data),
-              'sha256':hashlib.sha256(data).hexdigest(),
-              'transparentPixelRatio':round(verify_ratio,6),
-              'frameWidth':FW,'frameHeight':FH,'frames':len(frame_stats),
-              'characters':16,'actions':9,'directions':4
-          }
-          manifest_path.write_text(json.dumps(manifest,indent=2)+'\n',encoding='utf-8')
-          Path('atlas-proof/frame-stats.json').write_text(json.dumps({'ratio':verify_ratio,'frames':frame_stats},indent=2))
-          output.resize((864,512),Image.Resampling.LANCZOS).save('atlas-proof/characters-transparent-preview.png')
-          print('baked transparent atlas',verify.size,len(data),verify_ratio,hashlib.sha256(data).hexdigest())
+          result={}
+          for threshold in (12,18,24,30,36,44,54):
+              output=Image.new('RGBA',source.size,(0,0,0,0)); stats=[]
+              for row in range(source.height//FH):
+                  for col in range(source.width//FW):
+                      frame=source.crop((col*FW,row*FH,(col+1)*FW,(row+1)*FH)).convert('RGBA');px=frame.load()
+                      corners=[px[x,y][:3] for x,y in ((0,0),(FW-1,0),(0,FH-1),(FW-1,FH-1))]
+                      bg=tuple(int(statistics.median(c[i] for c in corners)) for i in range(3))
+                      q=deque([(x,0) for x in range(FW)]+[(x,FH-1) for x in range(FW)]+[(0,y) for y in range(FH)]+[(FW-1,y) for y in range(FH)])
+                      seen=set();removed=0
+                      while q:
+                          x,y=q.popleft()
+                          if (x,y) in seen:continue
+                          seen.add((x,y));r,g,b,a=px[x,y]
+                          d=abs(r-bg[0])+abs(g-bg[1])+abs(b-bg[2])
+                          if a==0 or d>threshold:continue
+                          px[x,y]=(r,g,b,0);removed+=1
+                          if x:q.append((x-1,y))
+                          if x+1<FW:q.append((x+1,y))
+                          if y:q.append((x,y-1))
+                          if y+1<FH:q.append((x,y+1))
+                      alpha=frame.getchannel('A');opaque=sum(v>16 for v in alpha.getdata())
+                      stats.append({'opaque':opaque,'removed':removed,'bbox':alpha.getbbox()})
+                      output.alpha_composite(frame,(col*FW,row*FH))
+              alpha=list(output.getchannel('A').getdata());ratio=sum(v<8 for v in alpha)/(output.width*output.height)
+              result[str(threshold)]={'ratio':ratio,'minOpaque':min(s['opaque'] for s in stats),'maxOpaque':max(s['opaque'] for s in stats),'medianOpaque':statistics.median(s['opaque'] for s in stats),'minRemoved':min(s['removed'] for s in stats),'maxRemoved':max(s['removed'] for s in stats),'medianRemoved':statistics.median(s['removed'] for s in stats)}
+              output.resize((864,512),Image.Resampling.NEAREST).save(f'atlas-proof/threshold-{threshold}.png')
+          Path('atlas-proof/diagnostics.json').write_text(json.dumps(result,indent=2))
+          print(json.dumps(result,indent=2))
           PY
-
-      - name: Remove obsolete runtime cleanup
-        shell: bash
-        run: |
-          set -euo pipefail
-          python3 - <<'PY'
-          from pathlib import Path
-          index=Path('index.html');index.write_text(index.read_text(encoding='utf-8').replace('  <script src="src/anime-sprite-cleanup-v18.js"></script>\n',''),encoding='utf-8')
-          manifest=Path('build-manifest.json');manifest.write_text(manifest.read_text(encoding='utf-8').replace('    "src/anime-sprite-cleanup-v18.js",\n',''),encoding='utf-8')
-          sw=Path('sw.js');sw.write_text(sw.read_text(encoding='utf-8').replace("'sakura-crest-v1.8.0-sprite-cleanup'","'sakura-crest-v1.8.0-transparent-atlas'").replace("'./src/anime-sprite-cleanup-v18.js',",''),encoding='utf-8')
-          PY
-          rm -f src/anime-sprite-cleanup-v18.js
-          rm -rf .character-import atlas-probe
-          rm -f .github/workflows/replace-transparent-character-atlas-v18.yml
-
-      - name: Commit static transparent atlas to v1.8
-        shell: bash
-        run: |
-          set -euo pipefail
-          git config user.name 'github-actions[bot]'
-          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git add -A
-          git commit -m 'Bake native transparency into commercial anime sprites'
-          git push origin HEAD:agent/anime-art-integration-v18
-
-      - name: Upload atlas proof
+      - name: Upload threshold previews
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: baked-transparent-atlas-proof
+          name: atlas-threshold-diagnostics
           path: atlas-proof
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 3
