@@ -1,6 +1,6 @@
 {
   "version": "1.8.0",
-  "source": "original generated commercial anime artwork reconstructed from authenticated lossless tiles",
+  "source": "original commercial anime artwork with frame-edge-cleaned transparent character backgrounds",
   "proceduralFallbacks": false,
   "externalRuntimeDependency": false,
   "assets": {
@@ -19,8 +19,10 @@
     "characters.webp": {
       "width": 1728,
       "height": 1024,
-      "bytes": 257276,
-      "sha256": "946168fe1fbf8cd0b079b46d3b02677e952f9233cc49d23449291156f5b91635"
+      "bytes": 1173722,
+      "sha256": "825f8b96d20ff060639d5c6b954d8acf817f23087c79af6640596a43bed58837",
+      "transparentPixelRatio": 0.926099,
+      "partialAlphaPixelRatio": 0.021432
     },
     "portraits.webp": {
       "width": 512,
