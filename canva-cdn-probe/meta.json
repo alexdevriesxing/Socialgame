@@ -1,0 +1,18 @@
+{
+  "status": 403,
+  "headers": {
+    "cf-ray": "a1cbba149cc91f62-IAD",
+    "content-length": "17",
+    "content-security-policy": "script-src 'none'; frame-src 'none'; object-src 'none'; default-src 'none'; style-src 'unsafe-inline'; img-src 'self'; media-src 'self'; form-action 'none'; base-uri 'none'; report-uri https://csp.canva.com/_cspreport?app=s3_media",
+    "content-type": "text/plain;charset=UTF-8",
+    "date": "Fri, 17 Jul 2026 19:41:55 GMT",
+    "nel": "{\"report_to\":\"cf-nel\",\"success_fraction\":0.01,\"max_age\":604800}",
+    "report-to": "{\"group\":\"cf-nel\",\"max_age\":604800,\"endpoints\":[{\"url\":\"https://a.nel.cloudflare.com/report/v4?s=cJ3tePu77J76FwuU4oJe3Bi%2B5N0OqcEl9Ris3CBrlyOMBBzoUNxb%2B%2FFYZ30NR%2BXEvg%2BM6Jr2mxaBI5u7NWW89gfXjz8gMrzM0Kql%2FeWBG%2FVwXg0ctZSQZdS7sfm%2BfNGXCw%3D%3D\"}]}",
+    "server": "cloudflare",
+    "strict-transport-security": "max-age=31536000; includeSubDomains; preload",
+    "vary": "Origin, accept-encoding",
+    "x-content-type-options": "nosniff"
+  },
+  "url": "https://media.canva.com/v2/document-image/hash:256029541/height:344/id:DAHPqb3b1Xw/type:B/width:581?brand=BAGB1PhMIKI&csig=AAAAAAAAAAAAAAAAAAAAAKlMF4n0hM623ScPaHNYM5IKY8ApEOqCPdJsXmSVi03l&disableexport=T&exp=1784313571&fallback=https%3A%2F%2Fs3.amazonaws.com%2Fdocument-export.canva.com%2F3b1Xw%2FDAHPqb3b1Xw%2F1%2Fthumbnail%2F0001.png%3FX-Amz-Algorithm%3DAWS4-HMAC-SHA256%26X-Amz-Credential%3DAKIAQYCGKMUHXSTDDERN%252F20260716%252Fus-east-1%252Fs3%252Faws4_request%26X-Amz-Date%3D20260716T184921Z%26X-Amz-Expires%3D85810%26X-Amz-Signature%3D473f0ba5948c893f21ce24d070d06f5cbc567b290124fad5e3812688a4b4824d%26X-Amz-SignedHeaders%3Dhost%26response-expires%3DFri%252C%252017%2520Jul%25202026%252018%253A39%253A31%2520GMT&osig=AAAAAAAAAAAAAAAAAAAAAJ-Z2BGobEeS-QLF1kEUwe8UxSiz_3dDuPJGNFgvovyK&page=1&signed=brand%2Cdisableexport%2Cfallback%2Cpage%2Cversion&signer=document-rpc&version=1",
+  "title": ""
+}
