@@ -1,4 +1,4 @@
-name: Diagnose native transparent atlas v1.8
+name: Diagnose native Canva asset v1.8
 
 on:
   pull_request:
@@ -19,12 +19,12 @@ jobs:
           ref: asset-transfer-v18-final-clean
           fetch-depth: 0
       - run: python3 -m pip install --quiet pillow
-      - name: Inspect signed original rendition
+      - name: Inspect native Canva asset rendition
         shell: bash
         run: |
           set -euo pipefail
           curl --fail --location --silent --show-error \
-            'https://s3.amazonaws.com/document-export.canva.com/69ehI/DAHPq669ehI/1/thumbnail/0001.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAQYCGKMUHXSTDDERN%2F20260717%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20260717T062228Z&X-Amz-Expires=56611&X-Amz-Signature=0c770db26e54b46d98867c7a35a09f9e48f85c8c46dd0f35a4407a6152bc83bd&X-Amz-SignedHeaders=host&response-expires=Fri%2C%2017%20Jul%202026%2022%3A05%3A59%20GMT' \
+            'https://media.canva.com/v2/image-resize/format:PNG/height:1024/quality:100/uri:ifs%3A%2F%2FM%2F7e2c4bf8-4cbf-468f-b70b-6921ccdb4382/watermark:F/width:1728?csig=AAAAAAAAAAAAAAAAAAAAAFv5ut6DhVjOdQ13gf1_TLYtnXCgb0WBed3UOFmPcSCP&exp=1784338475&osig=AAAAAAAAAAAAAAAAAAAAAO0yYb5WSeNTqet8vkn5lyyNbOG0hH-DvHpweCBxnt5A&signer=media-rpc&x-canva-quality=thumbnail' \
             --output /tmp/characters-source.png
           python3 - <<'PY'
           from PIL import Image, ImageStat
@@ -35,9 +35,10 @@ jobs:
           rgba=raw.convert('RGBA')
           alpha=rgba.getchannel('A')
           hist=alpha.histogram()
-          transparent=sum(hist[:8])/(rgba.width*rgba.height)
-          partial=sum(hist[8:248])/(rgba.width*rgba.height)
-          opaque=sum(hist[248:])/(rgba.width*rgba.height)
+          total=rgba.width*rgba.height
+          transparent=sum(hist[:8])/total
+          partial=sum(hist[8:248])/total
+          opaque=sum(hist[248:])/total
           text='\n'.join([
             f'bytes={path.stat().st_size}',
             f'sha256={hashlib.sha256(path.read_bytes()).hexdigest()}',
@@ -58,5 +59,5 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
           git add -f debug-native-atlas.txt
-          git commit -m 'Capture native atlas diagnostics'
+          git commit -m 'Capture native Canva asset diagnostics' || exit 0
           git push origin HEAD:asset-transfer-v18-final-clean
