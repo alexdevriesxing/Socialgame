@@ -1,10 +1,10 @@
 import { readFile, stat } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 
-const RELEASE_VERSION = '1.10.0';
+const RELEASE_VERSION = '1.11.0';
 const manifest = JSON.parse(await readFile('build-manifest.json', 'utf8'));
 if (manifest.version !== RELEASE_VERSION) throw new Error(`Expected release ${RELEASE_VERSION}, received ${manifest.version}.`);
-if (!Array.isArray(manifest.files) || manifest.files.length < 50) throw new Error(`Release inventory is incomplete: ${manifest.files?.length || 0} files.`);
+if (!Array.isArray(manifest.files) || manifest.files.length < 52) throw new Error(`Release inventory is incomplete: ${manifest.files?.length || 0} files.`);
 if (new Set(manifest.files).size !== manifest.files.length) throw new Error('Release inventory contains duplicate paths.');
 
 const digests = {};
@@ -17,7 +17,7 @@ for (const path of manifest.files) {
 
 const index = await readFile(manifest.entrypoint, 'utf8');
 const scripts = [...index.matchAll(/<script src="([^"]+)"><\/script>/g)].map(match => match[1]);
-if (scripts.length < 34) throw new Error(`Expected at least 34 production scripts; found ${scripts.length}.`);
+if (scripts.length < 35) throw new Error(`Expected at least 35 production scripts; found ${scripts.length}.`);
 for (const script of scripts) if (!manifest.files.includes(script)) throw new Error(`${script}: referenced by index.html but absent from build-manifest.json.`);
 if (!index.includes(`name="sakura-release" content="${RELEASE_VERSION}"`)) throw new Error('The release metadata marker is missing from index.html.');
 if (!index.includes('orientation-hint')) throw new Error('Portrait orientation guidance is missing from index.html.');
@@ -33,19 +33,28 @@ for (const path of manifest.files) {
 if (!serviceWorker.includes(`sakura-crest-v${RELEASE_VERSION}`)) throw new Error(`Service-worker cache version does not match release ${RELEASE_VERSION}.`);
 
 for (const required of [
-  'src/anime-art-v18.js','src/social-memory-v19.js','src/real-assets-v110.js',
+  'src/anime-art-v18.js','src/social-memory-v19.js','src/real-assets-v110.js','src/living-district-v111.js',
   'src/campus.js','src/activity.js','src/visual.js','src/world.js','src/world-polish.js','src/world-title.js',
   'src/commercial-ui.js','src/commercial-campus.js','src/walkable-world.js','src/commercial-world-ui.js','src/anime-campus-v18.js',
   'src/accessibility-core.js','src/accessibility-preferences.js','src/accessibility-history.js','src/accessibility-performance.js','src/accessibility-ui.js',
   'src/release-readiness.js'
-]) if (!index.includes(required)) throw new Error(`${required}: required v1.10 runtime is not wired into index.html.`);
+]) if (!index.includes(required)) throw new Error(`${required}: required v1.11 runtime is not wired into index.html.`);
 
 const realAssetRuntime = await readFile('src/real-assets-v110.js', 'utf8');
 for (const forbidden of ['legacyWwDrawScene','drawRealCollisionLandmarks','legacyWwDrawScene();']) {
   if (realAssetRuntime.includes(forbidden)) throw new Error(`src/real-assets-v110.js still contains forbidden legacy/debug renderer: ${forbidden}`);
 }
-if (!realAssetRuntime.includes('collisionDebugVisible:false') || !realAssetRuntime.includes('legacySceneRenderer:false')) throw new Error('The v1.10 real-asset validator does not explicitly certify invisible collision geometry and removal of the legacy renderer.');
+if (!realAssetRuntime.includes('collisionDebugVisible:false') || !realAssetRuntime.includes('legacySceneRenderer:false')) throw new Error('The real-asset validator does not explicitly certify invisible collision geometry and removal of the legacy renderer.');
 if (!realAssetRuntime.includes('drawRealAssetLoadError')) throw new Error('Dedicated artwork failures are not surfaced through an explicit load-error state.');
+
+const livingDistrict = await readFile('src/living-district-v111.js', 'utf8');
+for (const required of ['LIVING_DISTRICT_VERSION','LIVING_DISTRICT_SIGNATURES','ensureLivingDistrictProgress','livingDistrictRecord','drawLivingDistrictAmbience','validateLivingDistrictV111']) {
+  if (!livingDistrict.includes(required)) throw new Error(`src/living-district-v111.js is missing ${required}.`);
+}
+if (!livingDistrict.includes("LIVING_DISTRICT_VERSION='1.11.0'")) throw new Error('Living District runtime version mismatch.');
+if (!livingDistrict.includes('signatureActivities:ids.length') || !livingDistrict.includes('uniqueAmbientProfiles:14') || !livingDistrict.includes('reducedMotionAware:true')) throw new Error('Living District completion metrics are incomplete.');
+if (!livingDistrict.includes('progress.lastMasteryDay[id]===dayKey')) throw new Error('Living District mastery can be farmed repeatedly on the same in-game day.');
+if (/data:image|https?:\/\//i.test(livingDistrict)) throw new Error('Living District runtime contains an external or embedded replacement-art dependency.');
 
 const artRouter = await readFile('src/anime-art-v18.js', 'utf8');
 for (const path of ['district-map.webp','world-locations.webp','events.webp','rivals.webp','memories.webp']) {
@@ -82,7 +91,7 @@ for (const [name, [width, height]] of Object.entries(expectedAnimeAssets)) {
 }
 
 const dedicatedPaths = ['district-map.webp','world-locations.webp','events.webp','rivals.webp','memories.webp'].map(name => animeManifest.assets[name].sha256);
-if (new Set(dedicatedPaths).size !== dedicatedPaths.length) throw new Error('Dedicated v1.10 artwork files share duplicate digests.');
+if (new Set(dedicatedPaths).size !== dedicatedPaths.length) throw new Error('Dedicated artwork files share duplicate digests.');
 
 const headers = await readFile('_headers', 'utf8');
 for (const required of ['Content-Security-Policy:', 'X-Content-Type-Options: nosniff', 'X-Frame-Options: DENY', 'Strict-Transport-Security:', 'Service-Worker-Allowed: /']) {
@@ -91,7 +100,7 @@ for (const required of ['Content-Security-Policy:', 'X-Content-Type-Options: nos
 const redirects = await readFile('_redirects', 'utf8');
 for (const alias of ['/play / 302', '/game / 302', '/sakura-crest / 302']) if (!redirects.includes(alias)) throw new Error(`_redirects is missing ${alias}.`);
 
-for (const document of ['docs/release-v1.7.md','docs/release-v1.8-art.md','docs/release-v1.9-social-memory.md','docs/release-v1.10-real-assets.md','docs/cloudflare-release-runbook.md','docs/known-issues.md']) {
+for (const document of ['docs/release-v1.7.md','docs/release-v1.8-art.md','docs/release-v1.9-social-memory.md','docs/release-v1.10-real-assets.md','docs/release-v1.11-living-district.md','docs/cloudflare-release-runbook.md','docs/known-issues.md']) {
   const text = await readFile(document, 'utf8');
   if (text.length < 400) throw new Error(`${document}: release documentation is incomplete.`);
 }
@@ -100,7 +109,8 @@ if (!knownIssues.includes('Known critical defects: **0**') || !knownIssues.inclu
 
 console.log(`Release inventory passed for ${manifest.files.length} files and ${scripts.length} production scripts.`);
 console.log(`Permanent anime artwork passed for ${Object.keys(expectedAnimeAssets).length} assets.`);
-console.log('Dedicated v1.10 district, location, event, rival and memory artwork passed source, uniqueness and no-fallback checks.');
-console.log('Deep Social Memory remains compatible and dedicated real assets v1.10 are registered in runtime, offline cache and release documentation.');
+console.log('Dedicated district, location, event, rival and memory artwork passed source, uniqueness and no-fallback checks.');
+console.log('Living District v1.11 passed signature-activity, anti-farming, persistent-mastery, ambient-profile and reduced-motion checks.');
+console.log('Deep Social Memory remains compatible and every real environment stays local to the repository and offline cache.');
 console.log(`Runtime digests generated for audit: ${Object.keys(digests).length}.`);
 console.log('Cloudflare headers, redirects, release notes, known issues and rollback documentation passed.');
