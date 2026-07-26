@@ -5,6 +5,7 @@ const ANIME_ART_PATHS=Object.freeze({
   school_maps:'assets/anime/campus.webp',
   character_atlas:'assets/anime/characters.webp',
   portraits:'assets/anime/portraits.webp',
+  objects:'assets/anime/objects.webp',
   object_atlas:'assets/anime/objects.webp',
   tileset:'assets/anime/objects.webp',
   ui_icons:'assets/anime/objects.webp',
