@@ -1,0 +1,55 @@
+name: Gameplay CI
+
+on:
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'assets/**'
+      - 'tests/**'
+      - 'scripts/**'
+      - 'tools/**'
+      - 'package.json'
+      - 'package-lock.json'
+      - 'index.html'
+      - 'styles.css'
+      - 'manifest.webmanifest'
+      - '_headers'
+      - '.github/workflows/gameplay-ci.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run complete validation suite
+        run: npm run check
+
+      - name: Upload Cloudflare Pages build
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: socialgame-cloudflare-pages
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14
