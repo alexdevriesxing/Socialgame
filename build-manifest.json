@@ -1,5 +1,5 @@
 {
-  "version": "1.10.0",
+  "version": "1.11.0",
   "format": "cloudflare-static",
   "entrypoint": "index.html",
   "offline": "sw.js",
@@ -23,6 +23,8 @@
     "docs/release-v1.7.md",
     "docs/release-v1.8-art.md",
     "docs/release-v1.9-social-memory.md",
+    "docs/release-v1.10-real-assets.md",
+    "docs/release-v1.11-living-district.md",
     "docs/cloudflare-release-runbook.md",
     "docs/known-issues.md",
     "src/content-1.js",
@@ -51,6 +53,8 @@
     "src/walkable-world.js",
     "src/commercial-world-ui.js",
     "src/anime-campus-v18.js",
+    "src/real-assets-v110.js",
+    "src/living-district-v111.js",
     "src/accessibility-core.js",
     "src/accessibility-preferences.js",
     "src/accessibility-history.js",
@@ -62,8 +66,6 @@
     "assets/anime/world-locations.webp",
     "assets/anime/events.webp",
     "assets/anime/rivals.webp",
-    "assets/anime/memories.webp",
-    "docs/release-v1.10-real-assets.md",
-    "src/real-assets-v110.js"
+    "assets/anime/memories.webp"
   ]
 }
