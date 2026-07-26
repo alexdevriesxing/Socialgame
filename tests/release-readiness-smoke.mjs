@@ -27,8 +27,10 @@ for(const script of scripts)vm.runInThisContext(await readFile(script,'utf8'),{f
 await new Promise(resolve=>setTimeout(resolve,30));
 
 if(CURRENT_SAVE_VERSION!==10)throw new Error(`Expected save version 10, received ${CURRENT_SAVE_VERSION}.`);
-if(window.SAKURA_RELEASE?.version!=='1.8.0')throw new Error(`Expected release 1.8.0, received ${window.SAKURA_RELEASE?.version}.`);
+if(window.SAKURA_RELEASE?.version!=='1.9.0')throw new Error(`Expected release 1.9.0, received ${window.SAKURA_RELEASE?.version}.`);
+if(window.SakuraSocialMemoryV19?.version!=='1.9.0')throw new Error('Deep Social Memory v1.9 runtime is missing.');
 const readiness=validateReleaseReadiness();if(!readiness.valid)throw new Error(`Release validator failed: ${JSON.stringify(readiness)}`);
+if(!readiness.social?.valid)throw new Error(`Social-memory validator failed: ${JSON.stringify(readiness.social)}`);
 if(readiness.knownCriticalIssues!==0||readiness.knownHighIssues!==0)throw new Error('Release validator reports unresolved critical or high issues.');
 const animeArt=validateAnimeArtV18();if(!animeArt.valid||animeArt.externalRuntimeDependency!==false||animeArt.proceduralFallbacks!==false)throw new Error(`Anime art release validation failed: ${JSON.stringify(animeArt)}`);
 
@@ -83,4 +85,4 @@ for(const gender of ['boy','girl']){
 
 for(let iteration=0;iteration<50000;iteration++){game.year=iteration%4+1;game.month=iteration%12+1;game.day=iteration%20+1;const playerScore=releaseSocialScore(game.player,game);const rivalScore=releaseNpcScore(NPCS[iteration%NPCS.length],game,game.player);if(!Number.isFinite(playerScore)||!Number.isFinite(rivalScore))throw new Error(`Long-session score became non-finite at iteration ${iteration}.`);}
 
-console.log(`Release readiness passed for v1.8: ${profiles.length} complete 48-month profiles, both ranking ladders, all clubs and difficulties, both ending families, permanent anime artwork, save v1-v10 migration, corruption recovery and 50,000 long-session score checks.`);
+console.log(`Release readiness passed for v1.9: ${profiles.length} complete 48-month profiles, both ranking ladders, all clubs and difficulties, both ending families, Deep Social Memory, permanent anime artwork, save v1-v10 migration, corruption recovery and 50,000 long-session score checks.`);
