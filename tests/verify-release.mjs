@@ -1,7 +1,7 @@
 import { readFile, stat } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 
-const RELEASE_VERSION = '1.8.0';
+const RELEASE_VERSION = '1.9.0';
 const manifest = JSON.parse(await readFile('build-manifest.json', 'utf8'));
 if (manifest.version !== RELEASE_VERSION) throw new Error(`Expected release ${RELEASE_VERSION}, received ${manifest.version}.`);
 if (!Array.isArray(manifest.files) || manifest.files.length < 50) throw new Error(`Release inventory is incomplete: ${manifest.files?.length || 0} files.`);
@@ -17,7 +17,7 @@ for (const path of manifest.files) {
 
 const index = await readFile(manifest.entrypoint, 'utf8');
 const scripts = [...index.matchAll(/<script src="([^"]+)"><\/script>/g)].map(match => match[1]);
-if (scripts.length < 32) throw new Error(`Expected at least 32 production scripts; found ${scripts.length}.`);
+if (scripts.length < 33) throw new Error(`Expected at least 33 production scripts; found ${scripts.length}.`);
 for (const script of scripts) if (!manifest.files.includes(script)) throw new Error(`${script}: referenced by index.html but absent from build-manifest.json.`);
 if (!index.includes(`name="sakura-release" content="${RELEASE_VERSION}"`)) throw new Error('The release metadata marker is missing from index.html.');
 if (!index.includes('orientation-hint')) throw new Error('Portrait orientation guidance is missing from index.html.');
@@ -33,12 +33,12 @@ for (const path of manifest.files) {
 if (!serviceWorker.includes(`sakura-crest-v${RELEASE_VERSION}`)) throw new Error(`Service-worker cache version does not match release ${RELEASE_VERSION}.`);
 
 for (const required of [
-  'src/anime-art-v18.js',
+  'src/anime-art-v18.js','src/social-memory-v19.js',
   'src/campus.js','src/activity.js','src/visual.js','src/world.js','src/world-polish.js','src/world-title.js',
   'src/commercial-ui.js','src/commercial-campus.js','src/walkable-world.js','src/commercial-world-ui.js','src/anime-campus-v18.js',
   'src/accessibility-core.js','src/accessibility-preferences.js','src/accessibility-history.js','src/accessibility-performance.js','src/accessibility-ui.js',
   'src/release-readiness.js'
-]) if (!index.includes(required)) throw new Error(`${required}: required v1.8 runtime is not wired into index.html.`);
+]) if (!index.includes(required)) throw new Error(`${required}: required v1.9 runtime is not wired into index.html.`);
 
 const animeManifestPath = 'assets/anime/manifest.json';
 if (!manifest.files.includes(animeManifestPath)) throw new Error('Permanent anime-art manifest is absent from the release inventory.');
@@ -70,7 +70,7 @@ for (const required of ['Content-Security-Policy:', 'X-Content-Type-Options: nos
 const redirects = await readFile('_redirects', 'utf8');
 for (const alias of ['/play / 302', '/game / 302', '/sakura-crest / 302']) if (!redirects.includes(alias)) throw new Error(`_redirects is missing ${alias}.`);
 
-for (const document of ['docs/release-v1.7.md','docs/release-v1.8-art.md','docs/cloudflare-release-runbook.md','docs/known-issues.md']) {
+for (const document of ['docs/release-v1.7.md','docs/release-v1.8-art.md','docs/release-v1.9-social-memory.md','docs/cloudflare-release-runbook.md','docs/known-issues.md']) {
   const text = await readFile(document, 'utf8');
   if (text.length < 400) throw new Error(`${document}: release documentation is incomplete.`);
 }
@@ -79,5 +79,6 @@ if (!knownIssues.includes('Known critical defects: **0**') || !knownIssues.inclu
 
 console.log(`Release inventory passed for ${manifest.files.length} files and ${scripts.length} production scripts.`);
 console.log(`Permanent anime artwork passed for ${Object.keys(expectedAnimeAssets).length} assets.`);
+console.log('Deep Social Memory v1.9 is registered in the runtime, offline cache and release documentation.');
 console.log(`Runtime digests generated for audit: ${Object.keys(digests).length}.`);
 console.log('Cloudflare headers, redirects, release notes, known issues and rollback documentation passed.');
