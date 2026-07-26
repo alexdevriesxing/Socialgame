@@ -1,0 +1,14 @@
+{
+  "verified": true,
+  "release": "1.11.0",
+  "commit": "2abd7c4077ae370254188316ffa796090044e63b",
+  "project": "sakura-crest-social-summit",
+  "liveUrl": "https://sakura-crest-social-summit.pages.dev",
+  "deploymentUrl": "https://74ba2a60.sakura-crest-social-summit.pages.dev",
+  "canonicalProductionReady": true,
+  "livingDistrictModule": true,
+  "signatureActivities": 14,
+  "ambientProfiles": 14,
+  "permanentAnimeManifest": true,
+  "proceduralFallbacks": false
+}
