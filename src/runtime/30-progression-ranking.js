@@ -5,8 +5,8 @@ function maybeTriggerEvent(){
   const scripted={1:'rumor',2:'fire_drill',3:'rain_leak',4:'queue',5:'mascot'};
   const id=scripted[game.day];
   let event=null;
-  if(id==='queue') event=BULLY_ENCOUNTERS[0];
-  else if(id) event=RANDOM_EVENTS.find(e=>e.id===id);
+  if(id==='queue')event=BULLY_ENCOUNTERS[0];
+  else if(id)event=RANDOM_EVENTS.find(e=>e.id===id);
   else if(Math.random()<0.0025*statusConfig().rumorRisk){
     const pool=[...RANDOM_EVENTS.filter(e=>game.day>=e.minDay),...BULLY_ENCOUNTERS];event=pool[Math.floor(Math.random()*pool.length)];
   }
@@ -20,6 +20,7 @@ function endDay(){
   if(game.player.detention>0){game.player.energy=Math.max(0,game.player.energy-12);game.player.stress=clamp(game.player.stress+5,0,100);game.player.detention--;game.player.score-=3;}
   const missionScore=game.missions.filter(m=>m.done).reduce((s,m)=>s+m.reward,0);
   const rank=getPlayerRank(game.player.gender);
+  const social=socialMemorySummary();
   saveSilently();
   game.overlay={type:'dayEnd',title:`Day ${game.day} Complete`,lines:[
     `Current ${game.player.gender==='boy'?'Boys':'Girls'} Rank: #${rank.position}`,
@@ -27,14 +28,14 @@ function endDay(){
     `${clubConfig().name}: ${currentClubRank()} • ${game.player.clubXP} XP`,
     `Standing: ${rank.score} points`,
     `Daily missions completed: ${game.missions.filter(m=>m.done).length}/${game.missions.length}`,
-    `Conduct: ${game.player.tardies} tardies • ${game.player.demerits} demerits`,
+    `Promises: ${social.openPromises} open • ${social.keptPromises} kept • ${social.brokenPromises} broken`,
     `Energy ${Math.round(game.player.energy)} • Stress ${Math.round(game.player.stress)}`
   ],missionScore};
 }
 function nextDay(){
   game.overlay=null;
   if(game.day>=20){finalizeMonth();return;}
-  game.day++;game.time=470;game.scheduleStatus={};game.dayFlags={talked:[],hotspots:[],help:0,club:0,ontime:0,event:false};
+  game.day++;expirePromises();game.time=470;game.scheduleStatus={};game.dayFlags={talked:[],hotspots:[],help:0,club:0,ontime:0,event:false};
   game.player.energy=clamp(game.player.energy+28,0,100);game.player.stress=clamp(game.player.stress-18,0,100);
   assignMissions();game.player.x=220;game.player.y=350;game.lastSlot=null;relocateNPCs('arrival');saveSilently();
 }
@@ -66,7 +67,7 @@ function continueMonth(){
   game.overlay=null;
   if(game.month===12){game.month=1;game.year++;}else game.month++;
   if(game.year>4){finishProm();return;}
-  game.day=1;game.time=470;game.player.score=Math.round(game.player.score*.42);game.player.tardies=0;game.player.absences=0;
+  game.day=1;expirePromises();game.time=470;game.player.score=Math.round(game.player.score*.42);game.player.tardies=0;game.player.absences=0;
   game.player.demerits=Math.max(0,game.player.demerits-1);game.scheduleStatus={};game.dayFlags={talked:[],hotspots:[],help:0,club:0,ontime:0,event:false};
   assignMissions();game.player.x=220;game.player.y=350;game.lastSlot=null;relocateNPCs('arrival');saveSilently();
 }
@@ -83,12 +84,15 @@ function saveSilently(){
 }
 
 function socialScore(){
+  ensureSocialMemoryState();
   const s=game.player.stats;
   const statScore=Object.values(s).reduce((a,b)=>a+b,0)*2;
   const friends=Object.values(game.player.relationships).reduce((a,b)=>a+Math.max(0,b),0)*3;
   const club=game.player.clubPrestige*1.4+game.player.clubWins*35+game.player.clubRankIndex*22;
   const trust=game.player.teacherTrust*8;
-  return Math.round(100+game.player.score+statScore+friends+club+trust-game.player.demerits*10-game.player.absences*14-game.player.stress*.5);
+  const profiles=Object.values(game.player.socialProfiles).reduce((sum,p)=>sum+Math.max(0,p.trust)*2+Math.max(0,p.respect)*1.5-p.strain*3,0);
+  const promises=game.player.promises.reduce((sum,p)=>sum+(p.status==='kept'?8:p.status==='broken'?-10:0),0);
+  return Math.round(100+game.player.score+statScore+friends+club+trust+profiles+promises-game.player.demerits*10-game.player.absences*14-game.player.stress*.5);
 }
 function npcScore(npc){
   const base=310+(6-npc.rank)*45;
@@ -101,4 +105,3 @@ function getRanking(gender){
   list.sort((a,b)=>b.score-a.score);return list.map((e,i)=>({...e,position:i+1}));
 }
 function getPlayerRank(gender){return getRanking(gender).find(r=>r.player)||{position:6,score:socialScore()};}
-
