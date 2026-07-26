@@ -28,7 +28,8 @@ function rememberRelationship(npcId,type,summary,impact=0){
 
 function recordPromise(npcId,summary,dueDay=game.day+2){
   ensureSocialMemoryState();
-  game.player.promises.push({npcId,summary,dueYear:game.year,dueMonth:game.month,dueDay,status:'open'});
+  const safeDue=Math.min(20,Math.max(game.day+1,dueDay));
+  game.player.promises.push({npcId,summary,dueYear:game.year,dueMonth:game.month,dueDay:safeDue,status:'open'});
   rememberRelationship(npcId,'promise',`Promised: ${summary}`,1);
 }
 
@@ -47,9 +48,42 @@ function socialProfile(npcId){
   return {...profile,friendship:base,standing:base+profile.trust+profile.respect-profile.strain};
 }
 
+function relationshipStage(npcId){
+  const profile=socialProfile(npcId);
+  if(profile.strain>=7)return 'Fractured';
+  if(profile.strain>=3)return 'Strained';
+  if(profile.standing>=24)return 'Closest Friend';
+  if(profile.standing>=15)return 'Trusted Friend';
+  if(profile.standing>=8)return 'Friend';
+  if(profile.standing>=2)return 'Familiar';
+  if(profile.standing<=-3)return 'Cold';
+  return 'Acquaintance';
+}
+
 function recentMemory(npcId){
   ensureSocialMemoryState();
   return game.player.relationshipMemories[npcId]?.[0]||null;
+}
+
+function openPromisesFor(npcId){
+  ensureSocialMemoryState();
+  return game.player.promises.filter(p=>p.npcId===npcId&&p.status==='open');
+}
+
+function promiseDate(promise){
+  return `Y${promise.dueYear} M${promise.dueMonth} D${promise.dueDay}`;
+}
+
+function socialMemorySummary(){
+  ensureSocialMemoryState();
+  const profiles=NPCS.map(n=>socialProfile(n.id));
+  return {
+    trusted:profiles.filter(p=>p.trust>=4).length,
+    strained:profiles.filter(p=>p.strain>=3).length,
+    openPromises:game.player.promises.filter(p=>p.status==='open').length,
+    keptPromises:game.player.promises.filter(p=>p.status==='kept').length,
+    brokenPromises:game.player.promises.filter(p=>p.status==='broken').length
+  };
 }
 
 function applyChoiceMemory(dialogue,choice){
