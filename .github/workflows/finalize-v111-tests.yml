@@ -1,0 +1,43 @@
+name: Finalize v1.11 test metadata
+
+on:
+  push:
+    branches:
+      - agent/v19-dedicated-scene-art
+
+permissions:
+  contents: write
+
+jobs:
+  patch:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/v19-dedicated-scene-art
+          fetch-depth: 0
+      - name: Patch release simulation metadata
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path=Path('tests/release-readiness-smoke.mjs')
+          text=path.read_text(encoding='utf-8')
+          text=text.replace("if(window.SAKURA_RELEASE?.version!=='1.10.0')throw new Error(`Expected release 1.10.0, received ${window.SAKURA_RELEASE?.version}.`);","if(window.SAKURA_RELEASE?.version!=='1.11.0')throw new Error(`Expected release 1.11.0, received ${window.SAKURA_RELEASE?.version}.`);")
+          text=text.replace("if(readiness.version!=='1.10.0')throw new Error(`Release validator still reports ${readiness.version}.`);","if(readiness.version!=='1.11.0')throw new Error(`Release validator still reports ${readiness.version}.`);")
+          marker="const realAssets=validateRealAssetCompletionV110();if(!realAssets.valid||realAssets.placeholderAssets!==false||realAssets.recycledCampusCrops!==false||realAssets.recycledKeyArtScenes!==false)throw new Error(`Dedicated real-asset validation failed: ${JSON.stringify(realAssets)}`);"
+          replacement=marker+"\nconst livingDistrict=validateLivingDistrictV111();if(!livingDistrict.valid||livingDistrict.signatureActivities!==14||livingDistrict.uniqueAmbientProfiles!==14||livingDistrict.placeholderAssets!==false)throw new Error(`Living District validation failed: ${JSON.stringify(livingDistrict)}`);\nif(!readiness.living?.valid)throw new Error(`Living District release-readiness integration failed: ${JSON.stringify(readiness.living)}`);"
+          if marker not in text: raise SystemExit('real-assets validation marker not found')
+          text=text.replace(marker,replacement)
+          text=text.replace('Release readiness passed for v1.10:', 'Release readiness passed for v1.11:')
+          text=text.replace('Deep Social Memory, ten permanent anime assets, save v1-v10 migration', 'Deep Social Memory, Living District mastery, ten permanent anime assets, save v1-v10 migration')
+          path.write_text(text,encoding='utf-8')
+          PY
+      - name: Commit patched tests
+        run: |
+          rm -f .github/workflows/finalize-v111-tests.yml
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -A
+          git commit -m 'Finalize v1.11 release simulation metadata'
+          git push origin HEAD:agent/v19-dedicated-scene-art
