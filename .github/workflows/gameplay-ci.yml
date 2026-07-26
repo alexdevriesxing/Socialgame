@@ -40,7 +40,9 @@ jobs:
           python-version: '3.11'
 
       - name: Install dependencies
-        run: npm ci
+        run: |
+          npm ci
+          python -m pip install --disable-pip-version-check pillow
 
       - name: Run complete validation suite
         id: validation
