@@ -8,9 +8,12 @@ const REAL_WORLD_CELL_INDEX=Object.freeze({
   school_courtyard:14,rooftop_garden:15
 });
 
-function realAssetImage(name){return images?.[name]||null;}
+function realAssetImage(name){
+  const image=images?.[name]||null;
+  return image?.complete&&image.naturalWidth>0&&image.naturalHeight>0?image:null;
+}
 function drawRealAtlasCell(image,index,dx,dy,dw,dh,cellW=REAL_WORLD_CELL_W,cellH=REAL_WORLD_CELL_H,columns=4){
-  if(!image)return false;
+  if(!image||!Number.isInteger(index)||index<0)return false;
   const sx=(index%columns)*cellW,sy=Math.floor(index/columns)*cellH;
   ctx.drawImage(image,sx,sy,cellW,cellH,dx,dy,dw,dh);
   return true;
@@ -22,46 +25,42 @@ function realAssetShade(x,y,w,h,top=.05,bottom=.26){
   gradient.addColorStop(1,`rgba(8,12,22,${bottom})`);
   ctx.fillStyle=gradient;ctx.fillRect(x,y,w,h);
 }
-function drawRealCollisionLandmarks(scene){
-  if(!scene?.walls)return;
-  ctx.save();ctx.fillStyle='rgba(18,25,40,.12)';ctx.strokeStyle='rgba(245,215,133,.20)';ctx.lineWidth=2;
-  for(const wall of scene.walls){
-    ctx.fillRect(wall.x,wall.y,wall.w,wall.h);
-    if(wall.w>45&&wall.h>32)ctx.strokeRect(wall.x+.5,wall.y+.5,wall.w-1,wall.h-1);
-  }
-  ctx.restore();
+function drawRealAssetLoadError(x,y,w,h,labelText){
+  const gradient=ctx.createLinearGradient(x,y,x+w,y+h);
+  gradient.addColorStop(0,'#171b2b');gradient.addColorStop(1,'#2b1830');
+  ctx.fillStyle=gradient;ctx.fillRect(x,y,w,h);
+  ctx.strokeStyle='rgba(229,184,75,.7)';ctx.lineWidth=3;ctx.strokeRect(x+8,y+8,w-16,h-16);
+  ctx.fillStyle='#f4ead1';ctx.font='bold 18px Trebuchet MS';ctx.textAlign='center';ctx.textBaseline='middle';
+  ctx.fillText(`${labelText} artwork failed to load`,x+w/2,y+h/2);
 }
 
-// Replaces the procedural district diagram with the permanent illustrated town map.
+// Replaces the former district diagram with the permanent illustrated town map.
 cwDistrictBackdrop=function(){
   const image=realAssetImage('district_map');
   ctx.save();uiRoundedPath(62,92,836,360,18);ctx.clip();
   if(image)ctx.drawImage(image,0,180,1536,664,62,92,836,360);
-  else{ctx.fillStyle='#769f8c';ctx.fillRect(62,92,836,360);}
-  realAssetShade(62,92,836,360,.04,.18);
+  else drawRealAssetLoadError(62,92,836,360,'District map');
+  realAssetShade(62,92,836,360,.025,.14);
   ctx.restore();
   uiRoundedPath(62.5,92.5,835,359,18);ctx.strokeStyle='rgba(255,255,255,.42)';ctx.lineWidth=2;ctx.stroke();
 };
 
 // Replaces all fourteen procedural walkable backgrounds with dedicated atlas cells.
-const legacyWwDrawScene=wwDrawScene;
+// Collision geometry remains functional but is intentionally invisible: no debug rectangles
+// or procedural furniture are drawn over the finished environment illustrations.
 wwDrawScene=function(){
   const state=wwEnsureState(),id=state.locationId,scene=wwScene(),location=WORLD_LOCATIONS[id];
   const index=REAL_WORLD_CELL_INDEX[id];
   const image=realAssetImage('world_locations');
-  // wwDraw has already translated by -camera. Drawing at the camera origin presents the
-  // complete illustrated environment in the viewport instead of cropping away its identity.
   const backgroundX=state.camera.x,backgroundY=state.camera.y;
-  if(index===undefined||!drawRealAtlasCell(image,index,backgroundX,backgroundY,W,H)){
-    legacyWwDrawScene();return;
-  }
-  realAssetShade(backgroundX,backgroundY,W,H,.02,.22);
-  drawRealCollisionLandmarks(scene);
-  // Functional exits and interaction anchors stay visible without covering the illustration.
+  const rendered=drawRealAtlasCell(image,index,backgroundX,backgroundY,W,H);
+  if(!rendered)drawRealAssetLoadError(backgroundX,backgroundY,W,H,location?.name||'Location');
+  realAssetShade(backgroundX,backgroundY,W,H,.015,.16);
+  // Functional exits and interaction anchors remain visible without exposing collision boxes.
   for(const hotspot of scene.hotspots||[]){
     const [kind,x,y,labelText]=hotspot;
     const color=kind==='school'?COMMERCIAL_UI.gold:kind==='map'?COMMERCIAL_UI.sky:scene.accent;
-    ctx.save();ctx.globalAlpha=.82;artEllipse(x,y,20,8,'rgba(8,12,22,.35)');ctx.restore();
+    ctx.save();ctx.globalAlpha=.72;artEllipse(x,y,18,7,'rgba(8,12,22,.30)');ctx.restore();
     if(kind==='school'||kind==='map')label(labelText,x-64,y-48,128,22,color);
   }
   wwHeaderSign(location.name,scene.accent);
@@ -82,6 +81,7 @@ function validateRealAssetCompletionV110(){
     valid:issues.length===0,issues,version:REAL_ASSET_VERSION,
     dedicatedDistrictMap:true,dedicatedWalkableLocations:14,dedicatedHome:true,
     dedicatedEventScenes:12,dedicatedRivalScenes:12,dedicatedMemoryScenes:12,
+    collisionDebugVisible:false,legacySceneRenderer:false,
     proceduralSceneFallbacks:false,recycledCampusCrops:false,recycledKeyArtScenes:false,placeholderAssets:false
   };
 }
