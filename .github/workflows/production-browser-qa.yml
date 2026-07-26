@@ -38,13 +38,19 @@ jobs:
           node --check tests/sprite-transparency-smoke.mjs
           node --check tests/browser-engine-smoke.mjs
           node --check tests/release-readiness-smoke.mjs
+          node --check tests/social-memory-v19-smoke.mjs
           node --check tests/remote-static-smoke.mjs
           node --check tests/verify-release.mjs
 
-      - name: Validate v1.8 release inventory and Cloudflare artifact
+      - name: Validate v1.9 release inventory and Cloudflare artifact
         run: |
           set -o pipefail
           node tests/verify-release.mjs 2>&1 | tee test-results/release-inventory.log
+
+      - name: Validate Deep Social Memory v1.9
+        run: |
+          set -o pipefail
+          node tests/social-memory-v19-smoke.mjs 2>&1 | tee test-results/social-memory-v19.log
 
       - name: Validate complete runtime integration
         run: |
@@ -94,11 +100,11 @@ jobs:
           set -o pipefail
           node tests/browser-engine-smoke.mjs 2>&1 | tee test-results/browser-engine-smoke.log
 
-      - name: Upload v1.8 release evidence
+      - name: Upload v1.9 release evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: sakura-crest-v18-release-readiness-qa
+          name: sakura-crest-v19-deep-social-memory-qa
           path: test-results
           if-no-files-found: warn
           retention-days: 14
