@@ -1,7 +1,7 @@
 import { readFile, stat } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 
-const RELEASE_VERSION = '1.9.0';
+const RELEASE_VERSION = '1.10.0';
 const manifest = JSON.parse(await readFile('build-manifest.json', 'utf8'));
 if (manifest.version !== RELEASE_VERSION) throw new Error(`Expected release ${RELEASE_VERSION}, received ${manifest.version}.`);
 if (!Array.isArray(manifest.files) || manifest.files.length < 50) throw new Error(`Release inventory is incomplete: ${manifest.files?.length || 0} files.`);
@@ -17,7 +17,7 @@ for (const path of manifest.files) {
 
 const index = await readFile(manifest.entrypoint, 'utf8');
 const scripts = [...index.matchAll(/<script src="([^"]+)"><\/script>/g)].map(match => match[1]);
-if (scripts.length < 33) throw new Error(`Expected at least 33 production scripts; found ${scripts.length}.`);
+if (scripts.length < 34) throw new Error(`Expected at least 34 production scripts; found ${scripts.length}.`);
 for (const script of scripts) if (!manifest.files.includes(script)) throw new Error(`${script}: referenced by index.html but absent from build-manifest.json.`);
 if (!index.includes(`name="sakura-release" content="${RELEASE_VERSION}"`)) throw new Error('The release metadata marker is missing from index.html.');
 if (!index.includes('orientation-hint')) throw new Error('Portrait orientation guidance is missing from index.html.');
@@ -33,12 +33,25 @@ for (const path of manifest.files) {
 if (!serviceWorker.includes(`sakura-crest-v${RELEASE_VERSION}`)) throw new Error(`Service-worker cache version does not match release ${RELEASE_VERSION}.`);
 
 for (const required of [
-  'src/anime-art-v18.js','src/social-memory-v19.js',
+  'src/anime-art-v18.js','src/social-memory-v19.js','src/real-assets-v110.js',
   'src/campus.js','src/activity.js','src/visual.js','src/world.js','src/world-polish.js','src/world-title.js',
   'src/commercial-ui.js','src/commercial-campus.js','src/walkable-world.js','src/commercial-world-ui.js','src/anime-campus-v18.js',
   'src/accessibility-core.js','src/accessibility-preferences.js','src/accessibility-history.js','src/accessibility-performance.js','src/accessibility-ui.js',
   'src/release-readiness.js'
-]) if (!index.includes(required)) throw new Error(`${required}: required v1.9 runtime is not wired into index.html.`);
+]) if (!index.includes(required)) throw new Error(`${required}: required v1.10 runtime is not wired into index.html.`);
+
+const realAssetRuntime = await readFile('src/real-assets-v110.js', 'utf8');
+for (const forbidden of ['legacyWwDrawScene','drawRealCollisionLandmarks','legacyWwDrawScene();']) {
+  if (realAssetRuntime.includes(forbidden)) throw new Error(`src/real-assets-v110.js still contains forbidden legacy/debug renderer: ${forbidden}`);
+}
+if (!realAssetRuntime.includes('collisionDebugVisible:false') || !realAssetRuntime.includes('legacySceneRenderer:false')) throw new Error('The v1.10 real-asset validator does not explicitly certify invisible collision geometry and removal of the legacy renderer.');
+if (!realAssetRuntime.includes('drawRealAssetLoadError')) throw new Error('Dedicated artwork failures are not surfaced through an explicit load-error state.');
+
+const artRouter = await readFile('src/anime-art-v18.js', 'utf8');
+for (const path of ['district-map.webp','world-locations.webp','events.webp','rivals.webp','memories.webp']) {
+  if (!artRouter.includes(path)) throw new Error(`src/anime-art-v18.js is missing dedicated path ${path}.`);
+}
+if (/event_atlas\s*:\s*ANIME_ART_PATHS\.(?:campus|keyart)/.test(artRouter) || /rival_atlas\s*:\s*ANIME_ART_PATHS\.(?:campus|keyart)/.test(artRouter) || /memory_atlas\s*:\s*ANIME_ART_PATHS\.(?:campus|keyart)/.test(artRouter)) throw new Error('Story atlases still recycle campus or title artwork.');
 
 const animeManifestPath = 'assets/anime/manifest.json';
 if (!manifest.files.includes(animeManifestPath)) throw new Error('Permanent anime-art manifest is absent from the release inventory.');
@@ -51,7 +64,12 @@ const expectedAnimeAssets = {
   'campus.webp': [4096, 768],
   'characters.webp': [1728, 1024],
   'portraits.webp': [512, 512],
-  'objects.webp': [1024, 512]
+  'objects.webp': [1024, 512],
+  'district-map.webp': [1536, 1024],
+  'world-locations.webp': [1536, 1024],
+  'events.webp': [800, 600],
+  'rivals.webp': [800, 600],
+  'memories.webp': [800, 600]
 };
 for (const [name, [width, height]] of Object.entries(expectedAnimeAssets)) {
   const path = `assets/anime/${name}`;
@@ -63,6 +81,9 @@ for (const [name, [width, height]] of Object.entries(expectedAnimeAssets)) {
   if (digests[path] !== record.sha256) throw new Error(`${path}: repository digest does not match the anime-art manifest.`);
 }
 
+const dedicatedPaths = ['district-map.webp','world-locations.webp','events.webp','rivals.webp','memories.webp'].map(name => animeManifest.assets[name].sha256);
+if (new Set(dedicatedPaths).size !== dedicatedPaths.length) throw new Error('Dedicated v1.10 artwork files share duplicate digests.');
+
 const headers = await readFile('_headers', 'utf8');
 for (const required of ['Content-Security-Policy:', 'X-Content-Type-Options: nosniff', 'X-Frame-Options: DENY', 'Strict-Transport-Security:', 'Service-Worker-Allowed: /']) {
   if (!headers.includes(required)) throw new Error(`_headers is missing required production directive: ${required}`);
@@ -70,7 +91,7 @@ for (const required of ['Content-Security-Policy:', 'X-Content-Type-Options: nos
 const redirects = await readFile('_redirects', 'utf8');
 for (const alias of ['/play / 302', '/game / 302', '/sakura-crest / 302']) if (!redirects.includes(alias)) throw new Error(`_redirects is missing ${alias}.`);
 
-for (const document of ['docs/release-v1.7.md','docs/release-v1.8-art.md','docs/release-v1.9-social-memory.md','docs/cloudflare-release-runbook.md','docs/known-issues.md']) {
+for (const document of ['docs/release-v1.7.md','docs/release-v1.8-art.md','docs/release-v1.9-social-memory.md','docs/release-v1.10-real-assets.md','docs/cloudflare-release-runbook.md','docs/known-issues.md']) {
   const text = await readFile(document, 'utf8');
   if (text.length < 400) throw new Error(`${document}: release documentation is incomplete.`);
 }
@@ -79,6 +100,7 @@ if (!knownIssues.includes('Known critical defects: **0**') || !knownIssues.inclu
 
 console.log(`Release inventory passed for ${manifest.files.length} files and ${scripts.length} production scripts.`);
 console.log(`Permanent anime artwork passed for ${Object.keys(expectedAnimeAssets).length} assets.`);
-console.log('Deep Social Memory v1.9 is registered in the runtime, offline cache and release documentation.');
+console.log('Dedicated v1.10 district, location, event, rival and memory artwork passed source, uniqueness and no-fallback checks.');
+console.log('Deep Social Memory remains compatible and dedicated real assets v1.10 are registered in runtime, offline cache and release documentation.');
 console.log(`Runtime digests generated for audit: ${Object.keys(digests).length}.`);
 console.log('Cloudflare headers, redirects, release notes, known issues and rollback documentation passed.');

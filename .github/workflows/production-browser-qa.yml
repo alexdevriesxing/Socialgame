@@ -13,7 +13,7 @@ permissions:
 jobs:
   release-readiness:
     runs-on: ubuntu-latest
-    timeout-minutes: 55
+    timeout-minutes: 60
     steps:
       - name: Checkout release
         uses: actions/checkout@v4
@@ -39,15 +39,16 @@ jobs:
           node --check tests/browser-engine-smoke.mjs
           node --check tests/release-readiness-smoke.mjs
           node --check tests/social-memory-v19-smoke.mjs
+          node --check tests/real-assets-v110-smoke.mjs
           node --check tests/remote-static-smoke.mjs
           node --check tests/verify-release.mjs
 
-      - name: Validate v1.9 release inventory and Cloudflare artifact
+      - name: Validate v1.10 release inventory and Cloudflare artifact
         run: |
           set -o pipefail
           node tests/verify-release.mjs 2>&1 | tee test-results/release-inventory.log
 
-      - name: Validate Deep Social Memory v1.9
+      - name: Validate Deep Social Memory v1.9 compatibility
         run: |
           set -o pipefail
           node tests/social-memory-v19-smoke.mjs 2>&1 | tee test-results/social-memory-v19.log
@@ -86,6 +87,13 @@ jobs:
           set -o pipefail
           node tests/browser-production-smoke.mjs 2>&1 | tee test-results/browser-production-smoke.log
 
+      - name: Verify dedicated district location event rival and memory artwork
+        env:
+          BASE_URL: http://127.0.0.1:4173
+        run: |
+          set -o pipefail
+          node tests/real-assets-v110-smoke.mjs 2>&1 | tee test-results/real-assets-v110-smoke.log
+
       - name: Reject rectangular sprite backgrounds
         env:
           BASE_URL: http://127.0.0.1:4173
@@ -100,11 +108,11 @@ jobs:
           set -o pipefail
           node tests/browser-engine-smoke.mjs 2>&1 | tee test-results/browser-engine-smoke.log
 
-      - name: Upload v1.9 release evidence
+      - name: Upload v1.10 release evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: sakura-crest-v19-deep-social-memory-qa
+          name: sakura-crest-v110-real-assets-qa
           path: test-results
           if-no-files-found: warn
           retention-days: 14

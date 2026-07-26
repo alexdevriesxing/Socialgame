@@ -1,5 +1,5 @@
-// Pass 10 v1.9 — final balance, progression integrity, social-memory and release diagnostics.
-const RELEASE_READINESS_VERSION='1.9.0';
+// Pass 11 v1.10 — dedicated real assets, final balance, progression integrity and release diagnostics.
+const RELEASE_READINESS_VERSION='1.10.0';
 const RELEASE_BALANCE={
   scoreRetention:{established:.46,ordinary:.42,outsider:.39},
   recovery:{established:{energy:4,stress:4},ordinary:{energy:2,stress:2},outsider:{energy:1,stress:1}},
