@@ -16,9 +16,9 @@ The permanent district illustrations receive location-specific ambient animation
 
 ## Interface and validation
 
-The walkable-location HUD now shows local mastery, district-stamp and local-expert status without covering the existing map, room or school controls. The release validator confirms fourteen complete signature definitions, persistent progression fields, fourteen ambient profiles, reduced-motion support and continued use of the dedicated v1.10 artwork. No procedural placeholder card or recycled campus/title scene has been reintroduced.
+The walkable-location HUD now shows local mastery, district-stamp and local-expert status without covering the existing map, room or school controls. The release validator confirms fourteen complete signature definitions, persistent progression fields, fourteen ambient profiles, reduced-motion support and continued use of the dedicated artwork introduced in v1.10. No procedural placeholder card or recycled campus/title scene has been reintroduced.
 
-The final production matrix also runs the four-year campaign simulation, corruption-recovery tests, Chromium desktop/mobile/offline play, dedicated real-asset inspection, Living District anti-farming and persistence tests, sprite-transparency checks, and Chrome, Edge, Firefox and WebKit compatibility checks. Captured evidence includes café, arcade, park, station and reduced-motion festival scenes.
+The final production matrix also runs the four-year campaign simulation, corruption-recovery tests, Chromium desktop/mobile/offline play, dedicated real-asset inspection, Living District anti-farming and persistence tests, sprite-transparency checks, and Chrome, Edge, Firefox and WebKit compatibility checks. Captured evidence includes café, arcade, park, station and reduced-motion festival scenes. A minimal static-canvas harness also exercises the complete script stack so browser-only drawing APIs cannot hide initialization defects.
 
 ## Deployment
 
