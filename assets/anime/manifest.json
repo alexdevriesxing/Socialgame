@@ -1,6 +1,6 @@
 {
-  "version": "1.9.0",
-  "source": "original commercial anime artwork with frame-edge-cleaned transparent character backgrounds",
+  "version": "1.10.0",
+  "source": "original commercial anime artwork with dedicated district, walkable-location, event, rival and memory assets",
   "proceduralFallbacks": false,
   "externalRuntimeDependency": false,
   "assets": {
@@ -20,9 +20,7 @@
       "width": 1728,
       "height": 1024,
       "bytes": 1173722,
-      "sha256": "825f8b96d20ff060639d5c6b954d8acf817f23087c79af6640596a43bed58837",
-      "transparentPixelRatio": 0.926099,
-      "partialAlphaPixelRatio": 0.021432
+      "sha256": "825f8b96d20ff060639d5c6b954d8acf817f23087c79af6640596a43bed58837"
     },
     "portraits.webp": {
       "width": 512,
@@ -35,6 +33,36 @@
       "height": 512,
       "bytes": 114542,
       "sha256": "be7796fb24cce8a94be65b702226aab8226818677b172a51ddb923eba8f2f6c5"
+    },
+    "district-map.webp": {
+      "width": 1536,
+      "height": 1024,
+      "bytes": 138598,
+      "sha256": "c9373dfa57aa450dd9b50f48146b4fe32c3786ee987de512a0b7c0a2ca9b1d46"
+    },
+    "world-locations.webp": {
+      "width": 1536,
+      "height": 1024,
+      "bytes": 498670,
+      "sha256": "8ba9696c5ce670879a38d016bd467c91f1a78e374bb8b99028a0494a17f8efd5"
+    },
+    "events.webp": {
+      "width": 800,
+      "height": 600,
+      "bytes": 169002,
+      "sha256": "e14bae8a5f32b362aa823d95280eb6e0b69ccecdc63dad699b17b591768d59de"
+    },
+    "rivals.webp": {
+      "width": 800,
+      "height": 600,
+      "bytes": 186542,
+      "sha256": "977fcf88b483aefeb4083bedc09957719011745c140388ccae0656e5bdf96e9c"
+    },
+    "memories.webp": {
+      "width": 800,
+      "height": 600,
+      "bytes": 165652,
+      "sha256": "7ed2ae5b880afd427ff4a312f7376d896353b249ffdef6d179a6a4b5b9ff398d"
     }
   }
 }

@@ -1,5 +1,5 @@
 {
-  "version": "1.9.0",
+  "version": "1.10.0",
   "format": "cloudflare-static",
   "entrypoint": "index.html",
   "offline": "sw.js",
@@ -57,6 +57,13 @@
     "src/accessibility-performance.js",
     "src/accessibility-ui.js",
     "src/release-readiness.js",
-    "src/platform.js"
+    "src/platform.js",
+    "assets/anime/district-map.webp",
+    "assets/anime/world-locations.webp",
+    "assets/anime/events.webp",
+    "assets/anime/rivals.webp",
+    "assets/anime/memories.webp",
+    "docs/release-v1.10-real-assets.md",
+    "src/real-assets-v110.js"
   ]
 }

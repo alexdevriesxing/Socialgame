@@ -26,7 +26,7 @@ const COLORS = {
   shadow:'rgba(9,11,18,.75)', panel:'rgba(28,29,43,.95)'
 };
 
-const imageNames = ['keyart','school_maps','portraits','event_atlas','rival_atlas','memory_atlas','character_atlas'];
+const imageNames = ['keyart','school_maps','portraits','event_atlas','rival_atlas','memory_atlas','character_atlas','district_map','world_locations','object_atlas'];
 const images = {};
 const artSources = createArtSources();
 
