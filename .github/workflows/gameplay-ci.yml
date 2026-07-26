@@ -43,10 +43,31 @@ jobs:
         run: npm ci
 
       - name: Run complete validation suite
-        run: npm run check
+        id: validation
+        shell: bash
+        run: |
+          set +e
+          npm run check > validation.log 2>&1
+          status=$?
+          echo "status=$status" >> "$GITHUB_OUTPUT"
+          tail -n 100 validation.log
+          exit 0
+
+      - name: Upload validation diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gameplay-validation-log
+          path: validation.log
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Fail when validation failed
+        if: steps.validation.outputs.status != '0'
+        run: exit 1
 
       - name: Upload Cloudflare Pages build
-        if: success()
+        if: steps.validation.outputs.status == '0'
         uses: actions/upload-artifact@v4
         with:
           name: socialgame-cloudflare-pages
