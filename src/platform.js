@@ -3,10 +3,10 @@
 
   const release = Object.freeze({
     name: 'Sakura Crest: Social Summit',
-    version: '1.8.0',
+    version: '1.9.0',
     channel: 'production',
-    releasedAt: '2026-07-15',
-    edition: 'Commercial Anime Art & Expanded Academy'
+    releasedAt: '2026-07-26',
+    edition: 'Deep Social Memory'
   });
 
   try {
