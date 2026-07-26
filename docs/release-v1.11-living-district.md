@@ -18,6 +18,8 @@ The permanent district illustrations receive location-specific ambient animation
 
 The walkable-location HUD now shows local mastery, district-stamp and local-expert status without covering the existing map, room or school controls. The release validator confirms fourteen complete signature definitions, persistent progression fields, fourteen ambient profiles, reduced-motion support and continued use of the dedicated v1.10 artwork. No procedural placeholder card or recycled campus/title scene has been reintroduced.
 
+The final production matrix also runs the four-year campaign simulation, corruption-recovery tests, Chromium desktop/mobile/offline play, dedicated real-asset inspection, Living District anti-farming and persistence tests, sprite-transparency checks, and Chrome, Edge, Firefox and WebKit compatibility checks. Captured evidence includes café, arcade, park, station and reduced-motion festival scenes.
+
 ## Deployment
 
 The release remains a static GitHub-to-Cloudflare Pages build. `src/living-district-v111.js` is included in the build manifest and service-worker core cache. The v1.11 release keeps all anime art local to the repository and introduces no new external runtime dependency.
