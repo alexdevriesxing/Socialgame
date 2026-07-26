@@ -75,7 +75,7 @@ function drawLivingDistrictAmbience(id,state){
   const reduced=Boolean(game.settings?.reducedMotion),time=reduced?0:performance.now()/1000;
   ctx.save();
   if(id==='home'){
-    const glow=ctx.createRadialGradient(945,155,5,945,155,150);glow.addColorStop(0,'rgba(255,222,185,.28)');glow.addColorStop(1,'rgba(255,222,185,0)');ctx.fillStyle=glow;ctx.fillRect(760,55,360,310);livingDistrictMotes(14,'rgba(255,242,220,.8)',time,90,1090,100,650,5);
+    const glow=ctx.createRadialGradient?.(945,155,5,945,155,150);if(glow?.addColorStop){glow.addColorStop(0,'rgba(255,222,185,.28)');glow.addColorStop(1,'rgba(255,222,185,0)');ctx.fillStyle=glow;}else ctx.fillStyle='rgba(255,222,185,.12)';ctx.fillRect(760,55,360,310);livingDistrictMotes(14,'rgba(255,242,220,.8)',time,90,1090,100,650,5);
   }else if(id==='shopping'){
     ctx.globalAlpha=.28+.18*livingDistrictPulse(2,time,1.4);ctx.fillStyle='#f7e7a4';for(let x=75;x<1110;x+=130)ctx.fillRect(x,376,72,10);ctx.globalAlpha=.34;for(let i=0;i<4;i++){const x=((time*75+i*310)%1400)-110;ctx.fillStyle=i%2?'#e88ea4':'#87c9d8';ctx.fillRect(x,500+i%2*38,48,5);} 
   }else if(id==='cafe'){
