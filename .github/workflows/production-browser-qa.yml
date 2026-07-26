@@ -40,10 +40,11 @@ jobs:
           node --check tests/release-readiness-smoke.mjs
           node --check tests/social-memory-v19-smoke.mjs
           node --check tests/real-assets-v110-smoke.mjs
+          node --check tests/living-district-v111-smoke.mjs
           node --check tests/remote-static-smoke.mjs
           node --check tests/verify-release.mjs
 
-      - name: Validate v1.10 release inventory and Cloudflare artifact
+      - name: Validate v1.11 release inventory and Cloudflare artifact
         run: |
           set -o pipefail
           node tests/verify-release.mjs 2>&1 | tee test-results/release-inventory.log
@@ -94,6 +95,13 @@ jobs:
           set -o pipefail
           node tests/real-assets-v110-smoke.mjs 2>&1 | tee test-results/real-assets-v110-smoke.log
 
+      - name: Verify living district mastery ambience and anti-farming
+        env:
+          BASE_URL: http://127.0.0.1:4173
+        run: |
+          set -o pipefail
+          node tests/living-district-v111-smoke.mjs 2>&1 | tee test-results/living-district-v111-smoke.log
+
       - name: Reject rectangular sprite backgrounds
         env:
           BASE_URL: http://127.0.0.1:4173
@@ -108,11 +116,11 @@ jobs:
           set -o pipefail
           node tests/browser-engine-smoke.mjs 2>&1 | tee test-results/browser-engine-smoke.log
 
-      - name: Upload v1.10 release evidence
+      - name: Upload v1.11 release evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: sakura-crest-v110-real-assets-qa
+          name: sakura-crest-v111-living-district-qa
           path: test-results
           if-no-files-found: warn
           retention-days: 14
