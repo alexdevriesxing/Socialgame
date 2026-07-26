@@ -62,9 +62,10 @@ function drawHudPanel(){
   addButton(736,420,98,28,'RANKINGS',()=>game.overlay={type:'rankings',title:'Live Social Rankings'});
   addButton(846,420,98,28,'SCHEDULE',()=>game.overlay={type:'schedule',title:'Class Schedule'});
   addButton(736,454,98,28,'CLUB',()=>game.overlay={type:'club',title:clubConfig().name});
-  addButton(846,454,98,28,'SAVE',saveGame);
-  addButton(736,488,208,28,audio.enabled?'SOUND ON':'SOUND OFF',()=>audio.toggle());
-  text(`${ROOMS[game.currentRoom]?.name||'School Grounds'}`,738,522,11,COLORS.cream,true);
+  addButton(846,454,98,28,'SOCIAL',()=>game.overlay={type:'social',title:'Social Notebook',selectedNpc:0});
+  addButton(736,488,98,28,'SAVE',saveGame);
+  addButton(846,488,98,28,audio.enabled?'SOUND ON':'SOUND OFF',()=>audio.toggle());
+  text(`${ROOMS[game.currentRoom]?.name||'School Grounds'}`,738,532,11,COLORS.cream,true);
 }
 function drawBar(x,y,w,h,val,max,color,labelText){
   text(labelText,x,y-4,10,COLORS.cream,true);ctx.fillStyle=COLORS.ink;ctx.fillRect(x+48,y-12,w-48,h);
@@ -99,6 +100,7 @@ function drawOverlay(){
   if(o.type==='rankings')drawRankingsOverlay(o);
   else if(o.type==='schedule')drawScheduleOverlay(o);
   else if(o.type==='club')drawClubOverlay(o);
+  else if(o.type==='social')drawSocialOverlay(o);
   else if(o.type==='help')drawHelpOverlay(o);
   else if(o.type==='dayEnd')drawDayEnd(o);
   else if(o.type==='monthEnd')drawMonthEnd(o);
