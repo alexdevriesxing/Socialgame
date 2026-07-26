@@ -67,7 +67,7 @@ jobs:
           echo "deployment_url=$deployment_url" >> "$GITHUB_OUTPUT"
           echo "canonical_url=https://$PROJECT_NAME.pages.dev" >> "$GITHUB_OUTPUT"
 
-      - name: Validate live v1.11 gameplay and artwork
+      - name: Validate immutable deployment and canonical production hostname
         shell: bash
         env:
           CANONICAL_URL: ${{ steps.deploy.outputs.canonical_url }}
@@ -75,18 +75,31 @@ jobs:
           PROJECT_NAME: ${{ steps.cloudflare.outputs.project }}
         run: |
           set -euo pipefail
-          live_url="$CANONICAL_URL"
-          if ! curl --fail --silent --show-error --retry 5 --retry-delay 3 "$live_url/?verify=$RELEASE_SHA" -o /tmp/index.html; then live_url="$DEPLOYMENT_URL"; curl --fail --silent --show-error --retry 5 --retry-delay 3 "$live_url/?verify=$RELEASE_SHA" -o /tmp/index.html; fi
-          grep -q 'Sakura Crest' /tmp/index.html
-          grep -q '1.11.0' /tmp/index.html
-          grep -q 'src/living-district-v111.js' /tmp/index.html
-          curl --fail --silent --show-error --retry 5 --retry-delay 3 "$live_url/src/living-district-v111.js?verify=$RELEASE_SHA" -o /tmp/living-district.js
+          exact_url="$DEPLOYMENT_URL"
+          curl --fail --silent --show-error --retry 5 --retry-delay 3 "$exact_url/?verify=$RELEASE_SHA" -o /tmp/index-exact.html
+          grep -q 'Sakura Crest' /tmp/index-exact.html
+          grep -q '1.11.0' /tmp/index-exact.html
+          grep -q 'src/living-district-v111.js' /tmp/index-exact.html
+          curl --fail --silent --show-error --retry 5 --retry-delay 3 "$exact_url/src/living-district-v111.js?verify=$RELEASE_SHA" -o /tmp/living-district.js
           grep -q "LIVING_DISTRICT_VERSION='1.11.0'" /tmp/living-district.js
           grep -q 'signatureActivities:ids.length' /tmp/living-district.js
           grep -q 'uniqueAmbientProfiles:14' /tmp/living-district.js
-          curl --fail --silent --show-error --retry 5 --retry-delay 3 "$live_url/assets/anime/manifest.json?verify=$RELEASE_SHA" -o /tmp/anime-manifest.json
+          curl --fail --silent --show-error --retry 5 --retry-delay 3 "$exact_url/assets/anime/manifest.json?verify=$RELEASE_SHA" -o /tmp/anime-manifest.json
           jq -e '.version == "1.11.0" and .proceduralFallbacks == false and .externalRuntimeDependency == false and (.assets | has("district-map.webp") and has("world-locations.webp") and has("events.webp") and has("rivals.webp") and has("memories.webp"))' /tmp/anime-manifest.json >/dev/null
-          for asset in keyart campus characters district-map world-locations events rivals memories; do curl --fail --silent --show-error --retry 5 --retry-delay 3 "$live_url/assets/anime/$asset.webp?verify=$RELEASE_SHA" -o "/tmp/$asset.webp"; test $(stat -c%s "/tmp/$asset.webp") -gt 100000; done
+          for asset in keyart campus characters district-map world-locations events rivals memories; do curl --fail --silent --show-error --retry 5 --retry-delay 3 "$exact_url/assets/anime/$asset.webp?verify=$RELEASE_SHA" -o "/tmp/$asset.webp"; test $(stat -c%s "/tmp/$asset.webp") -gt 100000; done
+
+          canonical_ready=false
+          for attempt in $(seq 1 30); do
+            if curl --fail --silent --show-error "$CANONICAL_URL/?verify=$RELEASE_SHA-$attempt" -o /tmp/index-canonical.html \
+              && grep -q '1.11.0' /tmp/index-canonical.html \
+              && grep -q 'src/living-district-v111.js' /tmp/index-canonical.html; then
+              canonical_ready=true
+              break
+            fi
+            sleep 5
+          done
+          test "$canonical_ready" = true
+          live_url="$CANONICAL_URL"
           cat > live-v111-verification.json <<JSON
           {
             "verified": true,
@@ -95,6 +108,7 @@ jobs:
             "project": "$PROJECT_NAME",
             "liveUrl": "$live_url",
             "deploymentUrl": "$DEPLOYMENT_URL",
+            "canonicalProductionReady": true,
             "livingDistrictModule": true,
             "signatureActivities": 14,
             "ambientProfiles": 14,
