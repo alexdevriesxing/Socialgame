@@ -26,10 +26,16 @@ function rememberRelationship(npcId,type,summary,impact=0){
   if(type==='apology'||type==='reconciliation')profile.strain=clamp(profile.strain-Math.max(2,Math.abs(impact)),0,20);
 }
 
+function normalizePromiseDue(dueDay){
+  let year=game.year,month=game.month,day=dueDay;
+  while(day>20){day-=20;month++;if(month>12){month=1;year++;}}
+  return {year,month,day};
+}
+
 function recordPromise(npcId,summary,dueDay=game.day+2){
   ensureSocialMemoryState();
-  const safeDue=Math.min(20,Math.max(game.day+1,dueDay));
-  game.player.promises.push({npcId,summary,dueYear:game.year,dueMonth:game.month,dueDay:safeDue,status:'open'});
+  const due=normalizePromiseDue(dueDay);
+  game.player.promises.push({npcId,summary,dueYear:due.year,dueMonth:due.month,dueDay:due.day,status:'open'});
   rememberRelationship(npcId,'promise',`Promised: ${summary}`,1);
 }
 
