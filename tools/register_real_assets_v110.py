@@ -43,6 +43,14 @@ text=text.replace("'docs/release-v1.9-social-memory.md','docs/cloudflare-release
 text=text.replace('required v1.9 runtime','required v1.10 runtime').replace('Deep Social Memory v1.9 is registered in the runtime, offline cache and release documentation.','Deep Social Memory remains compatible and dedicated real assets v1.10 are registered in runtime, offline cache and release documentation.')
 verify.write_text(text)
 
+remote=ROOT/'tests/remote-static-smoke.mjs'
+text=remote.read_text().replace("window.SAKURA_RELEASE?.version!=='1.9.0'","window.SAKURA_RELEASE?.version!=='1.10.0'").replace('permanent v1.9 anime artwork','permanent v1.10 dedicated real artwork')
+remote.write_text(text)
+
+readiness=ROOT/'src/release-readiness.js'
+text=readiness.read_text().replace('// Pass 10 v1.9 — final balance, progression integrity, social-memory and release diagnostics.','// Pass 11 v1.10 — dedicated real assets, final balance, progression integrity and release diagnostics.').replace("const RELEASE_READINESS_VERSION='1.9.0';","const RELEASE_READINESS_VERSION='1.10.0';")
+readiness.write_text(text)
+
 doc=ROOT/'docs/release-v1.10-real-assets.md'
 doc.write_text('''# Sakura Crest v1.10 — Dedicated Real Assets
 
