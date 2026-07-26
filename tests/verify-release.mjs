@@ -33,7 +33,7 @@ for (const path of manifest.files) {
 if (!serviceWorker.includes(`sakura-crest-v${RELEASE_VERSION}`)) throw new Error(`Service-worker cache version does not match release ${RELEASE_VERSION}.`);
 
 for (const required of [
-  'src/anime-art-v18.js','src/social-memory-v19.js','src/real-assets-v110.js','src/real-assets-v110.js',
+  'src/anime-art-v18.js','src/social-memory-v19.js','src/real-assets-v110.js','src/real-assets-v110.js','src/real-assets-v110.js',
   'src/campus.js','src/activity.js','src/visual.js','src/world.js','src/world-polish.js','src/world-title.js',
   'src/commercial-ui.js','src/commercial-campus.js','src/walkable-world.js','src/commercial-world-ui.js','src/anime-campus-v18.js',
   'src/accessibility-core.js','src/accessibility-preferences.js','src/accessibility-history.js','src/accessibility-performance.js','src/accessibility-ui.js',
