@@ -1,5 +1,5 @@
-// Pass 9 v1.7 — final balance, progression integrity and release diagnostics.
-const RELEASE_READINESS_VERSION='1.7.0';
+// Pass 10 v1.9 — final balance, progression integrity, social-memory and release diagnostics.
+const RELEASE_READINESS_VERSION='1.9.0';
 const RELEASE_BALANCE={
   scoreRetention:{established:.46,ordinary:.42,outsider:.39},
   recovery:{established:{energy:4,stress:4},ordinary:{energy:2,stress:2},outsider:{energy:1,stress:1}},
@@ -63,4 +63,8 @@ function validateReleaseBalance(){
   }finally{game.player=original.player;game.year=original.year;game.month=original.month;game.day=original.day;}
   return{valid:issues.length===0,issues,scores,balance:RELEASE_BALANCE};
 }
-function validateReleaseReadiness(){const references=validateReleaseReferences(),balance=validateReleaseBalance(),save=typeof validateSaveSnapshot==='function'?validateSaveSnapshot(normalizeSaveSnapshot(gameSnapshot())):{valid:false,issues:['save validator missing']};return{valid:references.valid&&balance.valid&&save.valid,version:RELEASE_READINESS_VERSION,references,balance,save,knownCriticalIssues:0,knownHighIssues:0};}
+function validateReleaseReadiness(){
+  const references=validateReleaseReferences(),balance=validateReleaseBalance(),save=typeof validateSaveSnapshot==='function'?validateSaveSnapshot(normalizeSaveSnapshot(gameSnapshot())):{valid:false,issues:['save validator missing']};
+  const social=globalThis.SakuraSocialMemoryV19?.validate?.()||{valid:false,issues:['Deep Social Memory v1.9 runtime missing']};
+  return{valid:references.valid&&balance.valid&&save.valid&&social.valid,version:RELEASE_READINESS_VERSION,references,balance,save,social,knownCriticalIssues:0,knownHighIssues:0};
+}
