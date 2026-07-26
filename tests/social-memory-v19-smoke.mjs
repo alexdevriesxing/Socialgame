@@ -44,5 +44,5 @@ if(!validation.valid||validation.npcs!==2)throw new Error(`Social-memory validat
 
 const index=await readFile('index.html','utf8');const worker=await readFile('sw.js','utf8');const manifest=JSON.parse(await readFile('build-manifest.json','utf8'));
 if(!index.includes('src/social-memory-v19.js')||!worker.includes("'./src/social-memory-v19.js'")||!manifest.files.includes('src/social-memory-v19.js'))throw new Error('Deep Social Memory is not registered across the production artifact.');
-if(manifest.version!=='1.10.0'||!index.includes('name="sakura-release" content="1.10.0"'))throw new Error('The v1.9 social-memory module is not registered inside the v1.10 release metadata.');
-console.log('Deep Social Memory v1.9 remains compatible inside v1.10 after promise, consequence, reconciliation, bounds and artifact-registration checks.');
+if(manifest.version!=='1.11.0'||!index.includes('name="sakura-release" content="1.11.0"'))throw new Error('The v1.9 social-memory module is not registered inside the v1.11 release metadata.');
+console.log('Deep Social Memory v1.9 remains compatible inside v1.11 after promise, consequence, reconciliation, bounds and artifact-registration checks.');

@@ -32,7 +32,7 @@ jobs:
         with:
           node-version: 22
 
-      - name: Verify v1.10 production artifact
+      - name: Verify v1.11 production artifact
         run: node tests/verify-release.mjs
 
       - name: Build exact Pages upload directory
@@ -44,7 +44,7 @@ jobs:
           const fs=require('node:fs');
           const path=require('node:path');
           const manifest=JSON.parse(fs.readFileSync('build-manifest.json','utf8'));
-          if(manifest.version!=='1.10.0')throw new Error(`Refusing to deploy release ${manifest.version}.`);
+          if(manifest.version!=='1.11.0')throw new Error(`Refusing to deploy release ${manifest.version}.`);
           for(const source of manifest.files){
             const destination=path.join('dist',source);
             fs.mkdirSync(path.dirname(destination),{recursive:true});
@@ -61,6 +61,7 @@ jobs:
           test -s dist/assets/anime/events.webp
           test -s dist/assets/anime/rivals.webp
           test -s dist/assets/anime/memories.webp
+          test -s dist/src/living-district-v111.js
           test -s dist/_headers
           test -s dist/_redirects
 
@@ -102,13 +103,13 @@ jobs:
             --project-name "$PROJECT_NAME" \
             --branch main \
             --commit-hash "$GITHUB_SHA" \
-            --commit-message 'Sakura Crest v1.10 dedicated real-assets release' 2>&1 | tee /tmp/deploy.txt
+            --commit-message 'Sakura Crest v1.11 Living District release' 2>&1 | tee /tmp/deploy.txt
           deployment_url=$(grep -Eo 'https://[A-Za-z0-9.-]+\.pages\.dev' /tmp/deploy.txt | head -n1 || true)
           test -n "$deployment_url"
           echo "deployment_url=$deployment_url" >> "$GITHUB_OUTPUT"
           echo "canonical_url=https://$PROJECT_NAME.pages.dev" >> "$GITHUB_OUTPUT"
 
-      - name: Verify live v1.10 artwork
+      - name: Verify live v1.11 district and artwork
         shell: bash
         env:
           CANONICAL_URL: ${{ steps.deploy.outputs.canonical_url }}
@@ -121,9 +122,13 @@ jobs:
             curl --fail --silent --show-error --retry 5 --retry-delay 3 "$live_url/?verify=$GITHUB_SHA" -o /tmp/index.html
           fi
           grep -q 'Sakura Crest' /tmp/index.html
-          grep -q '1.10.0' /tmp/index.html
+          grep -q '1.11.0' /tmp/index.html
+          grep -q 'src/living-district-v111.js' /tmp/index.html
+          curl --fail --silent --show-error --retry 5 --retry-delay 3 "$live_url/src/living-district-v111.js?verify=$GITHUB_SHA" -o /tmp/living-district.js
+          grep -q "LIVING_DISTRICT_VERSION='1.11.0'" /tmp/living-district.js
+          grep -q 'uniqueAmbientProfiles:14' /tmp/living-district.js
           curl --fail --silent --show-error --retry 5 --retry-delay 3 "$live_url/assets/anime/manifest.json?verify=$GITHUB_SHA" -o /tmp/anime-manifest.json
-          jq -e '.version == "1.10.0" and .proceduralFallbacks == false and .externalRuntimeDependency == false and (.assets | has("district-map.webp") and has("world-locations.webp") and has("events.webp") and has("rivals.webp") and has("memories.webp"))' /tmp/anime-manifest.json >/dev/null
+          jq -e '.version == "1.11.0" and .proceduralFallbacks == false and .externalRuntimeDependency == false and (.assets | has("district-map.webp") and has("world-locations.webp") and has("events.webp") and has("rivals.webp") and has("memories.webp"))' /tmp/anime-manifest.json >/dev/null
           for asset in district-map world-locations events rivals memories; do
             curl --fail --silent --show-error --retry 5 --retry-delay 3 "$live_url/assets/anime/$asset.webp?verify=$GITHUB_SHA" -o "/tmp/$asset.webp"
             test $(stat -c%s "/tmp/$asset.webp") -gt 100000

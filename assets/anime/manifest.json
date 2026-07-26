@@ -1,68 +1,18 @@
 {
-  "version": "1.10.0",
+  "version": "1.11.0",
   "source": "original commercial anime artwork with dedicated district, walkable-location, event, rival and memory assets",
   "proceduralFallbacks": false,
   "externalRuntimeDependency": false,
   "assets": {
-    "keyart.webp": {
-      "width": 960,
-      "height": 540,
-      "bytes": 115018,
-      "sha256": "731e95621f2ce933ef0116b5fea5b1101ef9f5684eb88af6928e7f52928d9439"
-    },
-    "campus.webp": {
-      "width": 4096,
-      "height": 768,
-      "bytes": 697104,
-      "sha256": "70a6e7055599884d34cbc09f4dbc0e345ae2ac9fa2ab77dbe5601754c919e9f5"
-    },
-    "characters.webp": {
-      "width": 1728,
-      "height": 1024,
-      "bytes": 1173722,
-      "sha256": "825f8b96d20ff060639d5c6b954d8acf817f23087c79af6640596a43bed58837"
-    },
-    "portraits.webp": {
-      "width": 512,
-      "height": 512,
-      "bytes": 7160,
-      "sha256": "a09bf8e64c441b40dc7a32d6b2bca09a2ed92a18a60da6daa9af801159a1047a"
-    },
-    "objects.webp": {
-      "width": 1024,
-      "height": 512,
-      "bytes": 114542,
-      "sha256": "be7796fb24cce8a94be65b702226aab8226818677b172a51ddb923eba8f2f6c5"
-    },
-    "district-map.webp": {
-      "width": 1536,
-      "height": 1024,
-      "bytes": 138598,
-      "sha256": "c9373dfa57aa450dd9b50f48146b4fe32c3786ee987de512a0b7c0a2ca9b1d46"
-    },
-    "world-locations.webp": {
-      "width": 1536,
-      "height": 1024,
-      "bytes": 159288,
-      "sha256": "c481022e80a28cedce1020770c2ae9a60912fdb962fb5e4ce90bb3876927e588"
-    },
-    "events.webp": {
-      "width": 800,
-      "height": 600,
-      "bytes": 169002,
-      "sha256": "e14bae8a5f32b362aa823d95280eb6e0b69ccecdc63dad699b17b591768d59de"
-    },
-    "rivals.webp": {
-      "width": 800,
-      "height": 600,
-      "bytes": 186542,
-      "sha256": "977fcf88b483aefeb4083bedc09957719011745c140388ccae0656e5bdf96e9c"
-    },
-    "memories.webp": {
-      "width": 800,
-      "height": 600,
-      "bytes": 165652,
-      "sha256": "7ed2ae5b880afd427ff4a312f7376d896353b249ffdef6d179a6a4b5b9ff398d"
-    }
+    "keyart.webp": {"width": 960,"height": 540,"bytes": 115018,"sha256": "731e95621f2ce933ef0116b5fea5b1101ef9f5684eb88af6928e7f52928d9439"},
+    "campus.webp": {"width": 4096,"height": 768,"bytes": 697104,"sha256": "70a6e7055599884d34cbc09f4dbc0e345ae2ac9fa2ab77dbe5601754c919e9f5"},
+    "characters.webp": {"width": 1728,"height": 1024,"bytes": 1173722,"sha256": "825f8b96d20ff060639d5c6b954d8acf817f23087c79af6640596a43bed58837"},
+    "portraits.webp": {"width": 512,"height": 512,"bytes": 7160,"sha256": "a09bf8e64c441b40dc7a32d6b2bca09a2ed92a18a60da6daa9af801159a1047a"},
+    "objects.webp": {"width": 1024,"height": 512,"bytes": 114542,"sha256": "be7796fb24cce8a94be65b702226aab8226818677b172a51ddb923eba8f2f6c5"},
+    "district-map.webp": {"width": 1536,"height": 1024,"bytes": 138598,"sha256": "c9373dfa57aa450dd9b50f48146b4fe32c3786ee987de512a0b7c0a2ca9b1d46"},
+    "world-locations.webp": {"width": 1536,"height": 1024,"bytes": 159288,"sha256": "c481022e80a28cedce1020770c2ae9a60912fdb962fb5e4ce90bb3876927e588"},
+    "events.webp": {"width": 800,"height": 600,"bytes": 169002,"sha256": "e14bae8a5f32b362aa823d95280eb6e0b69ccecdc63dad699b17b591768d59de"},
+    "rivals.webp": {"width": 800,"height": 600,"bytes": 186542,"sha256": "977fcf88b483aefeb4083bedc09957719011745c140388ccae0656e5bdf96e9c"},
+    "memories.webp": {"width": 800,"height": 600,"bytes": 165652,"sha256": "7ed2ae5b880afd427ff4a312f7376d896353b249ffdef6d179a6a4b5b9ff398d"}
   }
 }
