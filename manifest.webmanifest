@@ -1,0 +1,16 @@
+{
+  "name": "Sakura Crest: Social Summit",
+  "short_name": "Sakura Crest",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#11131e",
+  "theme_color": "#1c1d2b",
+  "description": "A family-friendly 2D anime high-school social simulation.",
+  "icons": [
+    {
+      "src": "assets/favicon.png",
+      "sizes": "128x128",
+      "type": "image/png"
+    }
+  ]
+}
