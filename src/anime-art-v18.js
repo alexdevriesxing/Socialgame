@@ -1,5 +1,5 @@
-// Commercial anime-art routing v1.10 — every visible scene uses a dedicated permanent local asset.
-const ANIME_ART_VERSION='1.10.0';
+// Commercial anime-art routing v1.11 — every visible scene uses a dedicated permanent local asset.
+const ANIME_ART_VERSION='1.11.0';
 const ANIME_ART_PATHS=Object.freeze({
   keyart:'assets/anime/keyart.webp',
   school_maps:'assets/anime/campus.webp',
@@ -60,7 +60,7 @@ function validateAnimeArtV18(sources=createArtSources()){
     ['world_locations','school_maps'],['district_map','school_maps']
   ].filter(([a,b])=>sources[a]===sources[b]);
   const errors=[];
-  if(ANIME_ART_VERSION!=='1.10.0')errors.push('release version mismatch');
+  if(ANIME_ART_VERSION!=='1.11.0')errors.push('release version mismatch');
   if(missing.length)errors.push(`missing: ${missing.join(', ')}`);
   if(external.length)errors.push(`external paths: ${external.join(', ')}`);
   if(recycled.length)errors.push(`recycled scene assets: ${recycled.map(pair=>pair.join('=')).join(', ')}`);
