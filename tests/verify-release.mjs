@@ -33,12 +33,25 @@ for (const path of manifest.files) {
 if (!serviceWorker.includes(`sakura-crest-v${RELEASE_VERSION}`)) throw new Error(`Service-worker cache version does not match release ${RELEASE_VERSION}.`);
 
 for (const required of [
-  'src/anime-art-v18.js','src/social-memory-v19.js','src/real-assets-v110.js','src/real-assets-v110.js','src/real-assets-v110.js',
+  'src/anime-art-v18.js','src/social-memory-v19.js','src/real-assets-v110.js',
   'src/campus.js','src/activity.js','src/visual.js','src/world.js','src/world-polish.js','src/world-title.js',
   'src/commercial-ui.js','src/commercial-campus.js','src/walkable-world.js','src/commercial-world-ui.js','src/anime-campus-v18.js',
   'src/accessibility-core.js','src/accessibility-preferences.js','src/accessibility-history.js','src/accessibility-performance.js','src/accessibility-ui.js',
   'src/release-readiness.js'
 ]) if (!index.includes(required)) throw new Error(`${required}: required v1.10 runtime is not wired into index.html.`);
+
+const realAssetRuntime = await readFile('src/real-assets-v110.js', 'utf8');
+for (const forbidden of ['legacyWwDrawScene','drawRealCollisionLandmarks','legacyWwDrawScene();']) {
+  if (realAssetRuntime.includes(forbidden)) throw new Error(`src/real-assets-v110.js still contains forbidden legacy/debug renderer: ${forbidden}`);
+}
+if (!realAssetRuntime.includes('collisionDebugVisible:false') || !realAssetRuntime.includes('legacySceneRenderer:false')) throw new Error('The v1.10 real-asset validator does not explicitly certify invisible collision geometry and removal of the legacy renderer.');
+if (!realAssetRuntime.includes('drawRealAssetLoadError')) throw new Error('Dedicated artwork failures are not surfaced through an explicit load-error state.');
+
+const artRouter = await readFile('src/anime-art-v18.js', 'utf8');
+for (const path of ['district-map.webp','world-locations.webp','events.webp','rivals.webp','memories.webp']) {
+  if (!artRouter.includes(path)) throw new Error(`src/anime-art-v18.js is missing dedicated path ${path}.`);
+}
+if (/event_atlas\s*:\s*ANIME_ART_PATHS\.(?:campus|keyart)/.test(artRouter) || /rival_atlas\s*:\s*ANIME_ART_PATHS\.(?:campus|keyart)/.test(artRouter) || /memory_atlas\s*:\s*ANIME_ART_PATHS\.(?:campus|keyart)/.test(artRouter)) throw new Error('Story atlases still recycle campus or title artwork.');
 
 const animeManifestPath = 'assets/anime/manifest.json';
 if (!manifest.files.includes(animeManifestPath)) throw new Error('Permanent anime-art manifest is absent from the release inventory.');
@@ -68,6 +81,9 @@ for (const [name, [width, height]] of Object.entries(expectedAnimeAssets)) {
   if (digests[path] !== record.sha256) throw new Error(`${path}: repository digest does not match the anime-art manifest.`);
 }
 
+const dedicatedPaths = ['district-map.webp','world-locations.webp','events.webp','rivals.webp','memories.webp'].map(name => animeManifest.assets[name].sha256);
+if (new Set(dedicatedPaths).size !== dedicatedPaths.length) throw new Error('Dedicated v1.10 artwork files share duplicate digests.');
+
 const headers = await readFile('_headers', 'utf8');
 for (const required of ['Content-Security-Policy:', 'X-Content-Type-Options: nosniff', 'X-Frame-Options: DENY', 'Strict-Transport-Security:', 'Service-Worker-Allowed: /']) {
   if (!headers.includes(required)) throw new Error(`_headers is missing required production directive: ${required}`);
@@ -84,6 +100,7 @@ if (!knownIssues.includes('Known critical defects: **0**') || !knownIssues.inclu
 
 console.log(`Release inventory passed for ${manifest.files.length} files and ${scripts.length} production scripts.`);
 console.log(`Permanent anime artwork passed for ${Object.keys(expectedAnimeAssets).length} assets.`);
+console.log('Dedicated v1.10 district, location, event, rival and memory artwork passed source, uniqueness and no-fallback checks.');
 console.log('Deep Social Memory remains compatible and dedicated real assets v1.10 are registered in runtime, offline cache and release documentation.');
 console.log(`Runtime digests generated for audit: ${Object.keys(digests).length}.`);
 console.log('Cloudflare headers, redirects, release notes, known issues and rollback documentation passed.');
