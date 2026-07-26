@@ -49,10 +49,13 @@ wwDrawScene=function(){
   const state=wwEnsureState(),id=state.locationId,scene=wwScene(),location=WORLD_LOCATIONS[id];
   const index=REAL_WORLD_CELL_INDEX[id];
   const image=realAssetImage('world_locations');
-  if(index===undefined||!drawRealAtlasCell(image,index,0,0,WW_MAP_W,WW_MAP_H)){
+  // wwDraw has already translated by -camera. Drawing at the camera origin presents the
+  // complete illustrated environment in the viewport instead of cropping away its identity.
+  const backgroundX=state.camera.x,backgroundY=state.camera.y;
+  if(index===undefined||!drawRealAtlasCell(image,index,backgroundX,backgroundY,W,H)){
     legacyWwDrawScene();return;
   }
-  realAssetShade(0,0,WW_MAP_W,WW_MAP_H,.02,.22);
+  realAssetShade(backgroundX,backgroundY,W,H,.02,.22);
   drawRealCollisionLandmarks(scene);
   // Functional exits and interaction anchors stay visible without covering the illustration.
   for(const hotspot of scene.hotspots||[]){
