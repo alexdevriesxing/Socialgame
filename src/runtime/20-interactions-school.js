@@ -5,6 +5,7 @@ function triggerNpcTalk(npc){
   const profile=socialProfile(npc.id);
   const memory=recentMemory(npc.id);
   const openPromise=openPromisesFor(npc.id)[0]||null;
+  const promiseReady=promiseIsReady(openPromise);
   let greeting=npc.greetings[(game.day+Math.floor(rel/2))%npc.greetings.length];
   if(rel>=6)greeting+=`\n\n${rel>=10?'They clearly trust you now.':'Your conversations have become comfortable and honest.'}`;
   if(profile.strain>=3)greeting+='\n\nThere is still some tension between you.';
@@ -17,7 +18,7 @@ function triggerNpcTalk(npc){
     {text:'Offer help with today’s challenge.',relationship:[npc.id,2],memoryNpc:npc.id,memoryType:'support',memory:`Offered practical help when ${npc.name} needed it.`,effects:{kindness:1,score:already?2:6,help:already?0:1},result:`${npc.name} accepts. It is a small task, but it turns into an easy conversation.`}
   ];
 
-  if(openPromise){
+  if(openPromise&&promiseReady){
     choices.push({
       text:`Follow through: ${openPromise.summary}`,
       memoryNpc:npc.id,
@@ -25,6 +26,16 @@ function triggerNpcTalk(npc){
       promiseKept:true,
       effects:{reliability:1,energy:-6,score:10,help:already?0:1},
       result:`You make time and finish what you promised. ${npc.name}'s relief is immediate—and so is the renewed trust.`
+    });
+  }else if(openPromise){
+    choices.push({
+      text:'Confirm what they need tomorrow',
+      relationship:[npc.id,1],
+      memoryNpc:npc.id,
+      memoryType:'respect',
+      memory:`Checked the details before helping ${npc.name}.`,
+      effects:{reliability:1,score:2},
+      result:`${npc.name} explains the details. You now know exactly what follow-through will require.`
     });
   }else{
     const recovery=recoveryChoiceFor(npc.id);
