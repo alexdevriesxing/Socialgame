@@ -1,0 +1,39 @@
+name: Export current character atlas v1.8
+
+on:
+  push:
+    branches:
+      - asset-transfer-v18
+  pull_request:
+    branches:
+      - agent/anime-art-integration-v18
+
+permissions:
+  contents: read
+
+jobs:
+  export:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: asset-transfer-v18
+          fetch-depth: 0
+      - name: Copy exact committed source atlas
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p exact-atlas
+          cp assets/anime/characters.webp exact-atlas/characters.webp
+          cp assets/anime/manifest.json exact-atlas/manifest.json
+          sha256sum exact-atlas/characters.webp > exact-atlas/sha256.txt
+          file exact-atlas/characters.webp > exact-atlas/file.txt
+      - name: Upload exact source atlas
+        uses: actions/upload-artifact@v4
+        with:
+          name: exact-committed-character-atlas
+          path: exact-atlas
+          if-no-files-found: error
+          retention-days: 3

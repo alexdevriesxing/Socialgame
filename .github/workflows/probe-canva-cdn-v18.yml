@@ -1,0 +1,62 @@
+name: Probe Canva CDN image retrieval
+
+on:
+  push:
+    branches:
+      - asset-transfer-v18
+
+permissions:
+  contents: write
+
+jobs:
+  probe:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: asset-transfer-v18
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Retrieve one real character tile through Chromium
+        run: |
+          rm -rf canva-cdn-probe && mkdir canva-cdn-probe
+          cat > canva-cdn-probe.mjs <<'JS'
+          import { chromium } from 'playwright';
+          import { writeFile } from 'node:fs/promises';
+          const url='https://design.canva.ai/8spWc7FOhDwQYod';
+          const browser=await chromium.launch({headless:true});
+          const context=await browser.newContext({
+            userAgent:'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/150.0.0.0 Safari/537.36',
+            extraHTTPHeaders:{Accept:'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8',Referer:'https://www.canva.com/'}
+          });
+          const page=await context.newPage();
+          const response=await page.goto(url,{waitUntil:'load',timeout:120000});
+          const meta={status:response?.status(),headers:response?.headers(),url:page.url(),title:await page.title()};
+          await writeFile('canva-cdn-probe/meta.json',JSON.stringify(meta,null,2));
+          if(response?.ok()&&String(response.headers()['content-type']||'').includes('image')){
+            await writeFile('canva-cdn-probe/tile.png',await response.body());
+          }else{
+            await page.screenshot({path:'canva-cdn-probe/page.png',fullPage:false});
+            await writeFile('canva-cdn-probe/body.html',(await page.content()).slice(0,100000));
+          }
+          await browser.close();
+          JS
+          node canva-cdn-probe.mjs
+          rm canva-cdn-probe.mjs
+          file canva-cdn-probe/* || true
+          du -ah canva-cdn-probe
+      - name: Commit probe evidence
+        if: always()
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add -f canva-cdn-probe
+          git commit -m 'Capture Canva CDN retrieval probe' || true
+          git push origin HEAD:asset-transfer-v18
