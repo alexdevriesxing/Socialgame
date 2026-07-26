@@ -1,0 +1,86 @@
+name: Probe Canva public render
+
+on:
+  push:
+    branches:
+      - agent/anime-art-canva-probe
+  pull_request:
+    branches:
+      - agent/anime-art-integration-v18
+
+permissions:
+  contents: write
+
+jobs:
+  render:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/anime-art-canva-probe
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: |
+          npm install --no-save --no-package-lock playwright@1.55.0
+          npx playwright install --with-deps chromium
+      - name: Render public Canva view links
+        continue-on-error: true
+        run: |
+          rm -rf public-render
+          mkdir -p public-render
+          cat > render-probe.mjs <<'JS'
+          import { chromium } from 'playwright';
+          import { writeFile } from 'node:fs/promises';
+          const jobs = [
+            ['keyart','https://www.canva.com/d/cO290zCCs31lTa0',1672,941],
+            ['campus','https://www.canva.com/d/_kQBvRQfgZNSPXd',1920,768],
+            ['characters','https://www.canva.com/d/vUdi7lkn8mTf_LM',1728,1024],
+            ['objects','https://www.canva.com/d/eNQi1RjdPi4mx4R',1024,512]
+          ];
+          let browser;
+          try {
+            browser = await chromium.launch({headless:true});
+            for (const [name,url,width,height] of jobs) {
+              const page = await browser.newPage({viewport:{width,height},deviceScaleFactor:1});
+              const errors=[];
+              page.on('console',msg=>{if(msg.type()==='error')errors.push(`console: ${msg.text()}`)});
+              page.on('pageerror',error=>errors.push(`page: ${error.message}`));
+              try {
+                await page.goto(url,{waitUntil:'domcontentloaded',timeout:120000});
+                await page.waitForTimeout(12000);
+                await page.screenshot({path:`public-render/${name}-viewport.png`,fullPage:false});
+                const info = await page.evaluate(() => ({title:document.title,url:location.href,body:[document.body.scrollWidth,document.body.scrollHeight],html:document.documentElement.outerHTML.slice(0,20000),images:[...document.images].map(i=>({src:i.currentSrc||i.src,w:i.naturalWidth,h:i.naturalHeight,rect:[i.getBoundingClientRect().x,i.getBoundingClientRect().y,i.getBoundingClientRect().width,i.getBoundingClientRect().height]})).sort((a,b)=>b.w*b.h-a.w*a.h).slice(0,40),canvases:[...document.querySelectorAll('canvas')].map(c=>({w:c.width,h:c.height,rect:[c.getBoundingClientRect().x,c.getBoundingClientRect().y,c.getBoundingClientRect().width,c.getBoundingClientRect().height]})).sort((a,b)=>b.w*b.h-a.w*a.h).slice(0,20)}));
+                info.errors=errors;
+                await writeFile(`public-render/${name}.json`,JSON.stringify(info,null,2));
+              } catch(error) {
+                errors.push(error.stack||String(error));
+                await writeFile(`public-render/${name}-error.txt`,errors.join('\n'));
+                try { await page.screenshot({path:`public-render/${name}-error.png`,fullPage:false}); } catch {}
+              }
+              await page.close();
+            }
+          } catch(error) {
+            await writeFile('public-render/global-error.txt',error.stack||String(error));
+          } finally {
+            if(browser) await browser.close();
+          }
+          JS
+          node render-probe.mjs > public-render/node.log 2>&1 || true
+          rm -f render-probe.mjs
+          find public-render -maxdepth 1 -type f -printf '%f %s bytes\n' | sort > /tmp/files.txt
+          cp /tmp/files.txt public-render/files.txt
+          cat public-render/files.txt
+      - name: Commit compact render evidence to probe branch
+        if: always()
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          test -d public-render || mkdir public-render
+          test -f public-render/files.txt || echo 'No files generated' > public-render/files.txt
+          git add -f public-render
+          git commit -m "Capture Canva public render evidence"
+          git push origin HEAD:agent/anime-art-canva-probe

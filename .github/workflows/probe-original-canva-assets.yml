@@ -1,0 +1,41 @@
+name: Probe original Canva asset resolutions
+
+on:
+  pull_request:
+    branches:
+      - agent/anime-art-integration-v18
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 6
+    steps:
+      - uses: actions/checkout@v4
+      - name: Request original-dimension asset renditions
+        env:
+          KEYART: >-
+            https://media.canva.com/v2/image-resize/format:PNG/height:941/quality:100/uri:ifs%3A%2F%2FM%2F9b01ba75-61eb-42bb-9dd1-9ea7e168a20d/watermark:F/width:1672?csig=AAAAAAAAAAAAAAAAAAAAALOfRN6u_YMh8uUvfARchgxDtwZ9R5DPw70V878Snf6E&exp=1784134800&osig=AAAAAAAAAAAAAAAAAAAAAIUJNlzPOyMpZj1vujZflMOQvtd2I3XzqN9n0NshwbL7&signer=media-rpc&x-canva-quality=thumbnail
+          CAMPUS: >-
+            https://media.canva.com/v2/image-resize/format:PNG/height:1080/quality:100/uri:ifs%3A%2F%2FM%2F24c0e46f-c85f-48df-a73e-098affdee15f/watermark:F/width:5760?csig=AAAAAAAAAAAAAAAAAAAAAEGTR6knl4A73rSRWKPspAzHmUnwwz0b0xdDCcO-lqi1&exp=1784132803&osig=AAAAAAAAAAAAAAAAAAAAAAl_JuwvAB1NYSKJ5siZSnEHIVb3V7G3iffi4IfuJC5t&signer=media-rpc&x-canva-quality=thumbnail
+          CHARACTERS: >-
+            https://media.canva.com/v2/image-resize/format:PNG/height:2048/quality:100/uri:ifs%3A%2F%2FM%2F576d08a8-520a-4db7-b229-afbad83f9392/watermark:F/width:3456?csig=AAAAAAAAAAAAAAAAAAAAAC6lvOheimjpF1FBaWcBs1dDcYS5j9D_FMH96Idl18BX&exp=1784133089&osig=AAAAAAAAAAAAAAAAAAAAAFPc8Br5u4oNC5uCa9h837JDsrecxlUIZ7UMc-DfGP7d&signer=media-rpc&x-canva-quality=thumbnail
+          OBJECTS: >-
+            https://media.canva.com/v2/image-resize/format:PNG/height:512/quality:100/uri:ifs%3A%2F%2FM%2F2a7871dc-44a7-4dc1-bce2-bfd154206f34/watermark:F/width:1024?csig=AAAAAAAAAAAAAAAAAAAAANKpHZS3w6EEADIhEjWRZX3W5yVdS2QJLDodVq1I_ytY&exp=1784132279&osig=AAAAAAAAAAAAAAAAAAAAAIP7P6T2W9mnUVuj0gkHh__D7a-Cxn-IRDy-yw9AL5Zo&signer=media-rpc&x-canva-quality=thumbnail
+        run: |
+          mkdir -p probe
+          for name in KEYART CAMPUS CHARACTERS OBJECTS; do
+            url="${!name}"
+            code=$(curl -L --silent --show-error -w '%{http_code}' "$url" -o "probe/${name,,}.png" || true)
+            echo "$name HTTP $code"
+          done
+          file probe/* || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: original-canva-asset-probe
+          path: probe
+          if-no-files-found: warn
+          retention-days: 1
