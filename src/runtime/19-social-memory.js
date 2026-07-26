@@ -91,12 +91,12 @@ function applyChoiceMemory(dialogue,choice){
   const rel=choice?.relationship;
   const npcId=choice?.memoryNpc||rel?.[0]||dialogue?.portrait;
   if(!npcId||!NPCS.some(n=>n.id===npcId))return;
+  if(choice.promise){recordPromise(npcId,choice.promise,choice.promiseDueDay);return;}
+  if(choice.resolvePromise){resolvePromise(npcId,choice.resolvePromise,choice.promiseKept!==false);return;}
   const delta=rel?.[1]||0;
   const type=choice.memoryType||(delta>=2?'support':delta<0?'hurt':'respect');
   const summary=choice.memory||choice.achievement||choice.result||choice.text||'A meaningful conversation';
   rememberRelationship(npcId,type,summary,delta);
-  if(choice.promise)recordPromise(npcId,choice.promise,choice.promiseDueDay);
-  if(choice.resolvePromise)resolvePromise(npcId,choice.resolvePromise,choice.promiseKept!==false);
 }
 
 function recoveryChoiceFor(npcId){
