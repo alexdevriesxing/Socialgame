@@ -43,13 +43,6 @@ text=text.replace("'docs/release-v1.9-social-memory.md','docs/cloudflare-release
 text=text.replace('required v1.9 runtime','required v1.10 runtime').replace('Deep Social Memory v1.9 is registered in the runtime, offline cache and release documentation.','Deep Social Memory remains compatible and dedicated real assets v1.10 are registered in runtime, offline cache and release documentation.')
 verify.write_text(text)
 
-deploy=ROOT/'.github/workflows/deploy-cloudflare-pages.yml'
-text=deploy.read_text().replace('Verify v1.8 production artifact','Verify v1.10 production artifact').replace("manifest.version !== '1.8.0'","manifest.version !== '1.10.0'").replace('Sakura Crest v1.8 production release','Sakura Crest v1.10 production release')
-old='test -s dist/assets/anime/characters.webp'
-new='test -s dist/assets/anime/characters.webp\n          test -s dist/assets/anime/district-map.webp\n          test -s dist/assets/anime/world-locations.webp\n          test -s dist/assets/anime/events.webp\n          test -s dist/assets/anime/rivals.webp\n          test -s dist/assets/anime/memories.webp'
-if old in text and 'district-map.webp' not in text:text=text.replace(old,new)
-deploy.write_text(text)
-
 doc=ROOT/'docs/release-v1.10-real-assets.md'
 doc.write_text('''# Sakura Crest v1.10 — Dedicated Real Assets
 
