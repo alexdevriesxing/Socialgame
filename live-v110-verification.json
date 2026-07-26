@@ -1,0 +1,18 @@
+{
+  "verified": true,
+  "release": "1.10.0",
+  "commit": "5a6d5475c6982f27917d432f4e5e2d33ab949ef4",
+  "project": "socialgame",
+  "liveUrl": "https://socialgame-2fo.pages.dev",
+  "canonicalUrl": "https://socialgame-2fo.pages.dev",
+  "deploymentUrl": "https://d9e4570b.socialgame-2fo.pages.dev",
+  "proceduralFallbacks": false,
+  "externalRuntimeDependency": false,
+  "dedicatedAssets": {
+    "districtMapBytes": 138598,
+    "worldLocationsBytes": 159288,
+    "eventsBytes": 169002,
+    "rivalsBytes": 186542,
+    "memoriesBytes": 165652
+  }
+}
