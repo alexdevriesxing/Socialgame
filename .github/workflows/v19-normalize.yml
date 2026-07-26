@@ -1,0 +1,42 @@
+name: Normalize v1.9 browser gates
+
+on:
+  push:
+    branches:
+      - agent/deep-social-memory-v19-runtime
+
+permissions:
+  contents: write
+
+jobs:
+  normalize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v4
+        with:
+          ref: agent/deep-social-memory-v19-runtime
+          fetch-depth: 0
+
+      - name: Normalize release assertions
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          for name in ['tests/browser-production-smoke.mjs', 'tests/remote-static-smoke.mjs']:
+              path = Path(name)
+              text = path.read_text()
+              text = text.replace("'1.8.0'", "'1.9.0'")
+              text = text.replace('v1.8', 'v1.9')
+              text = text.replace('permanent v1.8 anime artwork', 'permanent anime artwork with Deep Social Memory v1.9')
+              path.write_text(text)
+          PY
+          rm .github/workflows/v19-normalize.yml
+
+      - name: Commit normalized gates
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+          git add tests/browser-production-smoke.mjs tests/remote-static-smoke.mjs .github/workflows/v19-normalize.yml
+          git commit -m "Align browser release gates with v1.9"
+          git push origin HEAD:agent/deep-social-memory-v19-runtime
