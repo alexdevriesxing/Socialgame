@@ -1,0 +1,36 @@
+name: Refine world locations v1.10
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: write
+
+jobs:
+  refine:
+    if: github.actor != 'github-actions[bot]' && github.head_ref == 'agent/real-asset-completion-v110'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: agent/real-asset-completion-v110
+          fetch-depth: 0
+      - run: python3 -m pip install --quiet pillow
+      - run: python3 tools/refine_world_locations_v110.py
+      - name: Verify refined atlas
+        run: |
+          python3 - <<'PY'
+          from PIL import Image
+          image=Image.open('assets/anime/world-locations.webp');image.load();assert image.size==(1536,1024);print(image.size,image.mode)
+          PY
+          node tests/verify-release.mjs
+      - name: Commit refined world artwork
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add assets/anime/world-locations.webp assets/anime/manifest.json
+          git commit -m 'Refine all sixteen world-location environments'
+          git push origin HEAD:agent/real-asset-completion-v110
