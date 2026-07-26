@@ -1,6 +1,17 @@
-# Sakura Crest: Social Summit — Production Release v1.8
+# Sakura Crest: Social Summit — Production Release v1.9
 
-Sakura Crest is a complete four-year anime school-life RPG built as a static browser game. Release v1.8 combines the full campaign, living campus, active classes and clubs, fourteen walkable destinations, monthly rankings, elections, Prom, graduation, New Game+, resilient saves, original audio and accessibility with a permanent commercial anime-art presentation.
+Sakura Crest is a complete four-year anime school-life RPG built as a static browser game. Release v1.9 combines the full campaign, living campus, active classes and clubs, fourteen walkable destinations, monthly rankings, elections, Prom, graduation, New Game+, resilient saves, original audio, accessibility, permanent commercial anime artwork and a deeper social-memory simulation.
+
+## Deep social memory
+
+- Every core classmate now tracks trust, respect, warmth, strain and jealousy in addition to the existing friendship bond.
+- Important dialogue choices are remembered with their year, month and day rather than disappearing after the reward is applied.
+- Players can make specific promises, follow through for lasting trust or face a broken-promise conversation later.
+- Unresolved strain creates authored reconciliation scenes with listening, accountability and avoidance paths.
+- Strong attention within the same social circle can create restrained, family-friendly jealousy reactions.
+- Context-sensitive conversation text responds to lunch, club time, trusted friendships and unresolved conflict.
+- A connection review shows the current emotional state, open promise and recent shared memories.
+- Existing friendship routes, rivalry scenes, phone messages, Prom and all four campaign years remain intact.
 
 ## Commercial anime artwork
 
@@ -35,6 +46,7 @@ Sakura Crest is a complete four-year anime school-life RPG built as a static bro
 - Invalid JSON and checksum mismatches are quarantined rather than silently accepted.
 - Unsafe numeric values are repaired into supported gameplay ranges.
 - Save formats v1 through v9 migrate forward to v10.
+- Deep social-memory data is stored inside the existing player snapshot and initializes automatically for older v10 saves.
 
 Progress remains local to the browser. Clearing the site's browser storage removes local progress and recovery files.
 
@@ -59,10 +71,11 @@ The player can freely walk through Sakura Crest Academy, their bedroom, Shopping
 - Build output directory: **.**
 - Production branch: **main**
 
-The repository root is the complete static artifact. `_headers` supplies the production security and cache policy, `_redirects` provides stable entry aliases, and `sw.js` caches the v1.8 runtime and artwork for offline play after the first successful load.
+The repository root is the complete static artifact. `_headers` supplies the production security and cache policy, `_redirects` provides stable entry aliases, and `sw.js` caches the v1.9 runtime and artwork for offline play after the first successful load.
 
 Operational documents:
 
+- `docs/release-v1.9-social-memory.md` — social-memory design, persistence and validation scope.
 - `docs/release-v1.8-art.md` — commercial art release and validation scope.
 - `docs/release-v1.7.md` — campaign, balance and save-recovery foundation.
 - `docs/cloudflare-release-runbook.md` — production verification and rollback.
@@ -76,7 +89,8 @@ The `Production browser QA` workflow validates:
 - syntax for every production and QA script;
 - all permanent artwork dimensions and SHA-256 digests;
 - release inventory, service-worker cache, security headers and redirects;
-- the complete campaign, living-campus, active-school, social, collection and walkable-world systems;
+- the complete campaign, living-campus, active-school, collection and walkable-world systems;
+- Deep Social Memory initialization for all ten classmates and bounded emotional-state values;
 - twenty-four deterministic 48-month campaign profiles;
 - both Prom ending families for both ranking ladders;
 - save v1-v10 migration, checksum tampering, interrupted writes, corrupted-main recovery and deletion;
@@ -89,7 +103,7 @@ The `Production browser QA` workflow validates:
 
 ## Known release status
 
-The validated repository build contains no known critical or high-severity defects. Production is deployed from `main` through Cloudflare Pages after the exact merge commit passes the release gate.
+The repository build contains no known critical or high-severity defects before this branch enters the production merge gate. Production is deployed from `main` through Cloudflare Pages after the exact merge commit passes the release workflow.
 
 ## Controls
 
