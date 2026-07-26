@@ -1,5 +1,5 @@
-// Pass 11 v1.10 — dedicated real assets, final balance, progression integrity and release diagnostics.
-const RELEASE_READINESS_VERSION='1.10.0';
+// Pass 12 v1.11 — living district progression, dedicated real assets, final balance and release diagnostics.
+const RELEASE_READINESS_VERSION='1.11.0';
 const RELEASE_BALANCE={
   scoreRetention:{established:.46,ordinary:.42,outsider:.39},
   recovery:{established:{energy:4,stress:4},ordinary:{energy:2,stress:2},outsider:{energy:1,stress:1}},
@@ -66,5 +66,6 @@ function validateReleaseBalance(){
 function validateReleaseReadiness(){
   const references=validateReleaseReferences(),balance=validateReleaseBalance(),save=typeof validateSaveSnapshot==='function'?validateSaveSnapshot(normalizeSaveSnapshot(gameSnapshot())):{valid:false,issues:['save validator missing']};
   const social=globalThis.SakuraSocialMemoryV19?.validate?.()||{valid:false,issues:['Deep Social Memory v1.9 runtime missing']};
-  return{valid:references.valid&&balance.valid&&save.valid&&social.valid,version:RELEASE_READINESS_VERSION,references,balance,save,social,knownCriticalIssues:0,knownHighIssues:0};
+  const living=globalThis.SAKURA_LIVING_DISTRICT_V111?.validate?.()||{valid:false,issues:['Living District v1.11 runtime missing']};
+  return{valid:references.valid&&balance.valid&&save.valid&&social.valid&&living.valid,version:RELEASE_READINESS_VERSION,references,balance,save,social,living,knownCriticalIssues:0,knownHighIssues:0};
 }
