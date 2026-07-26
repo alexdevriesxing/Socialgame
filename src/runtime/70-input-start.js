@@ -8,21 +8,22 @@ canvas.addEventListener('pointerup',()=>{pointer.down=false;['arrowup','arrowdow
 canvas.addEventListener('pointerleave',()=>{pointer.down=false;['arrowup','arrowdown','arrowleft','arrowright'].forEach(k=>keys.delete(k));});
 window.addEventListener('keydown',e=>{
   const k=e.key.toLowerCase();keys.add(k);
-  if(['arrowup','arrowdown','arrowleft','arrowright',' ','e','q','r'].includes(k))e.preventDefault();
+  if(['arrowup','arrowdown','arrowleft','arrowright',' ','e','q','r','f'].includes(k))e.preventDefault();
   if(game.dialogue){
     if(k===' '||k==='e'||k==='enter'){
       if(game.dialogue.reveal<game.dialogue.text.length)game.dialogue.reveal=game.dialogue.text.length;
       else closeDialogue(game.dialogue.selected||0);
-    } else if(['1','2','3','4'].includes(k)&&game.dialogue.reveal>=game.dialogue.text.length)closeDialogue(Number(k)-1);
+    }else if(['1','2','3','4'].includes(k)&&game.dialogue.reveal>=game.dialogue.text.length)closeDialogue(Number(k)-1);
     else if(k==='arrowdown')game.dialogue.selected=(game.dialogue.selected+1)%Math.max(1,game.dialogue.choices.length);
     else if(k==='arrowup')game.dialogue.selected=(game.dialogue.selected-1+Math.max(1,game.dialogue.choices.length))%Math.max(1,game.dialogue.choices.length);
     return;
   }
-  if(game.overlay){if(k==='escape'||k==='q'||k==='r')game.overlay=null;return;}
+  if(game.overlay){if(k==='escape'||k==='q'||k==='r'||k==='f')game.overlay=null;return;}
   if(game.mode==='play'){
     if(k==='e'||k===' ')interact();
     if(k==='r')game.overlay={type:'rankings',title:'Live Social Rankings'};
     if(k==='q')game.overlay={type:'schedule',title:'Class Schedule'};
+    if(k==='f')game.overlay={type:'social',title:'Social Notebook',selectedNpc:0};
     if(k==='m')audio.toggle();
     if(k==='escape'){game.paused=!game.paused;notify(game.paused?'Paused':'Resumed',COLORS.sky);}
   }
@@ -34,7 +35,7 @@ confirmName.addEventListener('click',()=>{
   game.player.name=n;game.player.gender=game.creatorGender;game.player.club=game.creatorClub;game.player.socialStatus=game.creatorStatus;
   if(game.player.gender==='girl'){game.player.stats.kindness++;game.player.stats.talent++;}
   else{game.player.stats.courage++;game.player.stats.fitness++;}
-  game.player.stats[CLUBS[game.player.club].stat]+=2;initializeSocialStatus();
+  game.player.stats[CLUBS[game.player.club].stat]+=2;initializeSocialStatus();ensureSocialMemoryState();
   creator.classList.add('hidden');game.mode='play';assignMissions();relocateNPCs('arrival');audio.startMusic();
   openDialogue({speaker:'Ms. Hayashi',portrait:12,text:`Welcome to ${SCHOOL_NAME}, ${game.player.name}.\n\nYour schedule matters. Reach each room before the grace period ends, build real friendships, contribute to ${clubConfig().name}, and remember: the monthly rankings measure conduct as well as popularity.
 
